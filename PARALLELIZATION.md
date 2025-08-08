@@ -14,6 +14,16 @@ This version of PHMM-Tree has been enhanced with OpenMP parallelization for impr
 - Global optimization loops parallelized
 - Statistical calculations accelerated
 
+### Neighbor-Joining Method (neighbor.c)
+- Matrix operations parallelized
+- Distance calculations optimized
+- Minimum finding operations accelerated
+
+### UPGMA Method (upgma.c)
+- Hierarchical clustering parallelized
+- Matrix processing optimized
+- Distance accumulation accelerated
+
 ## Features
 
 ### Automatic Thread Detection
@@ -22,10 +32,11 @@ This version of PHMM-Tree has been enhanced with OpenMP parallelization for impr
 - Falls back to sequential execution if OpenMP is not available
 
 ### Parallelized Components
-1. **Global Rearrangements** (`globrearrange`): The most computationally intensive part
-2. **Distance Calculations** (`nudists_parallel`): Parallel computation of node distances
-3. **Node Initialization** (`setuptipf`, `nodeinit`): Parallel setup of tree nodes
-4. **Species Setup**: Parallel initialization of species data
+1. **Global Rearrangements**: The most computationally intensive operations across all algorithms
+2. **Distance Calculations**: Parallel computation of node and matrix distances
+3. **Matrix Operations**: Parallel processing of distance matrices (Neighbor-Joining, UPGMA)
+4. **Node Initialization**: Parallel setup of tree nodes and data structures
+5. **Statistical Calculations**: Parallel computation of quality metrics and variance
 
 ### Performance Benefits
 - Significant speedup for large datasets (>100 species)

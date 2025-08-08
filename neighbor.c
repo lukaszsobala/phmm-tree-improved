@@ -33,6 +33,10 @@
 #include "phylip.h"
 #include "dist.h"
 
+#ifdef OPENMP_ENABLED
+#include <omp.h>
+#endif
+
 #ifndef OLDC
 /* function prototypes */
 void neighbor_getoptions(void);
@@ -46,6 +50,9 @@ void nodelabel(boolean);
 void jointree(void);
 void neighbor_maketree(void);
 void freerest(void);
+#ifdef OPENMP_ENABLED
+void init_neighbor_parallel(void);
+#endif
 /* function prototypes */
 #endif
 
@@ -65,6 +72,26 @@ Char neighbor_progname[20];
 
 /* variables for neighbor_maketree, propagated globally for C version: */
 node **neighbor_cluster;
+
+#ifdef OPENMP_ENABLED
+/* Parallelization variables */
+static int neighbor_num_threads = 1;
+
+void init_neighbor_parallel(void)
+{
+  /* Initialize parallel processing */
+#ifdef AUTO_THREAD_DETECTION
+  neighbor_num_threads = omp_get_max_threads();
+  omp_set_num_threads(neighbor_num_threads);
+#else
+  neighbor_num_threads = omp_get_max_threads();
+#endif
+  
+  if (neighbor_progress) {
+    printf("OpenMP parallel neighbor-joining enabled with %d thread(s)\n", neighbor_num_threads);
+  }
+}
+#endif
 
 
 void neighbor_getoptions()
@@ -235,6 +262,9 @@ void jointree()
   R = (double *)Malloc(spp * sizeof(double));
 
   for (i = 0; i <= spp - 2; i++) {
+#ifdef OPENMP_ENABLED
+    #pragma omp parallel for private(j, da) schedule(dynamic)
+#endif
     for (j = i + 1; j < spp; j++) {
       da = (neighbor_x[i][j] + neighbor_x[j][i]) / 2.0;
       neighbor_x[i][j] = da;
@@ -263,11 +293,17 @@ void jointree()
     tmin = DBL_MAX;
     /* Compute sij and minimize */
     if (neighbor_njoin) {     /* many revisions by Y. Ina from here ... */
+#ifdef OPENMP_ENABLED
+      #pragma omp parallel for private(i) schedule(static)
+#endif
       for (i = 0; i < spp; i++)
         R[i] = 0.0;
       for (ja = 2; ja <= spp; ja++) {
         jj = neighbor_enterorder[ja - 1];
         if (neighbor_cluster[jj - 1] != NULL) {
+#ifdef OPENMP_ENABLED
+          #pragma omp parallel for private(ia, ii) reduction(+:R[:spp]) schedule(dynamic)
+#endif
           for (ia = 0; ia <= ja - 2; ia++) {
             ii = neighbor_enterorder[ia];
             if (neighbor_cluster[ii - 1] != NULL) {
@@ -281,6 +317,9 @@ void jointree()
     for (ja = 2; ja <= spp; ja++) {
       jj = neighbor_enterorder[ja - 1];
       if (neighbor_cluster[jj - 1] != NULL) {
+#ifdef OPENMP_ENABLED
+        #pragma omp parallel for private(ia, ii, total) schedule(dynamic)
+#endif
         for (ia = 0; ia <= ja - 2; ia++) {
           ii = neighbor_enterorder[ia];
           if (neighbor_cluster[ii - 1] != NULL) {
@@ -289,10 +328,15 @@ void jointree()
                /* this statement part of revisions by Y. Ina */
             } else
               total = neighbor_x[ii - 1][jj - 1];
-            if (total < tmin) {
-              tmin = total;
-              mini = ii;
-              minj = jj;
+#ifdef OPENMP_ENABLED
+            #pragma omp critical
+#endif
+            {
+              if (total < tmin) {
+                tmin = total;
+                mini = ii;
+                minj = jj;
+              }
             }
           }
         }
@@ -302,6 +346,9 @@ void jointree()
     if (neighbor_njoin) {
       dio = 0.0;
       djo = 0.0;
+#ifdef OPENMP_ENABLED
+      #pragma omp parallel for private(i) reduction(+:dio,djo) schedule(static)
+#endif
       for (i = 0; i < spp; i++) {
         dio += neighbor_x[i][mini - 1];
         djo += neighbor_x[i][minj - 1];
@@ -348,6 +395,9 @@ void jointree()
       av[mini - 1] = dmin * 0.5;
     /* re-initialization */
     fotu2 -= 1.0;
+#ifdef OPENMP_ENABLED
+    #pragma omp parallel for private(j, da) schedule(dynamic)
+#endif
     for (j = 0; j < spp; j++) {
       if (neighbor_cluster[j] != NULL) {
         if (neighbor_njoin) {
@@ -364,6 +414,9 @@ void jointree()
         }
       }
     }
+#ifdef OPENMP_ENABLED
+    #pragma omp parallel for private(j) schedule(static)
+#endif
     for (j = 0; j < spp; j++) {
       neighbor_x[minj - 1][j] = 0.0;
       neighbor_x[j][minj - 1] = 0.0;
@@ -425,6 +478,10 @@ void neighbor_maketree()
 {
   /* construct the tree */
   long i ;
+
+#ifdef OPENMP_ENABLED
+  init_neighbor_parallel();
+#endif
 
   inputdata(neighbor_replicates, neighbor_printdata, neighbor_lower, neighbor_upper, neighbor_x, neighbor_reps);
   if (neighbor_njoin && (spp < 3)) {

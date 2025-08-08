@@ -33,6 +33,10 @@
 #include "phylip.h"
 #include "dist.h"
 
+#ifdef OPENMP_ENABLED
+#include <omp.h>
+#endif
+
 #ifndef OLDC
 /* function prototypes */
 void upgma_getoptions(void);
@@ -46,6 +50,9 @@ void upgma_nodelabel(boolean);
 void upgma_jointree(void);
 void upgma_maketree(void);
 void upgma_freerest(void);
+#ifdef OPENMP_ENABLED
+void init_upgma_parallel(void);
+#endif
 /* function prototypes */
 #endif
 
@@ -61,6 +68,11 @@ static tree curtree;
 static longer seed;
 static long *enterorder;
 static Char progname[20];
+
+/* OpenMP parallel processing variables */
+#ifdef OPENMP_ENABLED
+static int upgma_num_threads = 1;
+#endif
 
 /* variables for upgma_maketree, propagated globally for C version: */
 node **cluster;
@@ -85,6 +97,24 @@ void upgma_getoptions()
   njoin = false;
   loopcount = 0;
 }  /* upgma_getoptions */
+
+
+#ifdef OPENMP_ENABLED
+void init_upgma_parallel(void)
+{
+  /* Initialize parallel processing */
+#ifdef AUTO_THREAD_DETECTION
+  upgma_num_threads = omp_get_max_threads();
+  omp_set_num_threads(upgma_num_threads);
+#else
+  upgma_num_threads = omp_get_max_threads();
+#endif
+  
+  if (progress) {
+    printf("OpenMP parallel UPGMA enabled with %d thread(s)\n", upgma_num_threads);
+  }
+}
+#endif
 
 
 void upgma_allocrest()
@@ -233,6 +263,9 @@ void upgma_jointree()
   double *R;   /* added in revisions by Y. Ina */
   R = (double *)Malloc(spp * sizeof(double));
 
+#ifdef OPENMP_ENABLED
+  #pragma omp parallel for private(j, da) schedule(dynamic)
+#endif
   for (i = 0; i <= spp - 2; i++) {
     for (j = i + 1; j < spp; j++) {
       da = (x[i][j] + x[j][i]) / 2.0;
@@ -245,6 +278,9 @@ void upgma_jointree()
   nextnode = spp + 1;
   av = (vector)Malloc(spp*sizeof(double));
   oc = (intvector)Malloc(spp*sizeof(long));
+#ifdef OPENMP_ENABLED
+  #pragma omp parallel for schedule(static)
+#endif
   for (i = 0; i < spp; i++) {
     av[i] = 0.0;
     oc[i] = 1;
@@ -255,6 +291,9 @@ void upgma_jointree()
   else
     iter = spp - 1;
   for (nc = 1; nc <= iter; nc++) {
+#ifdef OPENMP_ENABLED
+    #pragma omp parallel for private(i) schedule(static)
+#endif
     for (j = 2; j <= spp; j++) {
       for (i = 0; i <= j - 2; i++)
         x[j - 1][i] = x[i][j - 1];
@@ -262,6 +301,9 @@ void upgma_jointree()
     tmin = DBL_MAX;
     /* Compute sij and minimize */
     if (njoin) {     /* many revisions by Y. Ina from here ... */
+#ifdef OPENMP_ENABLED
+      #pragma omp parallel for schedule(static)
+#endif
       for (i = 0; i < spp; i++)
         R[i] = 0.0;
       for (ja = 2; ja <= spp; ja++) {
@@ -301,6 +343,9 @@ void upgma_jointree()
     if (njoin) {
       dio = 0.0;
       djo = 0.0;
+#ifdef OPENMP_ENABLED
+      #pragma omp parallel for reduction(+:dio,djo) schedule(static)
+#endif
       for (i = 0; i < spp; i++) {
         dio += x[i][mini - 1];
         djo += x[i][minj - 1];
@@ -347,6 +392,9 @@ void upgma_jointree()
       av[mini - 1] = dmin * 0.5;
     /* re-initialization */
     fotu2 -= 1.0;
+#ifdef OPENMP_ENABLED
+    #pragma omp parallel for private(da) schedule(dynamic)
+#endif
     for (j = 0; j < spp; j++) {
       if (cluster[j] != NULL) {
         if (njoin) {
@@ -363,6 +411,9 @@ void upgma_jointree()
         }
       }
     }
+#ifdef OPENMP_ENABLED
+    #pragma omp parallel for schedule(static)
+#endif
     for (j = 0; j < spp; j++) {
       x[minj - 1][j] = 0.0;
       x[j][minj - 1] = 0.0;
@@ -424,6 +475,10 @@ void upgma_maketree()
 {
   /* construct the tree */
   long i ;
+
+#ifdef OPENMP_ENABLED
+  init_upgma_parallel();
+#endif
 
   inputdata(replicates, printdata, lower, upper, x, reps);
   if (njoin && (spp < 3)) {

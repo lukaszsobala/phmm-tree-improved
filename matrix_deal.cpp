@@ -251,15 +251,21 @@ int  HMMTree::matrix_get_each2_hmms_result_2(){
 
     int row_number_matrix = 0;
     int col_number_matrix = 0;
-    if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) == hmm_NAME_id_list_unordered_map.end()){
+    if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) != hmm_NAME_id_list_unordered_map.end()){
+        row_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
+    }else if(hmm_ACC_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) != hmm_ACC_id_list_unordered_map.end()){
         row_number_matrix = hmm_ACC_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
     }else{
-        row_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
+        std::cout << "Error: Cannot find HMM name '" << STUC_RHH_NOTE_distanc_temp.hmm1.name << "' in matrix maps!" << std::endl;
+        return 0;
     }
-    if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) == hmm_NAME_id_list_unordered_map.end()){
+    if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) != hmm_NAME_id_list_unordered_map.end()){
+        col_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
+    }else if(hmm_ACC_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) != hmm_ACC_id_list_unordered_map.end()){
         col_number_matrix = hmm_ACC_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
     }else{
-        col_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
+        std::cout << "Error: Cannot find HMM name '" << STUC_RHH_NOTE_distanc_temp.hmm2.name << "' in matrix maps!" << std::endl;
+        return 0;
     }
     //put the distance into the matrix
     dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
@@ -290,15 +296,23 @@ int HMMTree::matrix_get_lib_hmms_result_2(){
 
         int row_number_matrix = 0;
         int col_number_matrix = 0;
-        if(hmm_NAME_id_list_unordered_map.find(str_name1) == hmm_NAME_id_list_unordered_map.end()){
+        if(hmm_NAME_id_list_unordered_map.find(str_name1) != hmm_NAME_id_list_unordered_map.end()){
+            row_number_matrix = hmm_NAME_id_list_unordered_map[str_name1];
+        }else if(hmm_ACC_id_list_unordered_map.find(str_name1) != hmm_ACC_id_list_unordered_map.end()){
             row_number_matrix = hmm_ACC_id_list_unordered_map[str_name1];
         }else{
-            row_number_matrix = hmm_NAME_id_list_unordered_map[str_name1];
+            std::cout << "Error: Cannot find HMM name '" << str_name1 << "' in matrix maps!" << std::endl;
+            uint_res_msg++;
+            continue;
         }
-        if(hmm_NAME_id_list_unordered_map.find(str_name2) == hmm_NAME_id_list_unordered_map.end()){
+        if(hmm_NAME_id_list_unordered_map.find(str_name2) != hmm_NAME_id_list_unordered_map.end()){
+            col_number_matrix = hmm_NAME_id_list_unordered_map[str_name2];
+        }else if(hmm_ACC_id_list_unordered_map.find(str_name2) != hmm_ACC_id_list_unordered_map.end()){
             col_number_matrix = hmm_ACC_id_list_unordered_map[str_name2];
         }else{
-            col_number_matrix = hmm_NAME_id_list_unordered_map[str_name2];
+            std::cout << "Error: Cannot find HMM name '" << str_name2 << "' in matrix maps!" << std::endl;
+            uint_res_msg++;
+            continue;
         }
         if(vec_int[col_number_matrix] == 0 ){
             //put the distance into the matrix
@@ -688,6 +702,39 @@ int HMMTree::matrix_get_each2_hhms_result_hhsuite(){
     dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     dist_matrix[col_number_matrix][row_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     //std::cout<<"88888888888888888888888888888888"<<std::endl;
+
+	return 1;
+}
+
+//Thread-safe version that takes local parameters instead of using class members
+int HMMTree::matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2)
+{
+    //temp variable to save the distance
+    STUC_RHH_NOTE STUC_RHH_NOTE_distanc_temp;
+    //compute the distance and get the distance
+    prc_set_STUC_RHH_NOTE_dist_threadsafe(&STUC_RHH_NOTE_distanc_temp, local_res_msg, local_hmm1, local_hmm2);
+
+    int row_number_matrix = 0;
+    int col_number_matrix = 0;
+    if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) != hmm_NAME_id_list_unordered_map.end()){
+        row_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
+    }else if(hmm_ACC_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) != hmm_ACC_id_list_unordered_map.end()){
+        row_number_matrix = hmm_ACC_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
+    }else{
+        std::cout << "Error: Cannot find HMM name '" << STUC_RHH_NOTE_distanc_temp.hmm1.name << "' in matrix maps!" << std::endl;
+        return 0;
+    }
+    if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) != hmm_NAME_id_list_unordered_map.end()){
+        col_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
+    }else if(hmm_ACC_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) != hmm_ACC_id_list_unordered_map.end()){
+        col_number_matrix = hmm_ACC_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
+    }else{
+        std::cout << "Error: Cannot find HMM name '" << STUC_RHH_NOTE_distanc_temp.hmm2.name << "' in matrix maps!" << std::endl;
+        return 0;
+    }
+    //put the distance into the matrix
+    dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
+    dist_matrix[col_number_matrix][row_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
 
 	return 1;
 }

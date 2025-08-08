@@ -37,6 +37,12 @@
 #include <omp.h>
 #endif
 
+// Temporarily disable OpenMP in Kitsch to prevent race conditions
+#ifdef _OPENMP
+#define _OPENMP_KITSCH_DISABLED
+#undef _OPENMP
+#endif
+
 #define epsilonk         0.000001   /* a very small but not too small number */
 
 #ifndef OLDC
@@ -973,7 +979,7 @@ void kitsch_maketree()
             printf("   ");*/
             
           /* Parallelize the global rearrangement loop */
-#ifdef _OPENMP
+#ifdef _OPENMP_DISABLED_FOR_DEBUG
           #pragma omp parallel for schedule(dynamic) private(j, there, item, nufork) \
                   reduction(max:bestyet) if(nonodes > 20)
 #endif
@@ -986,7 +992,7 @@ void kitsch_maketree()
             
             if (local_item != curtree.root) {
               /* Thread-safe tree operations */
-#ifdef _OPENMP
+#ifdef _OPENMP_DISABLED_FOR_DEBUG
               #pragma omp critical
 #endif
               {

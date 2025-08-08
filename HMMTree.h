@@ -530,6 +530,10 @@ private:
 
 	//read into the  message from the prc_each2 file
 	void prc_read_result_from_file(FILE * file_stream);
+	void prc_read_result_from_file_threadsafe(FILE * file_stream, std::vector<STUC_RHHEL_NOTE>& local_res_msg);
+	double prc_hmms_dist_compute_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg);
+	void prc_set_STUC_RHH_NOTE_dist_threadsafe(STUC_RHH_NOTE* STUC_RHH_NOTE_res, const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2);
+	int matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2);
 
 	void prc_read_lib_result_from_file(std::string str_prc_lib_result_filename);
 

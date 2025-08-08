@@ -57,6 +57,12 @@ int HMMTree::prc_each2(){
         // Get thread ID for unique temporary handling
         int thread_id = omp_get_thread_num();
         
+        // Thread-local variables to avoid race conditions
+        std::vector<STUC_RHHEL_NOTE> local_res_msg;
+        // Extract just the filename from the full path for matrix lookup
+        std::string local_hmm1 = str_name_hmm1.substr(str_name_hmm1.find_last_of('/') + 1);
+        std::string local_hmm2 = str_name_hmm2.substr(str_name_hmm2.find_last_of('/') + 1);
+        
         std::string str_cmd = "";
         if(prc_hit_no != 0){
             std::string str_prc_hit_num = int_2_string(prc_hit_no);
@@ -75,13 +81,13 @@ int HMMTree::prc_each2(){
 
         FILE *stream = popen(str_cmd.c_str(), "r");
         if (stream != nullptr) {
-            prc_read_result_from_file(stream);
+            prc_read_result_from_file_threadsafe(stream, local_res_msg);
             pclose(stream);
             
             // Thread-safe matrix update
             #pragma omp critical
             {
-                matrix_get_each2_hmms_result_2();
+                matrix_get_each2_hmms_result_2_threadsafe(local_res_msg, local_hmm1, local_hmm2);
                 completed_count++;
                 
                 // Thread-safe progress output
@@ -260,6 +266,12 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 			std::vector<std::string> result_line_split;
 			result_line_split = str_Split_by_char_list(str_msg_temp, " \t");
 
+			// Skip malformed lines that don't have enough fields
+			if(result_line_split.size() < 12){
+			    res_msg.pop_back();
+			    continue;
+			}
+
 			//put the message into the class result array
 			res_msg.back().hmm1_name = result_line_split[0];
 			res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
@@ -271,6 +283,11 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 			res_msg.back().co_emis = atof(result_line_split[9].c_str());
 			res_msg.back().simple = atof(result_line_split[10].c_str());
 			res_msg.back().reverse = atof(result_line_split[11].c_str());
+
+			// Skip entries with empty HMM names
+			if(res_msg.back().hmm1_name.empty() || res_msg.back().hmm2_name.empty()){
+			    res_msg.pop_back();
+			}
 
 		}
 		if (line_num_temp > 4 && line_num_temp < 13)
@@ -320,6 +337,12 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
 			std::vector<std::string> result_line_split;
 			result_line_split = str_Split_by_char_list(str_msg_temp, " \t");
 
+			// Skip malformed lines that don't have enough fields
+			if(result_line_split.size() < 12){
+			    res_msg.pop_back();
+			    continue;
+			}
+
 			//put the message into the class result array
 			res_msg.back().hmm1_name = result_line_split[0];
 			res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
@@ -336,6 +359,11 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
                 hmm1 = res_msg.back().hmm1_name;
                 hmm2 = res_msg.back().hmm2_name;
                 get_names = true;
+			}
+			
+			// Skip entries with empty HMM names
+			if(res_msg.back().hmm1_name.empty() || res_msg.back().hmm2_name.empty()){
+			    res_msg.pop_back();
 			}
 		}
 		if (line_num_temp > 4 && line_num_temp < 13)
@@ -364,12 +392,36 @@ double HMMTree::prc_hmms_dist_compute()
 	return 1.0/answer;
 }
 
+//Thread-safe version that uses local res_msg instead of class member
+double HMMTree::prc_hmms_dist_compute_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg)
+{
+    double answer=0;
+    if(!local_res_msg.empty()){
+        answer=local_res_msg[0].simple;
+    }
+
+    //std::cout<<answer<<"   "<<std::endl;
+
+    if(answer <= 0){
+        answer = DBL_MAX_USER;
+    }
+	return 1.0/answer;
+}
+
 //set the hmm1 and hmm2 message to the result matrix class
 void HMMTree::prc_set_STUC_RHH_NOTE_dist(STUC_RHH_NOTE* STUC_RHH_NOTE_res)
 {
 	STUC_RHH_NOTE_res->hmm1.name = hmm1;
 	STUC_RHH_NOTE_res->hmm2.name = hmm2;
 	STUC_RHH_NOTE_res->distance = prc_hmms_dist_compute();
+}
+
+//Thread-safe version that takes local parameters instead of using class members
+void HMMTree::prc_set_STUC_RHH_NOTE_dist_threadsafe(STUC_RHH_NOTE* STUC_RHH_NOTE_res, const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2)
+{
+	STUC_RHH_NOTE_res->hmm1.name = local_hmm1;
+	STUC_RHH_NOTE_res->hmm2.name = local_hmm2;
+	STUC_RHH_NOTE_res->distance = prc_hmms_dist_compute_threadsafe(local_res_msg);
 }
 
 //check the profile HMM files is HMMER2.O or not
@@ -413,5 +465,62 @@ int HMMTree::prc_check_profile_HMM_format(){
 	}
 
 	return 1;
+}
+
+//Thread-safe version that uses local variables instead of class members
+void HMMTree::prc_read_result_from_file_threadsafe(FILE * file_stream, std::vector<STUC_RHHEL_NOTE>& local_res_msg)
+{
+    char   buf[1024];
+    bool bool_flag = false;
+    int line_num_temp = 0;
+    while(fgets(buf,1024,file_stream)){
+        std::string str_msg_temp = buf;
+        line_num_temp++;
+
+        if(str_msg_temp.find("# hmm1") != -1){
+            bool_flag = true;
+            continue;
+        }
+		if (bool_flag)
+		{
+			if (str_msg_temp.find("# END") != -1)
+			{
+				break;
+			}
+			//temp variable to save the line messages of the result file
+			STUC_RHHEL_NOTE struct_line_temp;
+
+			//push the variable to the local vector instead of class member
+			local_res_msg.push_back(struct_line_temp);
+
+			//split the string to get messages
+			std::vector<std::string> result_line_split;
+			result_line_split = str_Split_by_char_list(str_msg_temp, " \t");
+
+			// Skip malformed lines that don't have enough fields
+			if(result_line_split.size() < 12){
+			    local_res_msg.pop_back();
+			    continue;
+			}
+
+			//put the message into the local result array
+			local_res_msg.back().hmm1_name = result_line_split[0];
+			local_res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
+			local_res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());
+			local_res_msg.back().hit_no = atoi(result_line_split[4].c_str());
+			local_res_msg.back().hmm2_name = result_line_split[5];
+			local_res_msg.back().begin_hmm2 = atoi(result_line_split[6].c_str());
+			local_res_msg.back().end_hmm2 = atoi(result_line_split[7].c_str());
+			local_res_msg.back().co_emis = atof(result_line_split[9].c_str());
+			local_res_msg.back().simple = atof(result_line_split[10].c_str());
+			local_res_msg.back().reverse = atof(result_line_split[11].c_str());
+			
+			// Skip entries with empty HMM names
+			if(local_res_msg.back().hmm1_name.empty() || local_res_msg.back().hmm2_name.empty()){
+			    local_res_msg.pop_back();
+			}
+		}
+    }
+	return ;
 }
 

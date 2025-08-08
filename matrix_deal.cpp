@@ -337,9 +337,6 @@ int HMMTree::matrix_mega_out_put_dist_matrix_to_file()
 
 	std::string str_name_temp = folder_matrixs+"file_dist_matrix_out_mega.meg";                 //temp string variable to name the out distance file
 	file_dist_matrix_out.open(str_name_temp.c_str(),std::ios_base::out|std::ios_base::trunc);
-    file_dist_matrix_out.close();
-    chmod(str_name_temp.c_str(),S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP|S_IWOTH|S_IROTH);
-    file_dist_matrix_out.open(str_name_temp.c_str(),std::ios_base::out|std::ios_base::trunc);
 
 	if (!file_dist_matrix_out.is_open())
 	{
@@ -441,6 +438,7 @@ int HMMTree::matrix_mega_out_put_dist_matrix_to_file()
 	}
 	vec_str_tags.clear();
 	file_dist_matrix_out.close();
+	chmod((folder_matrixs+"file_dist_matrix_out_mega.meg").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
 	return 1;
 }
 
@@ -464,9 +462,6 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
 
 	std::string str_name_temp = folder_matrixs+"file_dist_matrix_out_phylip.txt";                 //temp string variable to name the out distance file
 	file_dist_matrix_out.open(str_name_temp.c_str(),std::ios_base::out|std::ios_base::trunc);
-    file_dist_matrix_out.close();
-    chmod(str_name_temp.c_str(),S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP|S_IWOTH|S_IROTH);
-    file_dist_matrix_out.open(str_name_temp.c_str(),std::ios_base::out|std::ios_base::trunc);
 	if (!file_dist_matrix_out.is_open())
 	{
 		std::cout << "There is an error when open the matrix output file!" << std::endl;
@@ -477,9 +472,6 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
 	file_dist_matrix_out << std::left << std::setw(8) << dist_matrix.size() << std::endl;
 
     std::ofstream of_shorted_names;
-    of_shorted_names.open(folder_matrixs+"shorted_names.txt",std::ios_base::out|std::ios_base::trunc);
-    of_shorted_names.close();
-    chmod((folder_matrixs+"shorted_names.txt").c_str(),S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP|S_IWOTH|S_IROTH);
     of_shorted_names.open(folder_matrixs+"shorted_names.txt",std::ios_base::out|std::ios_base::trunc);
    // of_shorted_names.
    // chmod("./matrixs/shorted_names.txt",S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
@@ -599,6 +591,13 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
     }
     of_shorted_names.close();
 	file_dist_matrix_out.close();
+	
+	// Set file permissions after closing
+	chmod((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
+	if(shorted_name_flag) {
+		chmod((folder_matrixs+"shorted_names.txt").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
+	}
+	
 	if(!shorted_name_flag){
         system_return(system(("rm -f "+folder_matrixs+"shorted_names.txt").c_str()));
 	}

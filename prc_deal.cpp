@@ -1,4 +1,6 @@
 #include "HMMTree.h"
+#include <omp.h>
+#include <sstream>
 
 //compute the distance of two hmms
 int HMMTree::prc_each2(){
@@ -28,48 +30,72 @@ int HMMTree::prc_each2(){
         std::cout<<"Fatal error: matrix_init_matrix_vecotr_map() failed !"<<std::endl;
         exit(1);
 	}
-    unsigned int uint_computed_num = 0;
-    std::cout<<"PRC deal: ";
-	for (unsigned int i_hmm_names1 = 0; i_hmm_names1 < hmm_names.size() - 1; i_hmm_names1++)
-	{
-        std::string str_hmm_names = "";
-        str_hmm_names = hmm_names[i_hmm_names1].substr(hmm_names[i_hmm_names1].find_last_of('/')+1);
-        std::cout<<std::endl<<std::setiosflags(std::ios::left)<<std::setw(10)<<str_hmm_names<<" "<<std::endl;
-		for (unsigned int i_hmm_names2 = i_hmm_names1 + 1; i_hmm_names2 < hmm_names.size(); i_hmm_names2++)
-		{
-            std::string str_name_hmm1=hmm_names[i_hmm_names1];
-            std::string str_name_hmm2=hmm_names[i_hmm_names2];
 
-            std::string str_cmd = "";
-            if(prc_hit_no != 0){
-                std::string str_prc_hit_num =int_2_string(prc_hit_no);
-                if(!bool_PRC_in_folder){
-                    str_cmd = "prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_name_hmm2 ;
-                }else{
-                    str_cmd = "./prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_name_hmm2 ;
-                }
+    // Create list of all pairs to process
+    std::vector<std::pair<unsigned int, unsigned int>> pairs_to_process;
+    for (unsigned int i = 0; i < hmm_names.size() - 1; i++) {
+        for (unsigned int j = i + 1; j < hmm_names.size(); j++) {
+            pairs_to_process.push_back(std::make_pair(i, j));
+        }
+    }
+
+    std::cout << "PRC deal: Processing " << pairs_to_process.size() << " pairwise comparisons..." << std::endl;
+    
+    // Track progress with thread-safe counter
+    int completed_count = 0;
+    int total_pairs = pairs_to_process.size();
+
+    // Parallelize the pairwise comparisons
+    #pragma omp parallel for schedule(dynamic, 1)
+    for (size_t pair_idx = 0; pair_idx < pairs_to_process.size(); pair_idx++) {
+        unsigned int i_hmm_names1 = pairs_to_process[pair_idx].first;
+        unsigned int i_hmm_names2 = pairs_to_process[pair_idx].second;
+        
+        std::string str_name_hmm1 = hmm_names[i_hmm_names1];
+        std::string str_name_hmm2 = hmm_names[i_hmm_names2];
+
+        // Get thread ID for unique temporary handling
+        int thread_id = omp_get_thread_num();
+        
+        std::string str_cmd = "";
+        if(prc_hit_no != 0){
+            std::string str_prc_hit_num = int_2_string(prc_hit_no);
+            if(!bool_PRC_in_folder){
+                str_cmd = "OMP_NUM_THREADS=1 prc -hits " + str_prc_hit_num + " " + str_name_hmm1 + " " + str_name_hmm2;
             }else{
-                if(!bool_PRC_in_folder){
-                    str_cmd = "prc " + str_name_hmm1 + " " + str_name_hmm2 ;
-                }else{
-                    str_cmd = "./prc " + str_name_hmm1 + " " + str_name_hmm2 ;
-                }
+                str_cmd = "OMP_NUM_THREADS=1 ./prc -hits " + str_prc_hit_num + " " + str_name_hmm1 + " " + str_name_hmm2;
             }
+        }else{
+            if(!bool_PRC_in_folder){
+                str_cmd = "OMP_NUM_THREADS=1 prc " + str_name_hmm1 + " " + str_name_hmm2;
+            }else{
+                str_cmd = "OMP_NUM_THREADS=1 ./prc " + str_name_hmm1 + " " + str_name_hmm2;
+            }
+        }
 
-            FILE   *stream;
-
-            stream = popen(str_cmd.c_str(), "r" ); //
-
+        FILE *stream = popen(str_cmd.c_str(), "r");
+        if (stream != nullptr) {
             prc_read_result_from_file(stream);
-
-            pclose( stream );
-
-            matrix_get_each2_hmms_result_2();
-
-			std::cout<<". "<<std::flush;
-		}
-		std::cout<<std::endl;
-	}
+            pclose(stream);
+            
+            // Thread-safe matrix update
+            #pragma omp critical
+            {
+                matrix_get_each2_hmms_result_2();
+                completed_count++;
+                
+                // Thread-safe progress output
+                std::string hmm1_name = str_name_hmm1.substr(str_name_hmm1.find_last_of('/') + 1);
+                std::string hmm2_name = str_name_hmm2.substr(str_name_hmm2.find_last_of('/') + 1);
+                
+                std::cout << "[" << completed_count << "/" << total_pairs << "] " 
+                         << hmm1_name << " vs " << hmm2_name 
+                         << " (Thread " << thread_id << ")" << std::endl;
+            }
+        }
+    }
+    
+    std::cout << "PRC deal completed: " << completed_count << " comparisons processed." << std::endl;
 	return 1;
 }
 
@@ -80,15 +106,15 @@ int HMMTree::prc_hmm1_library(std::string str_name_hmm1, std::string str_library
     if(prc_hit_no != 0){
         std::string str_prc_hit_num =int_2_string(prc_hit_no);
         if(!bool_PRC_in_folder){
-            str_cmd = "prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  " + prc_out_path_filename;
+            str_cmd = "OMP_NUM_THREADS=1 prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  " + prc_out_path_filename;
         }else{
-            str_cmd = "./prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
+            str_cmd = "OMP_NUM_THREADS=1 ./prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
         }
     }else{
         if(!bool_PRC_in_folder){
-            str_cmd = "prc " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
+            str_cmd = "OMP_NUM_THREADS=1 prc " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
         }else{
-            str_cmd = "./prc " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
+            str_cmd = "OMP_NUM_THREADS=1 ./prc " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
         }
     }
 

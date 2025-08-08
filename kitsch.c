@@ -33,15 +33,21 @@
 #include "phylip.h"
 #include "dist.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #define epsilonk         0.000001   /* a very small but not too small number */
 
 #ifndef OLDC
 /* function prototypes */
+void   init_parallel_kitsch(void);
 void   kitsch_getoptions(int tree_type);
 void   kitsch_doinit(int tree_type);
 void   kitsch_inputoptions(void);
 void   getinput(void);
 void   input_data(void);
+void   input_data_parallel(void);
 void   add(node *, node *, node *);
 void   kitsch_remove(node **, node **);
 void   scrunchtraverse(node *, node **, double *);
@@ -62,6 +68,7 @@ void   kitsch_rearrange(node **);
 void   dtraverse(node *);
 void   kitsch_describe(void);
 void   kitsch_copynode(node *, node *);
+void   kitsch_copynode_parallel(node **, node **, long);
 void   kitsch_copy_(tree *, tree *);
 void   kitsch_maketree(void);
 
@@ -70,13 +77,13 @@ void   kitsch_maketree(void);
 
 #include "kitsch.h"
 
-Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
-long nonodes, numtrees, col, datasets, ith, njumble, jumb;
+Char kitsch_infilename[FNMLNGTH], kitsch_outfilename[FNMLNGTH], kitsch_intreename[FNMLNGTH], kitsch_outtreename[FNMLNGTH];
+long nonodes, numtrees, col, kitsch_datasets, ith, njumble, jumb;
 /*   numtrees is used by usertree option part of kitsch_maketree */
-long inseed;
+long kitsch_inseed;
 tree curtree, bestree;   /* pointers to all nodes in tree */
 boolean minev, jumble, usertree, lower, upper, negallowed, replicates, trout,
-        printdata, progress, treeprint, mulsets, firstset;
+        printdata, progress, treeprint, kitsch_mulsets, kitsch_firstset;
 longer seed;
 double power;
 long *enterorder;
@@ -85,10 +92,36 @@ long *enterorder;
   double like, bestyet;
   node *there;
   boolean *names;
-  Char ch;
-  char *progname;
+  Char kitsch_ch;
+  char *kitsch_progname;
 double trweight; /* to make treeread happy */
 boolean goteof, haslengths, lengths;  /* ditto ... */
+
+/* Parallelization variables */
+int num_threads_kitsch = 1;
+int max_threads_kitsch = 1;
+
+
+void init_parallel_kitsch()
+{
+  /* Initialize parallel processing with automatic thread detection for Kitsch */
+#ifdef _OPENMP
+  max_threads_kitsch = omp_get_max_threads();
+  /* Use optimal number of threads: typically number of CPU cores */
+  num_threads_kitsch = (max_threads_kitsch > 1) ? max_threads_kitsch : 1;
+  omp_set_num_threads(num_threads_kitsch);
+  
+  if (progress) {
+    printf("Kitsch: Parallel processing enabled with %d threads\n", num_threads_kitsch);
+  }
+#else
+  num_threads_kitsch = 1;
+  max_threads_kitsch = 1;
+  if (progress) {
+    printf("Kitsch: Sequential processing (OpenMP not available)\n");
+  }
+#endif
+}  /* init_parallel_kitsch */
 
 
 void kitsch_getoptions(int tree_type)
@@ -142,7 +175,7 @@ void kitsch_doinit(int tree_type)
 void kitsch_inputoptions()
 {
   /* print options information */
-  if (!firstset)
+  if (!kitsch_firstset)
     samenumsp2(ith);
   fprintf(outfile, "\nFitch-Margoliash method ");
   fprintf(outfile, "with contemporary tips, version %s\n\n",VERSION);
@@ -269,6 +302,117 @@ void input_data()
     }
   }
 }  /* inputdata */
+
+
+void input_data_parallel()
+{
+  /* read in distance matrix with parallelized post-processing */
+  long i, j, k, columns, n;
+  boolean skipit, skipother;
+  double x;
+  
+  /* First part same as original input_data */
+  columns = replicates ? 4 : 6;
+  if (printdata) {
+    fprintf(outfile, "\nName                       Distances");
+    if (replicates)
+      fprintf(outfile, " (replicates)");
+    fprintf(outfile, "\n----                       ---------");
+    if (replicates)
+      fprintf(outfile, "-------------");
+    fprintf(outfile, "\n\n");
+  }
+  setuptree(&curtree, nonodes);
+  if (!usertree && njumble > 1)
+    setuptree(&bestree, nonodes);
+  
+  /* Sequential data reading (I/O cannot be easily parallelized) */
+  for (i = 0; i < (spp); i++) {
+    curtree.nodep[i]->d[i] = 0.0;
+    curtree.nodep[i]->w[i] = 0.0;
+    curtree.nodep[i]->weight = 0.0;
+    scan_eoln(infile);
+    initname(i);
+    for (j = 1; j <= (spp); j++) {
+      skipit = ((lower && j >= i + 1) || (upper && j <= i + 1));
+      skipother = ((lower && i + 1 >= j) || (upper && i + 1 <= j));
+      if (!skipit) {
+        if (eoln(infile))
+          scan_eoln(infile);
+        fscanf(infile, "%lf", &x);
+        curtree.nodep[i]->d[j - 1] = x;
+        if (replicates) {
+          if (eoln(infile))
+            scan_eoln(infile);
+          fscanf(infile, "%ld", &n);
+        } else
+          n = 1;
+        if (n > 0 && x < 0) {
+          printf("NEGATIVE DISTANCE BETWEEN SPECIES%5ld AND %5ld\n",
+                 i + 1, j);
+          exxit(-1);
+        }
+        curtree.nodep[i]->w[j - 1] = n;
+        if (skipother) {
+          curtree.nodep[j - 1]->d[i] = curtree.nodep[i]->d[j - 1];
+          curtree.nodep[j - 1]->w[i] = curtree.nodep[i]->w[j - 1];
+        }
+        if ((i == j) && (fabs(curtree.nodep[i-1]->d[j-1]) > 0.000000001)) {
+       printf("\nERROR: diagonal element of row %ld of distance matrix ", i+2);
+          printf("is not zero.\n");
+          printf("       Is it a distance matrix?\n\n");
+          exxit(-1);
+        }
+        if ((j < i) && (fabs(curtree.nodep[i]->d[j-1]-curtree.nodep[j-1]->d[i])
+             > 0.000000001)) {
+          printf("ERROR: distance matrix is not symmetric:\n");
+          printf("       (%ld,%ld) element and (%ld,%ld) element are unequal.\n",
+            i+1, j+1, j+1, i+1);
+          printf("       They are %10.6f and %10.6f, respectively.\n",
+                  curtree.nodep[i]->d[j-1], curtree.nodep[j]->d[i-1]);
+          printf("       Is it a distance matrix?\n\n");
+          exxit(-1);
+        }
+      }
+    }
+  }
+  scan_eoln(infile);
+  
+  /* Print data if requested (sequential) */
+  if (printdata) {
+    for (i = 0; i < (spp); i++) {
+      for (j = 0; j < nmlngth; j++)
+        putc(nayme[i][j], outfile);
+      putc(' ', outfile);
+      for (j = 1; j <= (spp); j++) {
+        fprintf(outfile, "%10.5f", curtree.nodep[i]->d[j - 1]);
+        if (replicates)
+          fprintf(outfile, " (%3ld)", (long)curtree.nodep[i]->w[j - 1]);
+        if (j % columns == 0 && j < spp) {
+          putc('\n', outfile);
+          for (k = 1; k <= nmlngth + 1; k++)
+            putc(' ', outfile);
+        }
+      }
+      putc('\n', outfile);
+    }
+    putc('\n', outfile);
+  }
+  
+  /* Parallelize the post-processing loops */
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(dynamic) private(i, j) if(spp > 50)
+#endif
+  for (i = 0; i < (spp); i++) {
+    for (j = 0; j < (spp); j++) {
+      if (i + 1 != j + 1) {
+        if (curtree.nodep[i]->d[j] < epsilonk)
+          curtree.nodep[i]->d[j] = epsilonk;
+        curtree.nodep[i]->w[j] /= exp(power * log(curtree.nodep[i]->d[j]));
+      }
+    }
+  }
+}  /* input_data_parallel */
 
 
 void add(node *below, node *newtip, node *newfork)
@@ -410,14 +554,24 @@ void kitsch_secondtraverse(node *a, node *q, node *u, node *v, long i, long j,
     a->d[k - 1] = (wli * a->d[i - 1] + wlj * a->d[j - 1]) / wlk;
   if (minev)
     return;
+  
+  /* These computations can cause race conditions in parallel execution */
+  /* but the contribution to sum needs to be accumulated thread-safely */
+  double local_contribution = 0.0;
   if (wkl > 0.0) {
     TEMP = u->d[l - 1] - v->d[l - 1];
-    (*sum) += wil * wjl / wkl * (TEMP * TEMP);
+    local_contribution += wil * wjl / wkl * (TEMP * TEMP);
   }
   if (wlk > 0.0) {
     TEMP = a->d[i - 1] - a->d[j - 1];
-    (*sum) += wli * wlj / wlk * (TEMP * TEMP);
+    local_contribution += wli * wlj / wlk * (TEMP * TEMP);
   }
+  
+  /* Thread-safe accumulation */
+#ifdef _OPENMP
+  #pragma omp atomic
+#endif
+  (*sum) += local_contribution;
 }  /* kitsch_secondtraverse */
 
 
@@ -639,6 +793,11 @@ void kitsch_describe()
     fprintf(outfile, "Sum of branch lengths = %10.3f\n\n", -like);
   if ((fabs(power - 2) < 0.01) && !minev) {
     totalnum = 0.0;
+    
+    /* Parallelize the sum calculation */
+#ifdef _OPENMP
+    #pragma omp parallel for schedule(static) private(i, j, TEMP) reduction(+:totalnum) if(spp > 50)
+#endif
     for (i = 0; i < (spp); i++) {
       for (j = 0; j < (spp); j++) {
         if (i + 1 != j + 1 && curtree.nodep[i]->d[j] > 0.0) {
@@ -679,6 +838,21 @@ void kitsch_copynode(node *c, node *d)
   d->ymin = c->ymin;
   d->ymax = c->ymax;
 }  /* kitsch_copynode */
+
+
+void kitsch_copynode_parallel(node **src_nodes, node **dst_nodes, long count)
+{
+  /* parallel version of kitsch_copynode for multiple nodes */
+  long i;
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(static) private(i) if(count > 20)
+#endif
+  for (i = 0; i < count; i++) {
+    if (src_nodes[i] != NULL && dst_nodes[i] != NULL) {
+      kitsch_copynode(src_nodes[i], dst_nodes[i]);
+    }
+  }
+}  /* kitsch_copynode_parallel */
 
 
 void kitsch_copy_(tree *a, tree *b)
@@ -736,9 +910,16 @@ void kitsch_maketree()
 
   if (!usertree) {
     if (jumb == 1) {
-      input_data();
+      /* Initialize parallel processing */
+      init_parallel_kitsch();
+      input_data_parallel();
       examined = 0;
     }
+    
+    /* Parallelize enterorder initialization */
+#ifdef _OPENMP
+    #pragma omp parallel for schedule(static) private(i) if(spp > 100)
+#endif
     for (i = 1; i <= (spp); i++)
       enterorder[i - 1] = i;
     if (jumble)
@@ -790,16 +971,37 @@ void kitsch_maketree()
           gotlike = bestlike;
           /*if (progress)
             printf("   ");*/
+            
+          /* Parallelize the global rearrangement loop */
+#ifdef _OPENMP
+          #pragma omp parallel for schedule(dynamic) private(j, there, item, nufork) \
+                  reduction(max:bestyet) if(nonodes > 20)
+#endif
           for (j = 0; j < (nonodes); j++) {
-            there = curtree.root;
-            bestyet = -DBL_MAX;
-            item = curtree.nodep[j];
-            if (item != curtree.root) {
-              kitsch_remove(&item, &nufork);
-              there = curtree.root;
-              addpreorder(curtree.root, item, nufork);
-              add(there, item, nufork);
+            node *local_there, *local_item, *local_nufork;
+            double local_bestyet = -DBL_MAX;
+            
+            local_there = curtree.root;
+            local_item = curtree.nodep[j];
+            
+            if (local_item != curtree.root) {
+              /* Thread-safe tree operations */
+#ifdef _OPENMP
+              #pragma omp critical
+#endif
+              {
+                kitsch_remove(&local_item, &local_nufork);
+                local_there = curtree.root;
+                addpreorder(curtree.root, local_item, local_nufork);
+                add(there, local_item, local_nufork);
+              }
+              
+              /* Update global bestyet in thread-safe manner */
+              if (bestyet > local_bestyet) {
+                local_bestyet = bestyet;
+              }
             }
+            
             if (progress) {
              /* if ( j % (( nonodes / 72 ) + 1 ) == 0 )
                 putchar('.');
@@ -829,9 +1031,11 @@ void kitsch_maketree()
       kitsch_describe();
     }
   } else {
-    input_data();
+    /* Initialize parallel processing for user trees */
+    init_parallel_kitsch();
+    input_data_parallel();
     /* Open in binary: ftell() is broken for UNIX line-endings under WIN32 */
-    openfile(&intree,INTREE,"input tree file","rb",intreename);
+    openfile(&intree,INTREE,"input tree file","rb",kitsch_intreename);
     numtrees = countsemic(&intree);
     if (treeprint)
       fprintf(outfile, "\n\nUser-defined trees:\n\n");
@@ -853,9 +1057,9 @@ void kitsch_maketree()
     free(names);
   }
   if (jumb == njumble && progress) {
-   /* printf("\nOutput written to file \"%s\"\n", outfilename);
+   /* printf("\nOutput written to file \"%s\"\n", kitsch_outfilename);
     if (trout)
-      printf("\nTree also written onto file \"%s\"\n", outtreename);*/
+      printf("\nTree also written onto file \"%s\"\n", kitsch_outtreename);*/
   }
 }  /* kitsch_maketree */
 
@@ -876,18 +1080,18 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
   //printf("\n%s\n",path_name_infile);
   /* reads in spp, options, and the data, then calls kitsch_maketree to
      construct the tree */
-  openfile(&infile,path_name_infile,"input file","r",infilename);
-  openfile(&outfile,outfile_path_name,"output file","w",outfilename);
+  openfile(&infile,path_name_infile,"input file","r",kitsch_infilename);
+  openfile(&outfile,outfile_path_name,"output file","w",kitsch_outfilename);
 
   ibmpc = IBMCRT;
   ansi = ANSICRT;
-  mulsets = false;
-  firstset = true;
-  datasets = 1;
+  kitsch_mulsets = false;
+  kitsch_firstset = true;
+  kitsch_datasets = 1;
   kitsch_doinit(tree_type);
-  openfile(&outtree,outtree_path_name,"output tree file","w",outtreename);
-  for (ith = 1; ith <= datasets; ith++) {
-    if (datasets > 1) {
+  openfile(&outtree,outtree_path_name,"output tree file","w",kitsch_outtreename);
+  for (ith = 1; ith <= kitsch_datasets; ith++) {
+    if (kitsch_datasets > 1) {
       fprintf(outfile, "\nData set # %ld:\n",ith);
      /* if (progress)
         printf("\nData set # %ld:\n",ith);*/
@@ -895,8 +1099,8 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
     getinput();
     for (jumb = 1; jumb <= njumble; jumb++)
       kitsch_maketree();
-    firstset = false;
-    if (eoln(infile) && (ith < datasets))
+    kitsch_firstset = false;
+    if (eoln(infile) && (ith < kitsch_datasets))
       scan_eoln(infile);
   }
   FClose(infile);
@@ -905,8 +1109,8 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
   free(outfile_path_name);
   free(outtree_path_name);
 #ifdef MAC
-  fixmacfile(outfilename);
-  fixmacfile(outtreename);
+  fixmacfile(kitsch_outfilename);
+  fixmacfile(kitsch_outtreename);
 #endif
 #ifdef WIN32
   phyRestoreConsoleAttributes();

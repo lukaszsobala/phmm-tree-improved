@@ -2,6 +2,18 @@
 
 This version of PHMM-Tree has been enhanced with OpenMP parallelization for improved performance on multi-core systems.
 
+## Supported Algorithms
+
+### Fitch-Margoliash Method (fitch.c)
+- Global rearrangements parallelized
+- Distance calculations optimized
+- Tree evaluation accelerated
+
+### Kitsch Method (kitsch.c)  
+- Fitch-Margoliash with contemporary tips
+- Global optimization loops parallelized
+- Statistical calculations accelerated
+
 ## Features
 
 ### Automatic Thread Detection

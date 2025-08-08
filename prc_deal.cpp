@@ -273,11 +273,11 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 			}
 
 			//put the message into the class result array
-			res_msg.back().hmm1_name = result_line_split[0];
+			res_msg.back().hmm1_name = normalize_prc_identifier_to_filename(result_line_split[0]);
 			res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
 			res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());
 			res_msg.back().hit_no = atoi(result_line_split[4].c_str());
-			res_msg.back().hmm2_name = result_line_split[5];
+			res_msg.back().hmm2_name = normalize_prc_identifier_to_filename(result_line_split[5]);
 			res_msg.back().begin_hmm2 = atoi(result_line_split[6].c_str());
 			res_msg.back().end_hmm2 = atoi(result_line_split[7].c_str());
 			res_msg.back().co_emis = atof(result_line_split[9].c_str());
@@ -344,11 +344,11 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
 			}
 
 			//put the message into the class result array
-			res_msg.back().hmm1_name = result_line_split[0];
+			res_msg.back().hmm1_name = normalize_prc_identifier_to_filename(result_line_split[0]);
 			res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
 			res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());
 			res_msg.back().hit_no = atoi(result_line_split[4].c_str());
-			res_msg.back().hmm2_name = result_line_split[5];
+			res_msg.back().hmm2_name = normalize_prc_identifier_to_filename(result_line_split[5]);
 			res_msg.back().begin_hmm2 = atoi(result_line_split[6].c_str());
 			res_msg.back().end_hmm2 = atoi(result_line_split[7].c_str());
 			res_msg.back().co_emis = atof(result_line_split[9].c_str());
@@ -504,11 +504,11 @@ void HMMTree::prc_read_result_from_file_threadsafe(FILE * file_stream, std::vect
 			}
 
 			//put the message into the local result array
-			local_res_msg.back().hmm1_name = result_line_split[0];
+			local_res_msg.back().hmm1_name = normalize_prc_identifier_to_filename(result_line_split[0]);
 			local_res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
 			local_res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());
 			local_res_msg.back().hit_no = atoi(result_line_split[4].c_str());
-			local_res_msg.back().hmm2_name = result_line_split[5];
+			local_res_msg.back().hmm2_name = normalize_prc_identifier_to_filename(result_line_split[5]);
 			local_res_msg.back().begin_hmm2 = atoi(result_line_split[6].c_str());
 			local_res_msg.back().end_hmm2 = atoi(result_line_split[7].c_str());
 			local_res_msg.back().co_emis = atof(result_line_split[9].c_str());

@@ -534,6 +534,9 @@ private:
 	double prc_hmms_dist_compute_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg);
 	void prc_set_STUC_RHH_NOTE_dist_threadsafe(STUC_RHH_NOTE* STUC_RHH_NOTE_res, const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2);
 	int matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2);
+	
+	// Helper function to normalize PRC output identifiers to filename
+	std::string normalize_prc_identifier_to_filename(const std::string& prc_identifier);
 
 	void prc_read_lib_result_from_file(std::string str_prc_lib_result_filename);
 

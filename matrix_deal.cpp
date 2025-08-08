@@ -738,3 +738,26 @@ int HMMTree::matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RH
 
 	return 1;
 }
+
+// Helper function to normalize PRC output identifiers to filename
+std::string HMMTree::normalize_prc_identifier_to_filename(const std::string& prc_identifier) {
+    // First, check if the identifier is directly in our NAME maps
+    if (hmm_NAME_id_list_unordered_map.find(prc_identifier) != hmm_NAME_id_list_unordered_map.end()) {
+        int index = hmm_NAME_id_list_unordered_map[prc_identifier];
+        std::string filename = id_hmm_NAME_ACC_list_vector[index].filename;
+        // Extract just the filename from the full path
+        return filename.substr(filename.find_last_of('/') + 1);
+    }
+    
+    // Check if the identifier is in our ACC maps
+    if (hmm_ACC_id_list_unordered_map.find(prc_identifier) != hmm_ACC_id_list_unordered_map.end()) {
+        int index = hmm_ACC_id_list_unordered_map[prc_identifier];
+        
+        // Return the NAME field for matrix lookup consistency
+        std::string name_field = id_hmm_NAME_ACC_list_vector[index].NAME;
+        return name_field;
+    }
+    
+    // If not found in either map, return the original identifier
+    return prc_identifier;
+}

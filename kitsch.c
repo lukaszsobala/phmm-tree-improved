@@ -37,12 +37,6 @@
 #include <omp.h>
 #endif
 
-// Temporarily disable OpenMP in Kitsch to prevent race conditions
-#ifdef _OPENMP
-#define _OPENMP_KITSCH_DISABLED
-#undef _OPENMP
-#endif
-
 #define epsilonk         0.000001   /* a very small but not too small number */
 
 #ifndef OLDC
@@ -978,36 +972,20 @@ void kitsch_maketree()
           /*if (progress)
             printf("   ");*/
             
-          /* Parallelize the global rearrangement loop */
-#ifdef _OPENMP_DISABLED_FOR_DEBUG
-          #pragma omp parallel for schedule(dynamic) private(j, there, item, nufork) \
-                  reduction(max:bestyet) if(nonodes > 20)
-#endif
+          /* Sequential global rearrangement loop - tree operations are not thread-safe */
           for (j = 0; j < (nonodes); j++) {
-            node *local_there, *local_item, *local_nufork;
-            double local_bestyet = -DBL_MAX;
-            
-            local_there = curtree.root;
-            local_item = curtree.nodep[j];
-            
-            if (local_item != curtree.root) {
-              /* Thread-safe tree operations */
-#ifdef _OPENMP_DISABLED_FOR_DEBUG
-              #pragma omp critical
-#endif
-              {
-                kitsch_remove(&local_item, &local_nufork);
-                local_there = curtree.root;
-                addpreorder(curtree.root, local_item, local_nufork);
-                add(there, local_item, local_nufork);
-              }
-              
-              /* Update global bestyet in thread-safe manner */
-              if (bestyet > local_bestyet) {
-                local_bestyet = bestyet;
-              }
+            there = curtree.root;
+            item = curtree.nodep[j];
+            if (item != curtree.root) {
+              nufork = NULL;
+              kitsch_remove(&item, &nufork);
+              there = curtree.root;
+              addpreorder(curtree.root, item, nufork);
+              add(there, item, nufork);
+              kitsch_evaluate(curtree.root);
+              if (like > bestyet)
+                bestyet = like;
             }
-            
             if (progress) {
              /* if ( j % (( nonodes / 72 ) + 1 ) == 0 )
                 putchar('.');

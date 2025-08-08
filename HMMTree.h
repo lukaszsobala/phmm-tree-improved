@@ -128,6 +128,8 @@ int copy_files(std::string path1, std::string path2,std::string extention);
 int copy_files_als_phmms_phhms_aligned(std::string path1, std::string path2,std::string extention);
 //system return value deal
 int system_return(int status);
+//format time duration for human-readable output
+std::string format_time_duration(long total_milliseconds);
 //error deal
 void output_error_(std::string error_msg);
 //test the exists of USEARCH

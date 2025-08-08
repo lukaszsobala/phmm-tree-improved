@@ -278,7 +278,7 @@ int main(int argc, char * argv[]){
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.prc_fasta_seqs_deal(str_file_path, test.double_user_id);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-uals' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-prc' mode in '-uals' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
         }
 
         if(strc_cmd.als){
@@ -287,7 +287,7 @@ int main(int argc, char * argv[]){
             std::cout << "hhmbuild->prc->distance matrix" << std::endl;
             test.prc_alignments_deal(str_file_path);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-als' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-prc' mode in '-als' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 		if(strc_cmd.als_phmms){
@@ -297,7 +297,7 @@ int main(int argc, char * argv[]){
             std::cout << "als->hmmbuild->hmm1s, (hmm1s+hmm2s)->prc->distance matrix " << std::endl;
             test.prc_alignments_phmms_deal(str_file_path, str_file_path_2);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-als_phmms' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-prc' mode in '-als_phmms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 
@@ -307,7 +307,7 @@ int main(int argc, char * argv[]){
             std::cout << "prc->distance matrix" << std::endl;
             test.prc_HMMs_deal(str_file_path);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-hmms' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-prc' mode in '-hmms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 
 		}
     }else{
@@ -318,7 +318,7 @@ int main(int argc, char * argv[]){
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.hhsuite_fasta_seqs_deal(str_file_path, test.double_user_id);
             ftime(&endTime);
-            std::cout << "'-hhsutie' mode in '-uals' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-hhsutie' mode in '-uals' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
         }
 
         if(strc_cmd.als){
@@ -327,7 +327,7 @@ int main(int argc, char * argv[]){
             std::cout << "hhmbuild->hhsuite->distance matrix" << std::endl;
             test.hhsuite_alignments_deal(str_file_path);
             ftime(&endTime);
-            std::cout << "'-hhsutie' mode in '-als' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-hhsutie' mode in '-als' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 
@@ -338,7 +338,7 @@ int main(int argc, char * argv[]){
             std::cout << "als->hhmbuild->hhm1s, (hhm1s + hhm2s)->hhsuite->distance matrix" << std::endl;
             test.hhsuite_alignments_phhms_deal(str_file_path, str_file_path_2);
             ftime(&endTime);
-            std::cout << "'-hhsutie' mode in '-als_phhms' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-hhsutie' mode in '-als_phhms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 		if(strc_cmd.hhsuite_hhms){
@@ -347,7 +347,7 @@ int main(int argc, char * argv[]){
             std::cout << "hhsuite->distance matrix" << std::endl;
             test.hhsuite_HHMs_deal(str_file_path);
             ftime(&endTime);
-            std::cout << "'-hhsutie' mode in '-hhms' style run time: " << (endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm) << " ms" << std::endl;
+            std::cout << "'-hhsutie' mode in '-hhms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 
 		}
     }

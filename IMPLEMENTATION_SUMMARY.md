@@ -175,6 +175,50 @@ chmod(filename, permissions);    // ✅ Set permissions after writing
 - ✅ Improved reliability
 - ✅ Cleaner code logic
 
+#### **Human-Readable Time Formatting**
+**Problem**: Runtime always reported in milliseconds, making long analysis durations difficult to interpret.
+
+**Original Output** (Difficult to read):
+```
+'-prc' mode in '-hmms' style run time: 45678912 ms
+```
+
+**Improved Output** (Human-readable):
+```cpp
+// New adaptive formatting function
+std::string format_time_duration(long total_milliseconds) {
+    double total_seconds = total_milliseconds / 1000.0;
+    
+    if (total_seconds < 60.0) {
+        return "X.XXX seconds";           // < 60s: precise seconds
+    }
+    // Calculate days, hours, minutes, seconds for longer durations
+    return "X days, Y hours, Z minutes, W seconds";  // Adaptive format
+}
+```
+
+**New Time Format Examples**:
+- **Short runs** (< 60s): `23.456 seconds`
+- **Medium runs** (1-60 min): `5 minutes, 42 seconds`
+- **Long runs** (1-24 hours): `2 hours, 15 minutes, 38 seconds`
+- **Very long runs** (> 1 day): `1 day, 4 hours, 32 minutes, 15 seconds`
+
+**Implementation**:
+- ✅ Added `format_time_duration()` function to `public_functions.cpp`
+- ✅ Updated all 8 runtime reporting statements in `HMMTree.cpp`
+- ✅ Automatic format selection based on duration
+- ✅ Maintains millisecond precision internally
+
+**Benefits**:
+- ✅ Immediately understandable execution times
+- ✅ Professional appearance in logs and reports
+- ✅ No performance impact on core timing logic
+- ✅ Backward compatibility maintained
+
+**Affected Operations** (8 runtime reports updated):
+- **PRC Mode**: `-uals`, `-als`, `-als_phmms`, `-hmms` styles
+- **HHsuite Mode**: `-uals`, `-als`, `-als_phhms`, `-hhms` styles
+
 ---
 
 ### 🔧 **Build System Enhancements**
@@ -256,7 +300,13 @@ libgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1
 - `kitsch.c` - Kitsch algorithm parallelization  
 - `neighbor.c` - Neighbor-Joining parallelization
 - `upgma.c` - UPGMA algorithm parallelization
+- `prc_deal.cpp` - PRC algorithm parallelization
 - `matrix_deal.cpp` - Filename collision fix and I/O optimization
+
+**User Interface & Utilities:**
+- `HMMTree.cpp` - Runtime reporting with human-readable time formatting
+- `HMMTree.h` - Function declarations for time formatting
+- `public_functions.cpp` - Time formatting utility function
 
 **Build System:**
 - `Makefile` - OpenMP auto-detection and parallel compilation

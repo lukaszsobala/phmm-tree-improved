@@ -1,5 +1,7 @@
 #include "HMMTree.h"
 #include <string.h>
+#include <sstream>
+#include <iomanip>
 
 //test the input string is num str or not
 int is_num_str(char *char_str_num){
@@ -611,4 +613,55 @@ void string_replace(std::string &s1,const std::string&s2,const std::string&s3,un
 	}
 	return;
 
+}
+
+//format time duration for human-readable output  
+std::string format_time_duration(long total_milliseconds) {
+    // Convert milliseconds to seconds
+    double total_seconds = total_milliseconds / 1000.0;
+    
+    // If less than 60 seconds, show seconds with decimal places
+    if (total_seconds < 60.0) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(3) << total_seconds << " seconds";
+        return oss.str();
+    }
+    
+    // Convert to integer seconds for longer durations
+    long seconds = static_cast<long>(total_seconds);
+    
+    // Calculate days, hours, minutes, seconds
+    long days = seconds / (24 * 3600);
+    seconds %= (24 * 3600);
+    long hours = seconds / 3600;
+    seconds %= 3600;
+    long minutes = seconds / 60;
+    seconds %= 60;
+    
+    std::ostringstream oss;
+    bool first = true;
+    
+    if (days > 0) {
+        oss << days << " day" << (days > 1 ? "s" : "");
+        first = false;
+    }
+    
+    if (hours > 0) {
+        if (!first) oss << ", ";
+        oss << hours << " hour" << (hours > 1 ? "s" : "");
+        first = false;
+    }
+    
+    if (minutes > 0) {
+        if (!first) oss << ", ";
+        oss << minutes << " minute" << (minutes > 1 ? "s" : "");
+        first = false;
+    }
+    
+    if (seconds > 0 || first) {  // Always show seconds if it's the only unit
+        if (!first) oss << ", ";
+        oss << seconds << " second" << (seconds > 1 ? "s" : "");
+    }
+    
+    return oss.str();
 }

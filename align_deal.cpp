@@ -1,6 +1,6 @@
 #include "HMMTree.h"
 
-//seqs align by mafft LINS_i approch
+//seqs align by mafft LINS_i approach
 int HMMTree::align_mafft_LINS_i_one(std::string family_name){
 	std::string str_cmd = "";
 	std::string str_pickname_outof_ext = "";
@@ -17,7 +17,7 @@ int HMMTree::align_mafft_LINS_i_one(std::string family_name){
 }
 
 
-//aligen all the squences in the current folder
+//align all the sequences in the current folder
 int HMMTree::align_do_mafft_all_from_file()
 {
     //if the aligned folder is not empty then empty it
@@ -93,7 +93,7 @@ bool HMMTree::align_fasta_file_exist_format_check(std::string infile_path_and_na
 		return true;
 	}
 
-	std::cout << "'" << infile_path_and_name.c_str() << "' is not in fasta format, the file should be ended by '.fasta' exitemsion !" << std::endl;
+	std::cout << "'" << infile_path_and_name.c_str() << "' is not in fasta format, the file should be ended by '.fasta' extension !" << std::endl;
 	return false;
 }
 
@@ -124,9 +124,9 @@ int HMMTree::align_move_aligned(std::string file_path_name){
     }
 
 /*
-    std::string str_move_alenments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
+	std::string str_move_alignments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
     int return_flag = 0;
-    return_flag = system(str_move_alenments_cmd.c_str());
+	return_flag = system(str_move_alignments_cmd.c_str());
     if(system_return(return_flag)){
         return 0;
     }
@@ -164,9 +164,9 @@ int HMMTree::als_phmms_phhms_move_aligned(std::string file_path_name){
     }
 
 /*
-    std::string str_move_alenments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
+    std::string str_move_alignments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
     int return_flag = 0;
-    return_flag = system(str_move_alenments_cmd.c_str());
+    return_flag = system(str_move_alignments_cmd.c_str());
     if(system_return(return_flag)){
         return 0;
     }

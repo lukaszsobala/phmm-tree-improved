@@ -17,8 +17,8 @@ bool HMMTree::als_phmms_phhms = false;
 int main(int argc, char * argv[]){
 
     if(argc == 2){
-        std::string str_argv = argv[1];
-        if(str_argv == "-h"){
+        const char* str_argv = argv[1];
+        if(strcmp(str_argv, "-h") == 0){
             std::cout<< STR_ARGUMENTS_ERROR_MSG <<std::endl;
         }else{
             output_error_("Arguments number");
@@ -32,21 +32,21 @@ int main(int argc, char * argv[]){
 		return 0;
 	}
 
-	std::vector<std::string> vec_arguments;
-    vec_arguments.push_back("-prc"); //0
-	vec_arguments.push_back("-uals"); //1
-	vec_arguments.push_back("-als"); //2
-	vec_arguments.push_back("-hmms"); //3
-	vec_arguments.push_back("-id"); //4
-	vec_arguments.push_back("-prc_hit"); //5
-	vec_arguments.push_back("-acc"); //6
-	vec_arguments.push_back("-lib"); //7
-
-	vec_arguments.push_back("-hhsuite"); //8
-	vec_arguments.push_back("-hhms"); //9aln_phmm
-
-	vec_arguments.push_back("-als_phmms"); //10
-	vec_arguments.push_back("-als_phhms"); //11
+	static const char* kArgs[] = {
+        "-prc",       // 0
+        "-uals",      // 1
+        "-als",       // 2
+        "-hmms",      // 3
+        "-id",        // 4
+        "-prc_hit",   // 5
+        "-acc",       // 6
+        "-lib",       // 7
+        "-hhsuite",   // 8
+        "-hhms",      // 9
+        "-als_phmms", // 10
+        "-als_phhms"  // 11
+    };
+    const size_t kArgsCount = sizeof(kArgs) / sizeof(kArgs[0]);
 	//string to save the compute model from the user input
 
     CMD_PARAMS strc_cmd;
@@ -55,12 +55,12 @@ int main(int argc, char * argv[]){
 
     int arg_num = 1;
     while(arg_num < argc - 1 && (!strc_cmd.als_phmms || arg_num < argc - 2) && (!strc_cmd.als_phhms || arg_num < argc - 2)){
-        std::string str_argu_temp =argv[arg_num];
+        const char* str_argu_temp = argv[arg_num];
         bool find_argu = false;
-        int arg_vec_num = 0;
-        while(arg_vec_num <= vec_arguments.size()-1){
-            if(strcmp(str_argu_temp.c_str(),vec_arguments[arg_vec_num].c_str()) == 0){
-                switch(arg_vec_num){
+        size_t arg_vec_num = 0;
+        while(arg_vec_num < kArgsCount){
+            if(strcmp(str_argu_temp, kArgs[arg_vec_num]) == 0){
+                switch(static_cast<int>(arg_vec_num)){
 
                     case 0:
                         if(!strc_cmd.prc_mode && !strc_cmd.hhsuite_mode){
@@ -180,6 +180,8 @@ int main(int argc, char * argv[]){
                         output_error_("Arguments");
                         break;
                 }
+                // Found and processed a matching argument; stop scanning further flags for this token.
+                break;
             }
             arg_vec_num++;
         }

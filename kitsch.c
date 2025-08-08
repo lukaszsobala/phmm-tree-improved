@@ -77,16 +77,16 @@ void   kitsch_maketree(void);
 
 #include "kitsch.h"
 
-Char kitsch_infilename[FNMLNGTH], kitsch_outfilename[FNMLNGTH], kitsch_intreename[FNMLNGTH], kitsch_outtreename[FNMLNGTH];
-long nonodes, numtrees, col, kitsch_datasets, ith, njumble, jumb;
+static Char kitsch_infilename[FNMLNGTH], kitsch_outfilename[FNMLNGTH], kitsch_intreename[FNMLNGTH], kitsch_outtreename[FNMLNGTH];
+static long nonodes, numtrees, col, kitsch_datasets, ith, njumble, jumb;
 /*   numtrees is used by usertree option part of kitsch_maketree */
-long kitsch_inseed;
-tree curtree, bestree;   /* pointers to all nodes in tree */
-boolean minev, jumble, usertree, lower, upper, negallowed, replicates, trout,
+static long kitsch_inseed;
+static tree curtree, bestree;   /* pointers to all nodes in tree */
+static boolean minev, jumble, usertree, lower, upper, negallowed, replicates, trout,
         printdata, progress, treeprint, kitsch_mulsets, kitsch_firstset;
-longer seed;
-double power;
-long *enterorder;
+static longer seed;
+static double power;
+static long *enterorder;
 /* Local variables for kitsch_maketree, propagated globally for C version: */
   long examined;
   double like, bestyet;

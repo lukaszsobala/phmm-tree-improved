@@ -50,17 +50,17 @@ void upgma_freerest(void);
 #endif
 
 
-Char infilename[FNMLNGTH], outfilename[FNMLNGTH], outtreename[FNMLNGTH];
-long nonodes2, outgrno, col, datasets, ith;
-long inseed;
-vector *x;
-intvector *reps;
-boolean jumble, lower, upper, outgropt, replicates, trout,
+static Char infilename[FNMLNGTH], outfilename[FNMLNGTH], outtreename[FNMLNGTH];
+static long nonodes2, outgrno, col, datasets, ith;
+static long inseed;
+static vector *x;
+static intvector *reps;
+static boolean jumble, lower, upper, outgropt, replicates, trout,
                printdata, progress, treeprint, mulsets, njoin;
-tree curtree;
-longer seed;
-long *enterorder;
-Char progname[20];
+static tree curtree;
+static longer seed;
+static long *enterorder;
+static Char progname[20];
 
 /* variables for upgma_maketree, propagated globally for C version: */
 node **cluster;

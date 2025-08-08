@@ -87,25 +87,25 @@ void   globrearrange(long* numtrees,boolean* succeeded);
 
 
 
-Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
-long nonodes2, outgrno, nums, col, datasets, ith, njumble, jumb=0;
-long inseed;
-vector *x;
-intvector *reps;
-boolean minev, global, jumble, lengths, usertree, lower, upper, negallowed,
+static Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
+static long nonodes2, outgrno, nums, col, datasets, ith, njumble, jumb=0;
+static long inseed;
+static vector *x;
+static intvector *reps;
+static boolean minev, global, jumble, lengths, usertree, lower, upper, negallowed,
         outgropt, replicates, trout, printdata, progress, treeprint,
         mulsets, firstset;
-double power;
-double trweight; /* to make treeread happy */
-boolean goteof, haslengths;  /* ditto ... */
-boolean first; /* ditto ... */
-node *addwhere;
+static double power;
+static double trweight; /* to make treeread happy */
+static boolean goteof, haslengths;  /* ditto ... */
+static boolean first; /* ditto ... */
+static node *addwhere;
 
-longer seed;
-long *enterorder;
-tree curtree, priortree, bestree, bestree2;
-Char ch;
-char *progname;
+static longer seed;
+static long *enterorder;
+static tree curtree, priortree, bestree, bestree2;
+static Char ch;
+static char *progname;
 
 /* Parallelization variables */
 int num_threads = 1;

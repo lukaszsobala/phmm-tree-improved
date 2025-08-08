@@ -308,6 +308,9 @@ libgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1
 - `HMMTree.h` - Function declarations for time formatting
 - `public_functions.cpp` - Time formatting utility function
 
+**Algorithm Support Infrastructure:**
+- `dist.c` - Distance matrix utilities and tree data structures *(Intentionally not parallelized)*
+
 **Build System:**
 - `Makefile` - OpenMP auto-detection and parallel compilation
 
@@ -356,5 +359,46 @@ This release represents a major advancement in PHMM-Tree capabilities:
 **Scalability**: Automatic scaling to available hardware resources
 **Compatibility**: Full backward compatibility maintained
 **Robustness**: Comprehensive error handling and thread safety
+
+### 🔍 **Algorithm Infrastructure Analysis**
+
+#### **Distance Matrix Utilities (`dist.c`)**
+
+**Function Overview:**
+The `dist.c` module provides core infrastructure for phylogenetic distance-matrix algorithms, containing utility functions shared by Fitch-Margoliash, Kitsch, neighbor-joining, and UPGMA methods.
+
+**Key Components:**
+
+1. **Tree Data Structure Management**:
+   - `alloctree()`: Allocates memory for phylogenetic tree nodes (tips + internal nodes)
+   - `freetree()`: Safely deallocates tree memory structures
+   - `setuptree()`: Initializes tree node properties and relationships
+
+2. **Distance Matrix Processing**:
+   - `allocd()`, `freed()`: Manage distance arrays for each tree node
+   - `allocw()`, `freew()`: Manage weight arrays for Fitch-Margoliash calculations
+   - `inputdata()`: Reads and validates symmetric distance matrices from input files
+
+3. **Tree Visualization & Export**:
+   - `coordinates()`: Calculates node positions for ASCII tree diagrams
+   - `drawline()`: Renders individual lines of tree visual output
+   - `printree()`: Generates complete ASCII tree diagrams
+   - `treeout()`, `treeoutr()`: Exports trees in standard Newick format
+
+**Parallelization Decision: NOT PARALLELIZED**
+
+**Rationale:**
+
+✅ **Avoids Double Parallelization**: These utilities are called from already-parallelized algorithms (Fitch, Kitsch, NJ). Adding OpenMP directives would create harmful nested parallelism.
+
+✅ **I/O Sequential Dependencies**: File reading (`inputdata`) and tree output functions must execute sequentially for data integrity.
+
+✅ **Low Computational Intensity**: Functions primarily perform memory management and formatting operations, not CPU-intensive computations.
+
+✅ **Minimal Performance Impact**: Memory allocation and initialization have negligible runtime compared to main algorithms.
+
+✅ **Maintains Thread Safety**: Simple, stateless utility functions remain safe for use by parallel parent algorithms.
+
+**Usage Pattern**: These functions are called once per algorithm execution for setup/cleanup, not in performance-critical loops.
 
 The enhanced PHMM-Tree is now production-ready for high-throughput phylogenetic analysis workflows while maintaining the accuracy and reliability of the original implementation.

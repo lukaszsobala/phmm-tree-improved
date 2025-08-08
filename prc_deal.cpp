@@ -162,7 +162,7 @@ int HMMTree::prc_library()
 	std::getline(file_test_hmm_version, str_oneline_file);
 	if(str_oneline_file.find("HMMER2") == -1)
 	{
-		std::cout<<"HMMER version error, PRC can only deal hmm files of HMMER2 verson !"<<std::endl;
+		std::cout<<"HMMER version error, PRC can only deal hmm files of HMMER2 version!"<<std::endl;
 		file_test_hmm_version.close();
 		return 2;
 	}

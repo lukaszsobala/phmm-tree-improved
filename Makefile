@@ -1,0 +1,77 @@
+# Makefile for PHMM-Tree with OpenMP parallelization
+# Automatically detects available compilers and enables OpenMP
+
+# Compiler detection
+CC := $(shell command -v gcc 2>/dev/null || command -v clang 2>/dev/null || echo cc)
+
+# Base flags
+CFLAGS_BASE = -O3 -Wall -std=c99
+LDFLAGS_BASE = -lm
+
+# OpenMP detection and flags
+OPENMP_FLAG := $(shell $(CC) -fopenmp -E - </dev/null >/dev/null 2>&1 && echo "-fopenmp" || echo "")
+
+ifeq ($(OPENMP_FLAG),-fopenmp)
+    CFLAGS = $(CFLAGS_BASE) $(OPENMP_FLAG) -DOPENMP_ENABLED
+    LDFLAGS = $(LDFLAGS_BASE) $(OPENMP_FLAG)
+    $(info OpenMP support detected - enabling parallel compilation)
+else
+    CFLAGS = $(CFLAGS_BASE)
+    LDFLAGS = $(LDFLAGS_BASE)
+    $(info OpenMP not available - compiling sequential version)
+endif
+
+# Thread detection at compile time
+CFLAGS += -DAUTO_THREAD_DETECTION
+
+# Source files
+SOURCES = fitch.c phylip.c dist.c neighbor.c upgma.c kitsch.c \
+          class_functions.cpp matrix_deal.cpp public_functions.cpp \
+          align_deal.cpp hmm_deal.cpp usearch_deal.cpp prc_deal.cpp \
+          HMMTree.cpp phylip_draw_tree.cpp hhsuite.cpp
+
+OBJECTS = $(SOURCES:.c=.o)
+OBJECTS := $(OBJECTS:.cpp=.o)
+
+# Target executable
+TARGET = phmm-tree
+
+# Default target
+all: $(TARGET)
+
+# Build target
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) -lstdc++
+
+# Compile C files
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile C++ files  
+%.o: %.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@ -lstdc++
+
+# Clean target
+clean:
+	rm -f $(OBJECTS) $(TARGET)
+
+# Test compilation with different thread counts
+test-parallel: $(TARGET)
+	@echo "Testing with 1 thread:"
+	OMP_NUM_THREADS=1 ./$(TARGET) || true
+	@echo "Testing with 2 threads:"
+	OMP_NUM_THREADS=2 ./$(TARGET) || true
+	@echo "Testing with 4 threads:"
+	OMP_NUM_THREADS=4 ./$(TARGET) || true
+
+# Show compilation info
+info:
+	@echo "Compiler: $(CC)"
+	@echo "OpenMP flag: $(OPENMP_FLAG)"
+	@echo "CFLAGS: $(CFLAGS)"
+	@echo "LDFLAGS: $(LDFLAGS)"
+
+# Force rebuild
+rebuild: clean all
+
+.PHONY: all clean test-parallel info rebuild

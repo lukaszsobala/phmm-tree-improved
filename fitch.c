@@ -3,6 +3,10 @@
 #include "dist.h"
 #include "float.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 /* version 3.696.
    Written by Joseph Felsenstein, Akiko Fuseki, Sean Lamont, and Andrew Keeffe.
 
@@ -40,6 +44,8 @@
 
 #ifndef OLDC
 /* function prototypes */
+void   init_parallel(void);
+void   nudists_parallel(node **, node *, int);
 void   fitch_getoptions(int tree_type);
 void   fitch_allocrest(void);
 void   fitch_doinit(int tree_type);
@@ -100,6 +106,32 @@ long *enterorder;
 tree curtree, priortree, bestree, bestree2;
 Char ch;
 char *progname;
+
+/* Parallelization variables */
+int num_threads = 1;
+int max_threads = 1;
+
+
+void init_parallel()
+{
+  /* Initialize parallel processing with automatic thread detection */
+#ifdef _OPENMP
+  max_threads = omp_get_max_threads();
+  /* Use optimal number of threads: typically number of CPU cores */
+  num_threads = (max_threads > 1) ? max_threads : 1;
+  omp_set_num_threads(num_threads);
+  
+  if (progress) {
+    printf("Parallel processing enabled with %d threads\n", num_threads);
+  }
+#else
+  num_threads = 1;
+  max_threads = 1;
+  if (progress) {
+    printf("Sequential processing (OpenMP not available)\n");
+  }
+#endif
+}  /* init_parallel */
 
 
 
@@ -296,6 +328,21 @@ void nudists(node *x, node *y)
   else
     y->d[nx - 1] = ((dil - vi) * wil + (djl - vj) * wjl) / (wil + wjl);
 }  /* nudists */
+
+
+void nudists_parallel(node **nodes, node *y, int count)
+{
+  /* parallel version of nudists for multiple nodes */
+  int i;
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(dynamic) private(i) if(count > 10)
+#endif
+  for (i = 0; i < count; i++) {
+    if (nodes[i] != NULL) {
+      nudists(nodes[i], y);
+    }
+  }
+}  /* nudists_parallel */
 
 
 void makedists(node *p)
@@ -558,6 +605,11 @@ void setuptipf(long m, tree *t)
   WITH = t->nodep[m - 1];
   memcpy(WITH->d, x[m - 1], (nonodes2 * sizeof(double)));
   memcpy(n, reps[m - 1], (spp * sizeof(long)));
+  
+  /* Parallelize the main initialization loops */
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(static) private(i) if(spp > 100)
+#endif
   for (i = 0; i < spp; i++) {
     if (i + 1 != m && n[i] > 0) {
       if (WITH->d[i] < epsilonf)
@@ -568,6 +620,10 @@ void setuptipf(long m, tree *t)
       WITH->d[i] = 0.0;
     }
   }
+  
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(static) private(i) if(nonodes2 - spp > 50)
+#endif
   for (i = spp; i < nonodes2; i++) {
     WITH->w[i] = 1.0;
     WITH->d[i] = 0.0;
@@ -653,19 +709,58 @@ void globrearrange(long* numtrees,boolean* succeeded)
   allocw(nonodes2, oldtree.nodep);
   fitch_copy_(&curtree,&globtree);
   fitch_copy_(&curtree,&oldtree);
+
+  /* Parallelize the main loop over interior nodes */
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(dynamic) private(i, j, k, num_sibs, num_sibs2, where, sib_ptr, sib_ptr2) \
+          reduction(||:success) if(nonodes2 - spp > 4)
+#endif
   for ( i = spp ; i < nonodes2 ; i++ ) {
     num_sibs = count_sibs(curtree.nodep[i]);
     sib_ptr  = curtree.nodep[i];
-   /* if ( (i - spp) % (( nonodes2 / 72 ) + 1 ) == 0 )
-      putchar('.');
-    fflush(stdout);*/
+    
     for ( j = 0 ; j <= num_sibs ; j++ ) {
+      /* Thread-local trees for parallel execution */
+      tree local_curtree, local_bestree, local_priortree;
+      
+#ifdef _OPENMP
+      /* Each thread needs its own tree copies */
+      if (omp_get_num_threads() > 1) {
+        alloctree(&local_curtree.nodep, nonodes2);
+        alloctree(&local_bestree.nodep, nonodes2);
+        alloctree(&local_priortree.nodep, nonodes2);
+        setuptree(&local_curtree, nonodes2);
+        setuptree(&local_bestree, nonodes2);
+        setuptree(&local_priortree, nonodes2);
+        allocd(nonodes2, local_curtree.nodep);
+        allocd(nonodes2, local_bestree.nodep);
+        allocd(nonodes2, local_priortree.nodep);
+        allocw(nonodes2, local_curtree.nodep);
+        allocw(nonodes2, local_bestree.nodep);
+        allocw(nonodes2, local_priortree.nodep);
+        
+        #pragma omp critical
+        {
+          fitch_copy_(&curtree, &local_curtree);
+          fitch_copy_(&bestree, &local_bestree);
+        }
+      } else {
+        local_curtree = curtree;
+        local_bestree = bestree;
+        local_priortree = priortree;
+      }
+#else
+      local_curtree = curtree;
+      local_bestree = bestree;
+      local_priortree = priortree;
+#endif
+
       re_move(&sib_ptr,&where);
-      fitch_copy_(&curtree,&priortree);
+      fitch_copy_(&local_curtree,&local_priortree);
 
       if (where->tip) {
-        fitch_copy_(&oldtree,&curtree);
-        fitch_copy_(&oldtree,&bestree);
+        fitch_copy_(&oldtree,&local_curtree);
+        fitch_copy_(&oldtree,&local_bestree);
         sib_ptr=sib_ptr->next;
         continue;
       }
@@ -673,19 +768,46 @@ void globrearrange(long* numtrees,boolean* succeeded)
       sib_ptr2 = where;
       for ( k = 0 ; k < num_sibs2 ; k++ ) {
         addwhere = NULL;
-        addtraverse(sib_ptr,sib_ptr2->back,true,numtrees,succeeded);
+        long local_numtrees = *numtrees;
+        boolean local_succeeded = false;
+        
+        addtraverse(sib_ptr,sib_ptr2->back,true,&local_numtrees,&local_succeeded);
+        
         if ( addwhere && where != addwhere && where->back != addwhere
-              && bestree.likelihood > globtree.likelihood) {
-            fitch_copy_(&bestree,&globtree);
-            success = true;
+              && local_bestree.likelihood > globtree.likelihood) {
+#ifdef _OPENMP
+          #pragma omp critical
+#endif
+          {
+            if (local_bestree.likelihood > globtree.likelihood) {
+              fitch_copy_(&local_bestree,&globtree);
+              success = true;
+            }
+          }
         }
         sib_ptr2 = sib_ptr2->next;
       }
-      fitch_copy_(&oldtree,&curtree);
-      fitch_copy_(&oldtree,&bestree);
+      fitch_copy_(&oldtree,&local_curtree);
+      fitch_copy_(&oldtree,&local_bestree);
       sib_ptr = sib_ptr->next;
+
+#ifdef _OPENMP
+      /* Clean up thread-local trees */
+      if (omp_get_num_threads() > 1) {
+        freed(nonodes2, local_curtree.nodep);
+        freed(nonodes2, local_bestree.nodep);
+        freed(nonodes2, local_priortree.nodep);
+        freew(nonodes2, local_curtree.nodep);
+        freew(nonodes2, local_bestree.nodep);
+        freew(nonodes2, local_priortree.nodep);
+        freetree(&local_curtree.nodep, nonodes2);
+        freetree(&local_bestree.nodep, nonodes2);
+        freetree(&local_priortree.nodep, nonodes2);
+      }
+#endif
     }
   }
+  
   fitch_copy_(&globtree,&curtree);
   fitch_copy_(&globtree,&bestree);
   if (success && globtree.likelihood > oldbestyet)  {
@@ -791,6 +913,10 @@ void nodeinit(node *p)
   long i, j;
 
   for (i = 1; i <= 3; i++) {
+    /* Parallelize inner loop for large node counts */
+#ifdef _OPENMP
+    #pragma omp parallel for schedule(static) private(j) if(nonodes2 > 100)
+#endif
     for (j = 0; j < nonodes2; j++) {
       p->w[j] = 1.0;
       p->d[j] = 0.0;
@@ -848,8 +974,17 @@ void fitch_maketree()
   if (usertree) {
     inputdata(replicates, printdata, lower, upper, x, reps);
     setuptree(&curtree, nonodes2);
-    for (which = 1; which <= spp; which++)
+    
+    /* Parallelize species setup for user-defined trees */
+    init_parallel();  /* Initialize parallel processing */
+    
+#ifdef _OPENMP
+    #pragma omp parallel for schedule(dynamic) private(which) if(spp > 10)
+#endif
+    for (which = 1; which <= spp; which++) {
       setuptipf(which, &curtree);
+    }
+    
     if (eoln(infile))
       scan_eoln(infile);
     /* Open in binary: ftell() is broken for UNIX line-endings under WIN32 */
@@ -887,7 +1022,15 @@ void fitch_maketree()
       setuptree(&priortree, nonodes2);
       setuptree(&bestree, nonodes2);
       if (njumble > 1) setuptree(&bestree2, nonodes2);
+      
+      /* Initialize parallel processing */
+      init_parallel();
     }
+    
+    /* Parallelize enterorder initialization */
+#ifdef _OPENMP
+    #pragma omp parallel for schedule(static) private(i) if(spp > 100)
+#endif
     for (i = 1; i <= spp; i++)
       enterorder[i - 1] = i;
     if (jumble)

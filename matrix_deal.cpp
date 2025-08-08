@@ -502,13 +502,31 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
                 vec_unshorted_names.push_back(str_hmms_names);
                 shorted_name_flag = true;
                 of_shorted_names<<str_hmms_names<<"==";
-                str_hmms_names=str_hmms_names.substr(0,3) + str_hmms_names.substr(str_hmms_names.length()-7,7);
-                int num = shorted_num;
+                
+                // Create base shortened name: first 3 + last 7 characters
+                std::string base_short_name = str_hmms_names.substr(0,3) + str_hmms_names.substr(str_hmms_names.length()-7,7);
+                str_hmms_names = base_short_name;
+                
+                // Handle collisions by appending a unique suffix
+                int collision_counter = 1;
                 while(shorted_names_map.find(str_hmms_names) != shorted_names_map.end() ){
-                     num++;
-                    std::string str_shorted_num = int_2_string(num+1);
-                    str_hmms_names=str_hmms_names.replace(str_hmms_names.length() - str_shorted_num.length(), str_shorted_num.length(),str_shorted_num.c_str());
-                    std::cout<<str_hmms_names<<std::endl;
+                    std::string suffix = "_" + int_2_string(collision_counter);
+                    
+                    // If the suffix would make the name too long, truncate the base name
+                    if(base_short_name.length() + suffix.length() > 10) {
+                        int available_length = 10 - suffix.length();
+                        if(available_length < 3) {
+                            // If suffix too long, use shorter suffix format
+                            suffix = int_2_string(collision_counter);
+                            available_length = 10 - suffix.length();
+                        }
+                        str_hmms_names = base_short_name.substr(0, available_length) + suffix;
+                    } else {
+                        str_hmms_names = base_short_name + suffix;
+                    }
+                    
+                    collision_counter++;
+                    std::cout<<"Collision resolved: " << str_hmms_names << std::endl;
                 }
                 of_shorted_names<<str_hmms_names<<std::endl;
                 vec_shorted_names.push_back(str_hmms_names);
@@ -535,13 +553,31 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
                 vec_unshorted_names.push_back(str_hmms_names);
                 shorted_name_flag = true;
                 of_shorted_names<<str_hmms_names<<"==";
-                str_hmms_names=str_hmms_names.substr(0,3) + str_hmms_names.substr(str_hmms_names.length()-7,7);
-                int num = shorted_num;
+                
+                // Create base shortened name: first 3 + last 7 characters
+                std::string base_short_name = str_hmms_names.substr(0,3) + str_hmms_names.substr(str_hmms_names.length()-7,7);
+                str_hmms_names = base_short_name;
+                
+                // Handle collisions by appending a unique suffix
+                int collision_counter = 1;
                 while(shorted_names_map.find(str_hmms_names) != shorted_names_map.end() ){
-                    num++;
-                    std::string str_shorted_num = int_2_string(num+1);
-                    str_hmms_names=str_hmms_names.replace(str_hmms_names.length() - str_shorted_num.length(), str_shorted_num.length(),str_shorted_num.c_str());
-                    std::cout<<str_hmms_names<<std::endl;
+                    std::string suffix = "_" + int_2_string(collision_counter);
+                    
+                    // If the suffix would make the name too long, truncate the base name
+                    if(base_short_name.length() + suffix.length() > 10) {
+                        int available_length = 10 - suffix.length();
+                        if(available_length < 3) {
+                            // If suffix too long, use shorter suffix format
+                            suffix = int_2_string(collision_counter);
+                            available_length = 10 - suffix.length();
+                        }
+                        str_hmms_names = base_short_name.substr(0, available_length) + suffix;
+                    } else {
+                        str_hmms_names = base_short_name + suffix;
+                    }
+                    
+                    collision_counter++;
+                    std::cout<<"Collision resolved: " << str_hmms_names << std::endl;
                 }
                 of_shorted_names<<str_hmms_names<<std::endl;
                 vec_shorted_names.push_back(str_hmms_names);

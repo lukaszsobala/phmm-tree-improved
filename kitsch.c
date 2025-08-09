@@ -112,13 +112,21 @@ void init_parallel_kitsch()
   omp_set_num_threads(num_threads_kitsch);
   
   if (progress) {
-    printf("Kitsch: Parallel processing enabled with %d threads\n", num_threads_kitsch);
+    if (minev) {
+      printf("Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with %d threads\n", num_threads_kitsch);
+    } else {
+      printf("Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with %d threads\n", num_threads_kitsch);
+    }
   }
 #else
   num_threads_kitsch = 1;
   max_threads_kitsch = 1;
   if (progress) {
-    printf("Kitsch: Sequential processing (OpenMP not available)\n");
+    if (minev) {
+      printf("Kitsch minimum evolution (contemporary tips): Sequential processing (OpenMP not available)\n");
+    } else {
+      printf("Kitsch Fitch-Margoliash (contemporary tips): Sequential processing (OpenMP not available)\n");
+    }
   }
 #endif
 }  /* init_parallel_kitsch */

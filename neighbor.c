@@ -88,7 +88,7 @@ void init_neighbor_parallel(void)
 #endif
   
   if (neighbor_progress) {
-    printf("OpenMP parallel neighbor-joining enabled with %d thread(s)\n", neighbor_num_threads);
+    printf("Neighbor-joining method: OpenMP parallel processing with %d thread(s)\n", neighbor_num_threads);
   }
 }
 #endif

@@ -46,7 +46,7 @@ const std::string STR_ARGUMENTS_ERROR_MSG="pHMM-Tree\n\
 \n\
 pHMM-Tree has several arguments that must be passed in, in addition to the 3 options.\n\
 \n\
-./Program_name <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_name]\n\
+phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_name]\n\
 <mode>:     -prc: Use PRC software to compare the profile HMMs in HMMER format.  \n\
 <mode>:     -hhsuite: Use hhsuite software to compare the profile HMMs in HHM format. \n\
 \n\
@@ -54,47 +54,47 @@ pHMM-Tree has several arguments that must be passed in, in addition to the 3 opt
 \n\
 	This mode requires an argument '-id' between 0.1 and 1.0 to set the usearch identity in cluster process. And the file name must be included in argument [file_path_name]. Users can also set the PRC parametor by giving [prc_hit] option a non negative value; the default value for pHMM-Tree is 10; set it be 0 if you want to use the PRC default value (100). Users may need to set [hmm_acc] option to use the 'ACC' key in the matrixs and tree files if the HMM files have 'ACC' keys, the default key is 'NAME'.Use '-lib' to run in PRC library style, the default is pairwise style.\n\
 \n\
-	Cmd Examples:./Program_name -prc -uals -id 0.9 ./some_path/a.fasta\n\
-                     ./Program_name -prc -uals -id 0.9 -prc_hit 15 ./some_path/a.fasta\n\
-                     ./Program_name -prc -uals -id 0.9 -prc_hit 15 -acc ./some_path/a.fasta\n\
-                     ./Program_name -hhsuite  -uals -id 0.9 ./some_path/a.fasta\n\
+	Cmd Examples:phmm-tree -prc -uals -id 0.9 ./some_path/a.fasta\n\
+                     phmm-tree -prc -uals -id 0.9 -prc_hit 15 ./some_path/a.fasta\n\
+                     phmm-tree -prc -uals -id 0.9 -prc_hit 15 -acc ./some_path/a.fasta\n\
+                     phmm-tree -hhsuite  -uals -id 0.9 ./some_path/a.fasta\n\
 \n\
 <option>:   -als: The input data include at least three files containing aligned sequences in FASTA format\n\
 \n\
 	[prc_hit] and [hmm_acc] option can also work in this mode, please read the '-uals' option part to find the details. As to the [file_path file_path_name] option, only the file path are allowed. \n\
 \n\
-	Cmd Examples:./Program_name -prc -als  ./some_path/\n\
-                     ./Program_name -prc -als  -prc_hit 15 ./some_path/\n\
-                     ./Program_name -prc -als  -prc_hit 15 -acc ./some_path/\n\
-                     ./Program_name -hhsuite  -als  ./some_path/\n\
+	Cmd Examples:phmm-tree -prc -als  ./some_path/\n\
+                     phmm-tree -prc -als  -prc_hit 15 ./some_path/\n\
+                     phmm-tree -prc -als  -prc_hit 15 -acc ./some_path/\n\
+                     phmm-tree -hhsuite  -als  ./some_path/\n\
 \n\
 <option>:   -als_phmms: The input data include two folders, one with aligments files and the other with profile HMM files in HMMER2.x or HMMER3.x format \n\
 \n\
 	The options are same as the '-hmms' option mode.\n\
 \n\
-	Cmd Examples:	./Program_name -prc -als_phmms ./some_hmms_path/  ./some_als_path/ \n\
-			./Program_name -prc -als_phmms -prc_hit 15 ./some_hmms_path/  ./some_als_path/   \n\
-			./Program_name -prc -als_phmms -prc_hit 15 -acc ./some_hmms_path/  ./some_als_path/  \n\
+	Cmd Examples:	phmm-tree -prc -als_phmms ./some_hmms_path/  ./some_als_path/ \n\
+			phmm-tree -prc -als_phmms -prc_hit 15 ./some_hmms_path/  ./some_als_path/   \n\
+			phmm-tree -prc -als_phmms -prc_hit 15 -acc ./some_hmms_path/  ./some_als_path/  \n\
 \n\
 <option>:   -als_phhms: The input data include two folders, one with aligments files and the other with profile HMM files in HHM/hhsuite format\n\
 \n\
 	The options are same as the '-hhms' option mode.\n\
 \n\
-	Cmd Examples:	./Program_name  -hhsuite  -als_phhms  ./some_hhms_path/  ./some_als_path/ \n\
+	Cmd Examples:	phmm-tree  -hhsuite  -als_phhms  ./some_hhms_path/  ./some_als_path/ \n\
 \n\
 <option>:   -hmms: The input data include one folder with at least three profile HMM files in HMMER2.x or HMMER3.x format\n\
 \n\
 	The options are same as the '-als' option mode.\n\
 \n\
-	Cmd Examples:./Program_name -prc -hmms ./some_path/\n\
-                     ./Program_name -prc -hmms -prc_hit 15 ./some_path/\n\
-                     ./Program_name -prc -hmms -prc_hit 15 -acc ./some_path/\n\
+	Cmd Examples:phmm-tree -prc -hmms ./some_path/\n\
+                     phmm-tree -prc -hmms -prc_hit 15 ./some_path/\n\
+                     phmm-tree -prc -hmms -prc_hit 15 -acc ./some_path/\n\
 \n\
 <option>:   -hhms: The input data include one folder with  at least three profile HMM files in HHM format\n\
 \n\
 	The options are same as the '-als' option mode.\n\
 \n\
-	Cmd Examples:./Program_name  -hhsuite  -hhms  ./some_path/";
+	Cmd Examples:phmm-tree  -hhsuite  -hhms  ./some_path/";
 /* public_functions */
 //test the input string is num str or not
 int is_num_str(char *char_str_num);

@@ -111,7 +111,7 @@ void init_upgma_parallel(void)
 #endif
   
   if (progress) {
-    printf("OpenMP parallel UPGMA enabled with %d thread(s)\n", upgma_num_threads);
+    printf("UPGMA method: OpenMP parallel processing with %d thread(s)\n", upgma_num_threads);
   }
 }
 #endif

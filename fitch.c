@@ -122,13 +122,21 @@ void init_parallel()
   omp_set_num_threads(num_threads);
   
   if (progress) {
-    printf("Parallel processing enabled with %d threads\n", num_threads);
+    if (minev) {
+      printf("Fitch minimum evolution method: OpenMP parallel processing with %d threads\n", num_threads);
+    } else {
+      printf("Fitch-Margoliash method: OpenMP parallel processing with %d threads\n", num_threads);
+    }
   }
 #else
   num_threads = 1;
   max_threads = 1;
   if (progress) {
-    printf("Sequential processing (OpenMP not available)\n");
+    if (minev) {
+      printf("Fitch minimum evolution method: Sequential processing (OpenMP not available)\n");
+    } else {
+      printf("Fitch-Margoliash method: Sequential processing (OpenMP not available)\n");
+    }
   }
 #endif
 }  /* init_parallel */

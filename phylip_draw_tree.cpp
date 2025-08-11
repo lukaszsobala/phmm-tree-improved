@@ -11,6 +11,51 @@ int HMMTree::Phylip_draw_tree2(){
 return 1;
 }
 
+//function to run selected phylogenetic analyses
+void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only) {
+    std::string matrix_file = folder_matrixs + "file_dist_matrix_out_phylip.txt";
+    
+    if (run_kitsch) {
+        std::cout << "Running Kitsch analysis (contemporary tips method)..." << std::endl;
+        
+        // Determine which variants to run
+        bool run_fm = !min_only;    // Run f-m unless min_only is specified
+        bool run_min = !fm_only;    // Run min unless fm_only is specified
+        
+        if (run_fm) {
+            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_f-m").c_str(), 0);
+        }
+        if (run_min) {
+            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_min").c_str(), 1);
+        }
+    }
+    
+    if (run_fitch) {
+        std::cout << "Running Fitch-Margoliash analysis..." << std::endl;
+        
+        // Determine which variants to run
+        bool run_fm = !min_only;    // Run f-m unless min_only is specified
+        bool run_min = !fm_only;    // Run min unless fm_only is specified
+        
+        if (run_fm) {
+            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_f-m").c_str(), 0);
+        }
+        if (run_min) {
+            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_min").c_str(), 1);
+        }
+    }
+    
+    if (run_nj) {
+        std::cout << "Running Neighbor-Joining analysis..." << std::endl;
+        neighbor_build_tree(matrix_file.c_str(), (folder_tree_files + "neighbor").c_str());
+    }
+    
+    if (run_upgma) {
+        std::cout << "Running UPGMA analysis..." << std::endl;
+        upgma_build_tree(matrix_file.c_str(), (folder_tree_files + "upgma").c_str());
+    }
+}
+
 //function to replace the shortednames to the before-replaced names
 void HMMTree::trees_replace_shorted_names(std::string str_treefiles_path){
     if(!dir_exist_opendir(str_treefiles_path)){

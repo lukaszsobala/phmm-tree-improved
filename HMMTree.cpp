@@ -44,7 +44,13 @@ int main(int argc, char * argv[]){
         "-hhsuite",   // 8
         "-hhms",      // 9
         "-als_phmms", // 10
-        "-als_phhms"  // 11
+        "-als_phhms", // 11
+        "-fitch",     // 12
+        "-kitsch",    // 13
+        "-upgma",     // 14
+        "-nj",        // 15
+        "-fm",        // 16
+        "-min"        // 17
     };
     const size_t kArgsCount = sizeof(kArgs) / sizeof(kArgs[0]);
 	//string to save the compute model from the user input
@@ -176,6 +182,38 @@ int main(int argc, char * argv[]){
                             output_error_("Run style '-als_phhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
                         break;
+                    case 12:
+                        strc_cmd.run_fitch = true;
+                        find_argu = true;
+                        break;
+                    case 13:
+                        strc_cmd.run_kitsch = true;
+                        find_argu = true;
+                        break;
+                    case 14:
+                        strc_cmd.run_upgma = true;
+                        find_argu = true;
+                        break;
+                    case 15:
+                        strc_cmd.run_nj = true;
+                        find_argu = true;
+                        break;
+                    case 16:
+                        if (!strc_cmd.run_min_only) {
+                            strc_cmd.run_fm_only = true;
+                            find_argu = true;
+                        } else {
+                            output_error_("Cannot specify both '-fm' and '-min' arguments");
+                        }
+                        break;
+                    case 17:
+                        if (!strc_cmd.run_fm_only) {
+                            strc_cmd.run_min_only = true;
+                            find_argu = true;
+                        } else {
+                            output_error_("Cannot specify both '-fm' and '-min' arguments");
+                        }
+                        break;
                     default:
                         output_error_("Arguments");
                         break;
@@ -262,6 +300,37 @@ int main(int argc, char * argv[]){
         }
 
         test.prc_hhsuite = 1;
+    }
+
+    // Configure phylogenetic analysis selection
+    // If specific analyses were requested, only run those
+    bool any_analysis_specified = strc_cmd.run_fitch || strc_cmd.run_kitsch || strc_cmd.run_upgma || strc_cmd.run_nj;
+    if (any_analysis_specified) {
+        test.run_fitch_analysis = strc_cmd.run_fitch;
+        test.run_kitsch_analysis = strc_cmd.run_kitsch;
+        test.run_upgma_analysis = strc_cmd.run_upgma;
+        test.run_nj_analysis = strc_cmd.run_nj;
+        
+        std::cout << "Selected phylogenetic analyses: ";
+        if (strc_cmd.run_fitch) std::cout << "Fitch ";
+        if (strc_cmd.run_kitsch) std::cout << "Kitsch ";
+        if (strc_cmd.run_upgma) std::cout << "UPGMA ";
+        if (strc_cmd.run_nj) std::cout << "Neighbor-Joining ";
+        std::cout << std::endl;
+    } else {
+        // Default: run all analyses
+        std::cout << "Running all phylogenetic analyses (default)" << std::endl;
+    }
+
+    // Configure Fitch/Kitsch variant selection
+    test.run_fm_only = strc_cmd.run_fm_only;
+    test.run_min_only = strc_cmd.run_min_only;
+    if (strc_cmd.run_fm_only) {
+        std::cout << "Variant selection: f-m only" << std::endl;
+    } else if (strc_cmd.run_min_only) {
+        std::cout << "Variant selection: minimum evolution only" << std::endl;
+    } else if (any_analysis_specified && (strc_cmd.run_fitch || strc_cmd.run_kitsch)) {
+        std::cout << "Variant selection: both f-m and minimum evolution (default)" << std::endl;
     }
 
     std::string str_file_path_2="";

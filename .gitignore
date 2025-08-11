@@ -5,3 +5,6 @@ hmms*/
 prc
 test_*/
 prc_hmms_*/
+\#*
+test_*.sh
+*FEATURE*

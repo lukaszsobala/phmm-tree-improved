@@ -46,9 +46,17 @@ const std::string STR_ARGUMENTS_ERROR_MSG="pHMM-Tree\n\
 \n\
 pHMM-Tree has several arguments that must be passed in, in addition to the 3 options.\n\
 \n\
-phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_name]\n\
+phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc] [analysis_methods]  [file_path / file_path_name]\n\
 <mode>:     -prc: Use PRC software to compare the profile HMMs in HMMER format.  \n\
 <mode>:     -hhsuite: Use hhsuite software to compare the profile HMMs in HHM format. \n\
+\n\
+[analysis_methods]: Optional flags to select specific phylogenetic methods (run all if none specified):\n\
+            -fitch: Run Fitch-Margoliash method (both f-m and minimum evolution)\n\
+            -kitsch: Run Kitsch method (contemporary tips - both f-m and minimum evolution)\n\
+            -upgma: Run UPGMA (Unweighted Pair Group Method with Arithmetic Mean)\n\
+            -nj: Run Neighbor-Joining method\n\
+            -fm: Run only f-m variants (affects Fitch and Kitsch methods)\n\
+            -min: Run only minimum evolution variants (affects Fitch and Kitsch methods)\n\
 \n\
 <option>:   -uals: The input file has to have at least 9 unaligned sequences in FASTA format\n\
 \n\
@@ -57,7 +65,10 @@ phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_na
 	Cmd Examples:phmm-tree -prc -uals -id 0.9 ./some_path/a.fasta\n\
                      phmm-tree -prc -uals -id 0.9 -prc_hit 15 ./some_path/a.fasta\n\
                      phmm-tree -prc -uals -id 0.9 -prc_hit 15 -acc ./some_path/a.fasta\n\
-                     phmm-tree -hhsuite  -uals -id 0.9 ./some_path/a.fasta\n\
+                     phmm-tree -prc -uals -id 0.9 -fitch -fm ./some_path/a.fasta\n\
+                     phmm-tree -prc -uals -id 0.9 -kitsch -min ./some_path/a.fasta\n\
+                     phmm-tree -prc -uals -id 0.9 -fitch -upgma ./some_path/a.fasta\n\
+                     phmm-tree -hhsuite  -uals -id 0.9 -nj ./some_path/a.fasta\n\
 \n\
 <option>:   -als: The input data include at least three files containing aligned sequences in FASTA format\n\
 \n\
@@ -66,6 +77,8 @@ phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_na
 	Cmd Examples:phmm-tree -prc -als  ./some_path/\n\
                      phmm-tree -prc -als  -prc_hit 15 ./some_path/\n\
                      phmm-tree -prc -als  -prc_hit 15 -acc ./some_path/\n\
+                     phmm-tree -prc -als  -kitsch -nj ./some_path/\n\
+                     phmm-tree -prc -als  -fitch -fm ./some_path/\n\
                      phmm-tree -hhsuite  -als  ./some_path/\n\
 \n\
 <option>:   -als_phmms: The input data include two folders, one with aligments files and the other with profile HMM files in HMMER2.x or HMMER3.x format \n\
@@ -75,12 +88,15 @@ phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_na
 	Cmd Examples:	phmm-tree -prc -als_phmms ./some_hmms_path/  ./some_als_path/ \n\
 			phmm-tree -prc -als_phmms -prc_hit 15 ./some_hmms_path/  ./some_als_path/   \n\
 			phmm-tree -prc -als_phmms -prc_hit 15 -acc ./some_hmms_path/  ./some_als_path/  \n\
+			phmm-tree -prc -als_phmms -fitch -upgma ./some_hmms_path/  ./some_als_path/  \n\
+			phmm-tree -prc -als_phmms -kitsch -min ./some_hmms_path/  ./some_als_path/  \n\
 \n\
 <option>:   -als_phhms: The input data include two folders, one with aligments files and the other with profile HMM files in HHM/hhsuite format\n\
 \n\
 	The options are same as the '-hhms' option mode.\n\
 \n\
 	Cmd Examples:	phmm-tree  -hhsuite  -als_phhms  ./some_hhms_path/  ./some_als_path/ \n\
+			phmm-tree  -hhsuite  -als_phhms -nj -upgma ./some_hhms_path/  ./some_als_path/ \n\
 \n\
 <option>:   -hmms: The input data include one folder with at least three profile HMM files in HMMER2.x or HMMER3.x format\n\
 \n\
@@ -89,6 +105,8 @@ phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc]  [file_path / file_path_na
 	Cmd Examples:phmm-tree -prc -hmms ./some_path/\n\
                      phmm-tree -prc -hmms -prc_hit 15 ./some_path/\n\
                      phmm-tree -prc -hmms -prc_hit 15 -acc ./some_path/\n\
+                     phmm-tree -prc -hmms -fitch ./some_path/\n\
+                     phmm-tree -prc -hmms -kitsch -fm ./some_path/\n\
 \n\
 <option>:   -hhms: The input data include one folder with  at least three profile HMM files in HHM format\n\
 \n\
@@ -279,6 +297,16 @@ typedef struct cmd_params {
 	bool als_phmms;
 	bool als_phhms;
 
+    // Phylogenetic analysis method selection
+    bool run_fitch;
+    bool run_kitsch;
+    bool run_upgma;
+    bool run_nj;
+
+    // Fitch/Kitsch variant selection
+    bool run_fm_only;       // Run only f-m variants
+    bool run_min_only;      // Run only minimum evolution variants
+
     unsigned int prc_prc_hit_value;
     double uals_id_value;
 
@@ -297,6 +325,16 @@ typedef struct cmd_params {
         uals_id = false;
         als_phmms = false;
         als_phhms = false;
+
+        // By default, run all analyses if none specified
+        run_fitch = false;
+        run_kitsch = false;
+        run_upgma = false;
+        run_nj = false;
+
+        // By default, run both f-m and min variants
+        run_fm_only = false;
+        run_min_only = false;
 
         prc_prc_hit_value = 0;
         uals_id_value = 0.0;
@@ -322,6 +360,17 @@ public:
         bool_hhsuite_hhalign_in_folder=false;
         prc_hit_no = 10;
         double_user_id = 0.6;
+        
+        // Initialize analysis selection flags - default to all analyses
+        run_fitch_analysis = true;
+        run_kitsch_analysis = true;
+        run_upgma_analysis = true;
+        run_nj_analysis = true;
+        
+        // Initialize variant selection flags - default to both variants
+        run_fm_only = false;
+        run_min_only = false;
+        
         files_folder="";
         folder_hmms ="";
         folder_tree_files ="";
@@ -344,6 +393,17 @@ public:
     bool use_ACC;                         //use the ACC key in the phylip matrix or not
     bool pairwise_mode;                    //use pairwise mode or not in PRC process
     int prc_hit_no;                         //use the ACC key in the phylip matrix or not
+    
+    // Analysis selection flags
+    bool run_fitch_analysis;
+    bool run_kitsch_analysis;
+    bool run_upgma_analysis;
+    bool run_nj_analysis;
+    
+    // Variant selection flags for Fitch/Kitsch
+    bool run_fm_only;        // Run only f-m variants
+    bool run_min_only;       // Run only minimum evolution variants
+    
     std::string files_folder;               // the folder to save the files created by the input path or file name
     std::string folder_hmms;
     std::string folder_tree_files;
@@ -422,8 +482,11 @@ public:
 	void hhsuite_HHMs_deal(std::string infile_path_and_name);
 
 	void draw_tree_test(){
-	   Phylip_draw_tree2();
+	   draw_tree_selective(run_fitch_analysis, run_kitsch_analysis, run_upgma_analysis, run_nj_analysis, run_fm_only, run_min_only);
 	}
+
+	//function to run selected phylogenetic analyses
+	void draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only);
     //function to replace the shortednames to the before-replaced names
 	void trees_replace_shorted_names(std::string str_treefiles_path);
 

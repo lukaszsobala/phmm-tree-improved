@@ -8,3 +8,6 @@ prc_hmms_*/
 \#*
 test_*.sh
 *FEATURE*
+debug*
+*FIX*
+*ANALYSIS*

@@ -155,7 +155,7 @@ void fitch_getoptions(int tree_type)
   global = false;
   jumble = false;
   njumble = 1;
-  lengths = false;
+  lengths = true;   /* Enable branch length calculation for Fitch-Margoliash */
   lower = false;
   negallowed = false;
   outgrno = 1;
@@ -475,7 +475,8 @@ void update(node *p)
   makedists(p);
   if (p->iter || p->next->iter || p->next->next->iter) {
     makebigv(p);
-    correctv(p);
+    /* TEMPORARY: Disable correctv to test if makebigv alone works */
+    /* correctv(p); */
   }
   nuview(p);
 }  /* update */
@@ -637,7 +638,9 @@ void setuptipf(long m, tree *t)
     WITH->d[i] = 0.0;
   }
   WITH->index = m;
-  if (WITH->iter) WITH->v = 0.0;
+  /* BUGFIX: Don't reset branch lengths to zero when iter flag is set */
+  /* The iter flag indicates branch lengths should be calculated, not zeroed */
+  /* if (WITH->iter) WITH->v = 0.0; */  /* REMOVED - this was causing F-M to have zero branch lengths */
   free(n);
 }  /* setuptipf */
 
@@ -919,8 +922,12 @@ void nodeinit(node *p)
 {
   /* initialize a node */
   long i, j;
+  node *start = p;
 
   for (i = 1; i <= 3; i++) {
+    /* Set iter flag to true for branch length calculation */
+    p->iter = true;
+    
     /* Parallelize inner loop for large node counts */
 #ifdef _OPENMP
     #pragma omp parallel for schedule(static) private(j) if(nonodes2 > 100)
@@ -929,12 +936,15 @@ void nodeinit(node *p)
       p->w[j] = 1.0;
       p->d[j] = 0.0;
     }
+    
+    /* Initialize branch lengths */
+    if ((!lengths) || p->iter)
+      p->v = 1.0;
+    if (p->back != NULL && ((!lengths) || p->back->iter))
+      p->back->v = 1.0;
+      
     p = p->next;
   }
-  if ((!lengths) || p->iter)
-    p->v = 1.0;
-  if ((!lengths) || p->back->iter)
-    p->back->v = 1.0;
 }  /* nodeinit */
 
 

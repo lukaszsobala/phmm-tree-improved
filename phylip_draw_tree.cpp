@@ -1,4 +1,6 @@
 #include "HMMTree.h"
+#include <omp.h>
+#include <sys/timeb.h>
 
 int HMMTree::Phylip_draw_tree2(){
      kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0);
@@ -14,45 +16,64 @@ return 1;
 //function to run selected phylogenetic analyses
 void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only) {
     std::string matrix_file = folder_matrixs + "file_dist_matrix_out_phylip.txt";
+    struct timeb startTime, endTime;
     
     if (run_kitsch) {
         std::cout << "Running Kitsch analysis (contemporary tips method)..." << std::endl;
+        ftime(&startTime);
         
         // Determine which variants to run
         bool run_fm = !min_only;    // Run f-m unless min_only is specified
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
         if (run_fm) {
+            std::cout << "Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_f-m").c_str(), 0);
         }
         if (run_min) {
+            std::cout << "Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_min").c_str(), 1);
         }
+        
+        ftime(&endTime);
+        std::cout << "Kitsch analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
     }
     
     if (run_fitch) {
         std::cout << "Running Fitch-Margoliash analysis..." << std::endl;
+        ftime(&startTime);
         
         // Determine which variants to run
         bool run_fm = !min_only;    // Run f-m unless min_only is specified
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
         if (run_fm) {
+            std::cout << "Fitch-Margoliash method: OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_f-m").c_str(), 0);
         }
         if (run_min) {
+            std::cout << "Fitch minimum evolution method: OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_min").c_str(), 1);
         }
+        
+        ftime(&endTime);
+        std::cout << "Fitch-Margoliash analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
     }
     
     if (run_nj) {
         std::cout << "Running Neighbor-Joining analysis..." << std::endl;
+        ftime(&startTime);
         neighbor_build_tree(matrix_file.c_str(), (folder_tree_files + "neighbor").c_str());
+        ftime(&endTime);
+        std::cout << "Neighbor-Joining analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
     }
     
     if (run_upgma) {
         std::cout << "Running UPGMA analysis..." << std::endl;
+        ftime(&startTime);
         upgma_build_tree(matrix_file.c_str(), (folder_tree_files + "upgma").c_str());
+        ftime(&endTime);
+        std::cout << "UPGMA analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
     }
 }
 

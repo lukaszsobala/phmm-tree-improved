@@ -375,6 +375,12 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
             return;
         }
      }
+
+    // Time the PRC analysis phase
+    struct timeb prcStartTime, prcEndTime;
+    ftime(&prcStartTime);
+    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+
         //compute the distance of two hmms
     if(!pairwise_mode){
 
@@ -389,6 +395,9 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
                 return;
             }
     }
+
+    ftime(&prcEndTime);
+    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
     //temple test function to compare each 2 hmms
@@ -409,7 +418,15 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
         return;
     }
 
+    // Time the phylogenetic tree building phase
+    struct timeb treeStartTime, treeEndTime;
+    ftime(&treeStartTime);
+    std::cout << "Building phylogenetic trees..." << std::endl;
+    
     draw_tree_test();
+    
+    ftime(&treeEndTime);
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
     trees_replace_shorted_names(folder_tree_files);
     system_return(system(("rm -rf "+ folder_clusters).c_str()));
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
@@ -496,6 +513,12 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
             return;
         }
      }
+
+    // Time the PRC analysis phase
+    struct timeb prcStartTime, prcEndTime;
+    ftime(&prcStartTime);
+    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+
         //compute the distance of two hmms
     if(!pairwise_mode){
 
@@ -510,6 +533,9 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
                 return;
             }
     }
+
+    ftime(&prcEndTime);
+    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
     //temple test function to compare each 2 hmms
@@ -530,7 +556,16 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
         return;
     }
 
+    // Time the phylogenetic tree building phase
+    struct timeb treeStartTime, treeEndTime;
+    ftime(&treeStartTime);
+    std::cout << "Building phylogenetic trees..." << std::endl;
+    
     draw_tree_test();
+    
+    ftime(&treeEndTime);
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
+    
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
     return ;
@@ -603,6 +638,12 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
             return;
         }
      }
+
+    // Time the PRC analysis phase
+    struct timeb prcStartTime, prcEndTime;
+    ftime(&prcStartTime);
+    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+
         //compute the distance of two hmms
     if(!pairwise_mode){
 
@@ -617,6 +658,10 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
                 return;
             }
     }
+
+    ftime(&prcEndTime);
+    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
+
 /*
     //temple test function to compare each 2 hmms
     if(!matrix_get_each2_hmms_result()){
@@ -635,7 +680,17 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
         output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
         return;
     }
+
+    // Time the phylogenetic tree building phase
+    struct timeb treeStartTime, treeEndTime;
+    ftime(&treeStartTime);
+    std::cout << "Building phylogenetic trees..." << std::endl;
+    
     draw_tree_test();
+    
+    ftime(&treeEndTime);
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
+    
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
     return ;
@@ -722,6 +777,12 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
             return;
         }
      }
+
+    // Time the PRC analysis phase
+    struct timeb prcStartTime, prcEndTime;
+    ftime(&prcStartTime);
+    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+
         //compute the distance of two hmms
     if(!pairwise_mode){
 
@@ -736,6 +797,9 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
                 return;
             }
     }
+
+    ftime(&prcEndTime);
+    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
     //temple test function to compare each 2 hmms
@@ -756,7 +820,15 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
         return;
     }
 
+    // Time the phylogenetic tree building phase
+    struct timeb treeStartTime, treeEndTime;
+    ftime(&treeStartTime);
+    std::cout << "Building phylogenetic trees..." << std::endl;
+    
     draw_tree_test();
+    
+    ftime(&treeEndTime);
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
     return ;

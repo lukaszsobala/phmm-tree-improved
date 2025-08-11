@@ -42,12 +42,13 @@
 #ifndef OLDC
 /* function prototypes */
 void   init_parallel_kitsch(void);
+void   input_data_parallel(void);
+void   kitsch_copynode_parallel(node **, node **, long);
 void   kitsch_getoptions(int tree_type);
 void   kitsch_doinit(int tree_type);
 void   kitsch_inputoptions(void);
 void   getinput(void);
 void   input_data(void);
-void   input_data_parallel(void);
 void   add(node *, node *, node *);
 void   kitsch_remove(node **, node **);
 void   scrunchtraverse(node *, node **, double *);
@@ -68,7 +69,6 @@ void   kitsch_rearrange(node **);
 void   dtraverse(node *);
 void   kitsch_describe(void);
 void   kitsch_copynode(node *, node *);
-void   kitsch_copynode_parallel(node **, node **, long);
 void   kitsch_copy_(tree *, tree *);
 void   kitsch_maketree(void);
 
@@ -77,29 +77,29 @@ void   kitsch_maketree(void);
 
 #include "kitsch.h"
 
-static Char kitsch_infilename[FNMLNGTH], kitsch_outfilename[FNMLNGTH], kitsch_intreename[FNMLNGTH], kitsch_outtreename[FNMLNGTH];
-static long nonodes, numtrees, col, kitsch_datasets, ith, njumble, jumb;
+static Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
+static long nonodes, numtrees, col, datasets, ith, njumble, jumb;
 /*   numtrees is used by usertree option part of kitsch_maketree */
-static long kitsch_inseed;
+static long inseed;
 static tree curtree, bestree;   /* pointers to all nodes in tree */
 static boolean minev, jumble, usertree, lower, upper, negallowed, replicates, trout,
-        printdata, progress, treeprint, kitsch_mulsets, kitsch_firstset;
+        printdata, progress, treeprint, mulsets, firstset;
 static longer seed;
 static double power;
 static long *enterorder;
 /* Local variables for kitsch_maketree, propagated globally for C version: */
-  long examined;
-  double like, bestyet;
-  node *there;
-  boolean *names;
-  Char kitsch_ch;
-  char *kitsch_progname;
-double trweight; /* to make treeread happy */
-boolean goteof, haslengths, lengths;  /* ditto ... */
+static  long examined;
+static  double like, bestyet;
+static  node *there;
+static  boolean *names;
+static  Char ch;
+static  char *progname;
+static double trweight; /* to make treeread happy */
+static boolean goteof, haslengths, lengths;  /* ditto ... */
 
 /* Parallelization variables */
-int num_threads_kitsch = 1;
-int max_threads_kitsch = 1;
+static int num_threads_kitsch = 1;
+static int max_threads_kitsch = 1;
 
 
 void init_parallel_kitsch()
@@ -183,7 +183,7 @@ void kitsch_doinit(int tree_type)
 void kitsch_inputoptions()
 {
   /* print options information */
-  if (!kitsch_firstset)
+  if (!firstset)
     samenumsp2(ith);
   fprintf(outfile, "\nFitch-Margoliash method ");
   fprintf(outfile, "with contemporary tips, version %s\n\n",VERSION);
@@ -562,24 +562,14 @@ void kitsch_secondtraverse(node *a, node *q, node *u, node *v, long i, long j,
     a->d[k - 1] = (wli * a->d[i - 1] + wlj * a->d[j - 1]) / wlk;
   if (minev)
     return;
-  
-  /* These computations can cause race conditions in parallel execution */
-  /* but the contribution to sum needs to be accumulated thread-safely */
-  double local_contribution = 0.0;
   if (wkl > 0.0) {
     TEMP = u->d[l - 1] - v->d[l - 1];
-    local_contribution += wil * wjl / wkl * (TEMP * TEMP);
+    (*sum) += wil * wjl / wkl * (TEMP * TEMP);
   }
   if (wlk > 0.0) {
     TEMP = a->d[i - 1] - a->d[j - 1];
-    local_contribution += wli * wlj / wlk * (TEMP * TEMP);
+    (*sum) += wli * wlj / wlk * (TEMP * TEMP);
   }
-  
-  /* Thread-safe accumulation */
-#ifdef _OPENMP
-  #pragma omp atomic
-#endif
-  (*sum) += local_contribution;
 }  /* kitsch_secondtraverse */
 
 
@@ -801,11 +791,6 @@ void kitsch_describe()
     fprintf(outfile, "Sum of branch lengths = %10.3f\n\n", -like);
   if ((fabs(power - 2) < 0.01) && !minev) {
     totalnum = 0.0;
-    
-    /* Parallelize the sum calculation */
-#ifdef _OPENMP
-    #pragma omp parallel for schedule(static) private(i, j, TEMP) reduction(+:totalnum) if(spp > 50)
-#endif
     for (i = 0; i < (spp); i++) {
       for (j = 0; j < (spp); j++) {
         if (i + 1 != j + 1 && curtree.nodep[i]->d[j] > 0.0) {
@@ -918,16 +903,10 @@ void kitsch_maketree()
 
   if (!usertree) {
     if (jumb == 1) {
-      /* Initialize parallel processing */
       init_parallel_kitsch();
       input_data_parallel();
       examined = 0;
     }
-    
-    /* Parallelize enterorder initialization */
-#ifdef _OPENMP
-    #pragma omp parallel for schedule(static) private(i) if(spp > 100)
-#endif
     for (i = 1; i <= (spp); i++)
       enterorder[i - 1] = i;
     if (jumble)
@@ -979,20 +958,15 @@ void kitsch_maketree()
           gotlike = bestlike;
           /*if (progress)
             printf("   ");*/
-            
-          /* Sequential global rearrangement loop - tree operations are not thread-safe */
           for (j = 0; j < (nonodes); j++) {
             there = curtree.root;
+            bestyet = -DBL_MAX;
             item = curtree.nodep[j];
             if (item != curtree.root) {
-              nufork = NULL;
               kitsch_remove(&item, &nufork);
               there = curtree.root;
               addpreorder(curtree.root, item, nufork);
               add(there, item, nufork);
-              kitsch_evaluate(curtree.root);
-              if (like > bestyet)
-                bestyet = like;
             }
             if (progress) {
              /* if ( j % (( nonodes / 72 ) + 1 ) == 0 )
@@ -1023,11 +997,10 @@ void kitsch_maketree()
       kitsch_describe();
     }
   } else {
-    /* Initialize parallel processing for user trees */
     init_parallel_kitsch();
     input_data_parallel();
     /* Open in binary: ftell() is broken for UNIX line-endings under WIN32 */
-    openfile(&intree,INTREE,"input tree file","rb",kitsch_intreename);
+    openfile(&intree,INTREE,"input tree file","rb",intreename);
     numtrees = countsemic(&intree);
     if (treeprint)
       fprintf(outfile, "\n\nUser-defined trees:\n\n");
@@ -1049,9 +1022,9 @@ void kitsch_maketree()
     free(names);
   }
   if (jumb == njumble && progress) {
-   /* printf("\nOutput written to file \"%s\"\n", kitsch_outfilename);
+   /* printf("\nOutput written to file \"%s\"\n", outfilename);
     if (trout)
-      printf("\nTree also written onto file \"%s\"\n", kitsch_outtreename);*/
+      printf("\nTree also written onto file \"%s\"\n", outtreename);*/
   }
 }  /* kitsch_maketree */
 
@@ -1072,18 +1045,18 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
   //printf("\n%s\n",path_name_infile);
   /* reads in spp, options, and the data, then calls kitsch_maketree to
      construct the tree */
-  openfile(&infile,path_name_infile,"input file","r",kitsch_infilename);
-  openfile(&outfile,outfile_path_name,"output file","w",kitsch_outfilename);
+  openfile(&infile,path_name_infile,"input file","r",infilename);
+  openfile(&outfile,outfile_path_name,"output file","w",outfilename);
 
   ibmpc = IBMCRT;
   ansi = ANSICRT;
-  kitsch_mulsets = false;
-  kitsch_firstset = true;
-  kitsch_datasets = 1;
+  mulsets = false;
+  firstset = true;
+  datasets = 1;
   kitsch_doinit(tree_type);
-  openfile(&outtree,outtree_path_name,"output tree file","w",kitsch_outtreename);
-  for (ith = 1; ith <= kitsch_datasets; ith++) {
-    if (kitsch_datasets > 1) {
+  openfile(&outtree,outtree_path_name,"output tree file","w",outtreename);
+  for (ith = 1; ith <= datasets; ith++) {
+    if (datasets > 1) {
       fprintf(outfile, "\nData set # %ld:\n",ith);
      /* if (progress)
         printf("\nData set # %ld:\n",ith);*/
@@ -1091,8 +1064,8 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
     getinput();
     for (jumb = 1; jumb <= njumble; jumb++)
       kitsch_maketree();
-    kitsch_firstset = false;
-    if (eoln(infile) && (ith < kitsch_datasets))
+    firstset = false;
+    if (eoln(infile) && (ith < datasets))
       scan_eoln(infile);
   }
   FClose(infile);
@@ -1101,8 +1074,8 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
   free(outfile_path_name);
   free(outtree_path_name);
 #ifdef MAC
-  fixmacfile(kitsch_outfilename);
-  fixmacfile(kitsch_outtreename);
+  fixmacfile(outfilename);
+  fixmacfile(outtreename);
 #endif
 #ifdef WIN32
   phyRestoreConsoleAttributes();

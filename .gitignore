@@ -11,3 +11,4 @@ test_*.sh
 debug*
 *FIX*
 *ANALYSIS*
+*_orig.c

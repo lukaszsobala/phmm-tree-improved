@@ -87,25 +87,25 @@ void   globrearrange(long* numtrees,boolean* succeeded);
 
 
 
-static Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
-static long nonodes2, outgrno, nums, col, datasets, ith, njumble, jumb=0;
-static long inseed;
-static vector *x;
-static intvector *reps;
-static boolean minev, global, jumble, lengths, usertree, lower, upper, negallowed,
+Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
+long nonodes2, outgrno, nums, col, datasets, ith, njumble, jumb=0;
+long inseed;
+vector *x;
+intvector *reps;
+boolean minev, global, jumble, lengths, usertree, lower, upper, negallowed,
         outgropt, replicates, trout, printdata, progress, treeprint,
         mulsets, firstset;
-static double power;
-static double trweight; /* to make treeread happy */
-static boolean goteof, haslengths;  /* ditto ... */
-static boolean first; /* ditto ... */
-static node *addwhere;
+double power;
+double trweight; /* to make treeread happy */
+boolean goteof, haslengths;  /* ditto ... */
+boolean first; /* ditto ... */
+node *addwhere;
 
-static longer seed;
-static long *enterorder;
-static tree curtree, priortree, bestree, bestree2;
-static Char ch;
-static char *progname;
+longer seed;
+long *enterorder;
+tree curtree, priortree, bestree, bestree2;
+Char ch;
+char *progname;
 
 /* Parallelization variables */
 int num_threads = 1;
@@ -155,7 +155,7 @@ void fitch_getoptions(int tree_type)
   global = false;
   jumble = false;
   njumble = 1;
-  lengths = true;   /* Enable branch length calculation for Fitch-Margoliash */
+  lengths = false;
   lower = false;
   negallowed = false;
   outgrno = 1;
@@ -475,8 +475,7 @@ void update(node *p)
   makedists(p);
   if (p->iter || p->next->iter || p->next->next->iter) {
     makebigv(p);
-    /* TEMPORARY: Disable correctv to test if makebigv alone works */
-    /* correctv(p); */
+    correctv(p);
   }
   nuview(p);
 }  /* update */
@@ -614,11 +613,6 @@ void setuptipf(long m, tree *t)
   WITH = t->nodep[m - 1];
   memcpy(WITH->d, x[m - 1], (nonodes2 * sizeof(double)));
   memcpy(n, reps[m - 1], (spp * sizeof(long)));
-  
-  /* Parallelize the main initialization loops */
-#ifdef _OPENMP
-  #pragma omp parallel for schedule(static) private(i) if(spp > 100)
-#endif
   for (i = 0; i < spp; i++) {
     if (i + 1 != m && n[i] > 0) {
       if (WITH->d[i] < epsilonf)
@@ -629,18 +623,12 @@ void setuptipf(long m, tree *t)
       WITH->d[i] = 0.0;
     }
   }
-  
-#ifdef _OPENMP
-  #pragma omp parallel for schedule(static) private(i) if(nonodes2 - spp > 50)
-#endif
   for (i = spp; i < nonodes2; i++) {
     WITH->w[i] = 1.0;
     WITH->d[i] = 0.0;
   }
   WITH->index = m;
-  /* BUGFIX: Don't reset branch lengths to zero when iter flag is set */
-  /* The iter flag indicates branch lengths should be calculated, not zeroed */
-  /* if (WITH->iter) WITH->v = 0.0; */  /* REMOVED - this was causing F-M to have zero branch lengths */
+  if (WITH->iter) WITH->v = 0.0;
   free(n);
 }  /* setuptipf */
 
@@ -720,58 +708,19 @@ void globrearrange(long* numtrees,boolean* succeeded)
   allocw(nonodes2, oldtree.nodep);
   fitch_copy_(&curtree,&globtree);
   fitch_copy_(&curtree,&oldtree);
-
-  /* Parallelize the main loop over interior nodes */
-#ifdef _OPENMP
-  #pragma omp parallel for schedule(dynamic) private(i, j, k, num_sibs, num_sibs2, where, sib_ptr, sib_ptr2) \
-          reduction(||:success) if(nonodes2 - spp > 4)
-#endif
   for ( i = spp ; i < nonodes2 ; i++ ) {
     num_sibs = count_sibs(curtree.nodep[i]);
     sib_ptr  = curtree.nodep[i];
-    
+   /* if ( (i - spp) % (( nonodes2 / 72 ) + 1 ) == 0 )
+      putchar('.');
+    fflush(stdout);*/
     for ( j = 0 ; j <= num_sibs ; j++ ) {
-      /* Thread-local trees for parallel execution */
-      tree local_curtree, local_bestree, local_priortree;
-      
-#ifdef _OPENMP
-      /* Each thread needs its own tree copies */
-      if (omp_get_num_threads() > 1) {
-        alloctree(&local_curtree.nodep, nonodes2);
-        alloctree(&local_bestree.nodep, nonodes2);
-        alloctree(&local_priortree.nodep, nonodes2);
-        setuptree(&local_curtree, nonodes2);
-        setuptree(&local_bestree, nonodes2);
-        setuptree(&local_priortree, nonodes2);
-        allocd(nonodes2, local_curtree.nodep);
-        allocd(nonodes2, local_bestree.nodep);
-        allocd(nonodes2, local_priortree.nodep);
-        allocw(nonodes2, local_curtree.nodep);
-        allocw(nonodes2, local_bestree.nodep);
-        allocw(nonodes2, local_priortree.nodep);
-        
-        #pragma omp critical
-        {
-          fitch_copy_(&curtree, &local_curtree);
-          fitch_copy_(&bestree, &local_bestree);
-        }
-      } else {
-        local_curtree = curtree;
-        local_bestree = bestree;
-        local_priortree = priortree;
-      }
-#else
-      local_curtree = curtree;
-      local_bestree = bestree;
-      local_priortree = priortree;
-#endif
-
       re_move(&sib_ptr,&where);
-      fitch_copy_(&local_curtree,&local_priortree);
+      fitch_copy_(&curtree,&priortree);
 
       if (where->tip) {
-        fitch_copy_(&oldtree,&local_curtree);
-        fitch_copy_(&oldtree,&local_bestree);
+        fitch_copy_(&oldtree,&curtree);
+        fitch_copy_(&oldtree,&bestree);
         sib_ptr=sib_ptr->next;
         continue;
       }
@@ -779,46 +728,19 @@ void globrearrange(long* numtrees,boolean* succeeded)
       sib_ptr2 = where;
       for ( k = 0 ; k < num_sibs2 ; k++ ) {
         addwhere = NULL;
-        long local_numtrees = *numtrees;
-        boolean local_succeeded = false;
-        
-        addtraverse(sib_ptr,sib_ptr2->back,true,&local_numtrees,&local_succeeded);
-        
+        addtraverse(sib_ptr,sib_ptr2->back,true,numtrees,succeeded);
         if ( addwhere && where != addwhere && where->back != addwhere
-              && local_bestree.likelihood > globtree.likelihood) {
-#ifdef _OPENMP
-          #pragma omp critical
-#endif
-          {
-            if (local_bestree.likelihood > globtree.likelihood) {
-              fitch_copy_(&local_bestree,&globtree);
-              success = true;
-            }
-          }
+              && bestree.likelihood > globtree.likelihood) {
+            fitch_copy_(&bestree,&globtree);
+            success = true;
         }
         sib_ptr2 = sib_ptr2->next;
       }
-      fitch_copy_(&oldtree,&local_curtree);
-      fitch_copy_(&oldtree,&local_bestree);
+      fitch_copy_(&oldtree,&curtree);
+      fitch_copy_(&oldtree,&bestree);
       sib_ptr = sib_ptr->next;
-
-#ifdef _OPENMP
-      /* Clean up thread-local trees */
-      if (omp_get_num_threads() > 1) {
-        freed(nonodes2, local_curtree.nodep);
-        freed(nonodes2, local_bestree.nodep);
-        freed(nonodes2, local_priortree.nodep);
-        freew(nonodes2, local_curtree.nodep);
-        freew(nonodes2, local_bestree.nodep);
-        freew(nonodes2, local_priortree.nodep);
-        freetree(&local_curtree.nodep, nonodes2);
-        freetree(&local_bestree.nodep, nonodes2);
-        freetree(&local_priortree.nodep, nonodes2);
-      }
-#endif
     }
   }
-  
   fitch_copy_(&globtree,&curtree);
   fitch_copy_(&globtree,&bestree);
   if (success && globtree.likelihood > oldbestyet)  {
@@ -922,29 +844,18 @@ void nodeinit(node *p)
 {
   /* initialize a node */
   long i, j;
-  node *start = p;
 
   for (i = 1; i <= 3; i++) {
-    /* Set iter flag to true for branch length calculation */
-    p->iter = true;
-    
-    /* Parallelize inner loop for large node counts */
-#ifdef _OPENMP
-    #pragma omp parallel for schedule(static) private(j) if(nonodes2 > 100)
-#endif
     for (j = 0; j < nonodes2; j++) {
       p->w[j] = 1.0;
       p->d[j] = 0.0;
     }
-    
-    /* Initialize branch lengths */
-    if ((!lengths) || p->iter)
-      p->v = 1.0;
-    if (p->back != NULL && ((!lengths) || p->back->iter))
-      p->back->v = 1.0;
-      
     p = p->next;
   }
+  if ((!lengths) || p->iter)
+    p->v = 1.0;
+  if ((!lengths) || p->back->iter)
+    p->back->v = 1.0;
 }  /* nodeinit */
 
 
@@ -992,17 +903,8 @@ void fitch_maketree()
   if (usertree) {
     inputdata(replicates, printdata, lower, upper, x, reps);
     setuptree(&curtree, nonodes2);
-    
-    /* Parallelize species setup for user-defined trees */
-    init_parallel();  /* Initialize parallel processing */
-    
-#ifdef _OPENMP
-    #pragma omp parallel for schedule(dynamic) private(which) if(spp > 10)
-#endif
-    for (which = 1; which <= spp; which++) {
+    for (which = 1; which <= spp; which++)
       setuptipf(which, &curtree);
-    }
-    
     if (eoln(infile))
       scan_eoln(infile);
     /* Open in binary: ftell() is broken for UNIX line-endings under WIN32 */
@@ -1040,15 +942,7 @@ void fitch_maketree()
       setuptree(&priortree, nonodes2);
       setuptree(&bestree, nonodes2);
       if (njumble > 1) setuptree(&bestree2, nonodes2);
-      
-      /* Initialize parallel processing */
-      init_parallel();
     }
-    
-    /* Parallelize enterorder initialization */
-#ifdef _OPENMP
-    #pragma omp parallel for schedule(static) private(i) if(spp > 100)
-#endif
     for (i = 1; i <= spp; i++)
       enterorder[i - 1] = i;
     if (jumble)
@@ -1162,6 +1056,7 @@ int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile
   datasets = 1;
   firstset = true;
   fitch_doinit(tree_type);
+  init_parallel();  /* Initialize parallel processing */
   if (trout)
     openfile(&outtree,outtree_path_name,"output tree file","w",outtreename);
   for (i=0;i<spp;++i){

@@ -27,11 +27,9 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
         if (run_fm) {
-            std::cout << "Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_f-m").c_str(), 0);
         }
         if (run_min) {
-            std::cout << "Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_min").c_str(), 1);
         }
         
@@ -48,11 +46,9 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
         if (run_fm) {
-            std::cout << "Fitch-Margoliash method: OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_f-m").c_str(), 0);
         }
         if (run_min) {
-            std::cout << "Fitch minimum evolution method: OpenMP parallel processing with " << omp_get_max_threads() << " threads" << std::endl;
             fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_min").c_str(), 1);
         }
         

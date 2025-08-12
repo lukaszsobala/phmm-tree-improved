@@ -36,6 +36,9 @@
    POSSIBILITY OF SUCH DAMAGE.
 */
 
+/* Static variable for thread count control */
+static int fitch_requested_threads = 0;
+
 #define zsmoothings     10    /* number of zero-branch correction iterations */
 #define epsilonf        0.000001   /* a very small but not too small number  */
 #define delta           0.0001      /* a not quite so small number */
@@ -44,7 +47,7 @@
 
 #ifndef OLDC
 /* function prototypes */
-void   init_parallel(void);
+void   init_parallel(int requested_threads);
 void   nudists_parallel(node **, node *, int);
 void   fitch_getoptions(int tree_type);
 void   fitch_allocrest(void);
@@ -112,20 +115,30 @@ int num_threads = 1;
 int max_threads = 1;
 
 
-void init_parallel()
+void init_parallel(int requested_threads)
 {
-  /* Initialize parallel processing with automatic thread detection */
+  /* Initialize parallel processing with user-specified thread count */
 #ifdef _OPENMP
   max_threads = omp_get_max_threads();
-  /* Use optimal number of threads: typically number of CPU cores */
-  num_threads = (max_threads > 1) ? max_threads : 1;
+  /* Use requested threads or auto-detect if 0 */
+  if (requested_threads > 0) {
+    num_threads = (requested_threads <= max_threads) ? requested_threads : max_threads;
+  } else {
+    num_threads = (max_threads > 1) ? max_threads : 1; /* Auto-detect */
+  }
   omp_set_num_threads(num_threads);
   
   if (progress) {
     if (minev) {
-      printf("Fitch minimum evolution method: OpenMP parallel processing with %d threads\n", num_threads);
+      printf("Fitch minimum evolution method: OpenMP parallel processing with %d threads", num_threads);
+      if (requested_threads > 0) printf(" (user-specified)");
+      else printf(" (auto-detected)");
+      printf("\n");
     } else {
-      printf("Fitch-Margoliash method: OpenMP parallel processing with %d threads\n", num_threads);
+      printf("Fitch-Margoliash method: OpenMP parallel processing with %d threads", num_threads);
+      if (requested_threads > 0) printf(" (user-specified)");
+      else printf(" (auto-detected)");
+      printf("\n");
     }
   }
 #else
@@ -1033,8 +1046,11 @@ void fitch_maketree()
 
 
 
-int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile, int tree_type)
+int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile, int tree_type, int num_threads)
 {
+  /* Store requested thread count in static variable for use by init_parallel */
+  fitch_requested_threads = num_threads;
+  
   int i;
   char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_fitch_outfile")+1);
   char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_fitch_outtree")+1);
@@ -1056,7 +1072,7 @@ int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile
   datasets = 1;
   firstset = true;
   fitch_doinit(tree_type);
-  init_parallel();  /* Initialize parallel processing */
+  init_parallel(fitch_requested_threads);  /* Initialize parallel processing with user-specified thread count */
   if (trout)
     openfile(&outtree,outtree_path_name,"output tree file","w",outtreename);
   for (i=0;i<spp;++i){

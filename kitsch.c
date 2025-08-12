@@ -37,11 +37,14 @@
 #include <omp.h>
 #endif
 
+/* Static variable for thread count control */
+static int kitsch_requested_threads = 0;
+
 #define epsilonk         0.000001   /* a very small but not too small number */
 
 #ifndef OLDC
 /* function prototypes */
-void   init_parallel_kitsch(void);
+void   init_parallel_kitsch(int requested_threads);
 void   input_data_parallel(void);
 void   kitsch_copynode_parallel(node **, node **, long);
 void   kitsch_getoptions(int tree_type);
@@ -102,20 +105,30 @@ static int num_threads_kitsch = 1;
 static int max_threads_kitsch = 1;
 
 
-void init_parallel_kitsch()
+void init_parallel_kitsch(int requested_threads)
 {
-  /* Initialize parallel processing with automatic thread detection for Kitsch */
+  /* Initialize parallel processing with user-specified thread count for Kitsch */
 #ifdef _OPENMP
   max_threads_kitsch = omp_get_max_threads();
-  /* Use optimal number of threads: typically number of CPU cores */
-  num_threads_kitsch = (max_threads_kitsch > 1) ? max_threads_kitsch : 1;
+  /* Use requested threads or auto-detect if 0 */
+  if (requested_threads > 0) {
+    num_threads_kitsch = (requested_threads <= max_threads_kitsch) ? requested_threads : max_threads_kitsch;
+  } else {
+    num_threads_kitsch = (max_threads_kitsch > 1) ? max_threads_kitsch : 1; /* Auto-detect */
+  }
   omp_set_num_threads(num_threads_kitsch);
   
   if (progress) {
     if (minev) {
-      printf("Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with %d threads\n", num_threads_kitsch);
+      printf("Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with %d threads", num_threads_kitsch);
+      if (requested_threads > 0) printf(" (user-specified)");
+      else printf(" (auto-detected)");
+      printf("\n");
     } else {
-      printf("Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with %d threads\n", num_threads_kitsch);
+      printf("Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with %d threads", num_threads_kitsch);
+      if (requested_threads > 0) printf(" (user-specified)");
+      else printf(" (auto-detected)");
+      printf("\n");
     }
   }
 #else
@@ -903,7 +916,7 @@ void kitsch_maketree()
 
   if (!usertree) {
     if (jumb == 1) {
-      init_parallel_kitsch();
+      init_parallel_kitsch(kitsch_requested_threads);
       input_data_parallel();
       examined = 0;
     }
@@ -997,7 +1010,7 @@ void kitsch_maketree()
       kitsch_describe();
     }
   } else {
-    init_parallel_kitsch();
+    init_parallel_kitsch(kitsch_requested_threads);
     input_data_parallel();
     /* Open in binary: ftell() is broken for UNIX line-endings under WIN32 */
     openfile(&intree,INTREE,"input tree file","rb",intreename);
@@ -1029,8 +1042,11 @@ void kitsch_maketree()
 }  /* kitsch_maketree */
 
 
-int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfile, int tree_type)
+int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfile, int tree_type, int num_threads)
 {  /* Fitch-Margoliash criterion with contemporary tips */
+  /* Store requested thread count in static variable for use by init_parallel_kitsch */
+  kitsch_requested_threads = num_threads;
+  
   char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_kitsch_outfile")+1);
   char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_kitsch_outtree")+1);
   strcpy(outfile_path_name,path_name_outfile);

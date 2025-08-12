@@ -33,6 +33,9 @@
 #include "phylip.h"
 #include "dist.h"
 
+/* Static variable for thread count control */
+static int neighbor_requested_threads = 0;
+
 #ifdef OPENMP_ENABLED
 #include <omp.h>
 #endif
@@ -51,7 +54,7 @@ void jointree(void);
 void neighbor_maketree(void);
 void freerest(void);
 #ifdef OPENMP_ENABLED
-void init_neighbor_parallel(void);
+void init_neighbor_parallel(int requested_threads);
 #endif
 /* function prototypes */
 #endif
@@ -77,18 +80,27 @@ node **neighbor_cluster;
 /* Parallelization variables */
 static int neighbor_num_threads = 1;
 
-void init_neighbor_parallel(void)
+void init_neighbor_parallel(int requested_threads)
 {
-  /* Initialize parallel processing */
+  /* Initialize parallel processing with user-specified thread count */
 #ifdef AUTO_THREAD_DETECTION
-  neighbor_num_threads = omp_get_max_threads();
+  int max_threads = omp_get_max_threads();
+  /* Use requested threads or auto-detect if 0 */
+  if (requested_threads > 0) {
+    neighbor_num_threads = (requested_threads <= max_threads) ? requested_threads : max_threads;
+  } else {
+    neighbor_num_threads = max_threads; /* Auto-detect */
+  }
   omp_set_num_threads(neighbor_num_threads);
 #else
   neighbor_num_threads = omp_get_max_threads();
 #endif
   
   if (neighbor_progress) {
-    printf("Neighbor-joining method: OpenMP parallel processing with %d thread(s)\n", neighbor_num_threads);
+    printf("Neighbor-joining method: OpenMP parallel processing with %d thread(s)", neighbor_num_threads);
+    if (requested_threads > 0) printf(" (user-specified)");
+    else printf(" (auto-detected)");
+    printf("\n");
   }
 }
 #endif
@@ -480,7 +492,7 @@ void neighbor_maketree()
   long i ;
 
 #ifdef OPENMP_ENABLED
-  init_neighbor_parallel();
+  init_neighbor_parallel(neighbor_requested_threads);
 #endif
 
   inputdata(neighbor_replicates, neighbor_printdata, neighbor_lower, neighbor_upper, neighbor_x, neighbor_reps);
@@ -520,8 +532,11 @@ void neighbor_maketree()
 }  /* neighbor_maketree */
 
 
-int neighbor_build_tree(const char *path_name_infile, const char *path_name_outfile)
+int neighbor_build_tree(const char *path_name_infile, const char *path_name_outfile, int num_threads)
 {  /* main program */
+  /* Store requested thread count in static variable for use by init_neighbor_parallel */
+  neighbor_requested_threads = num_threads;
+  
   init();
   char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_neighbor_outfile")+1);
   char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_neighbor_outtree")+1);

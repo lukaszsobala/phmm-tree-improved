@@ -41,6 +41,15 @@ int HMMTree::prc_each2(){
 
     std::cout << "PRC deal: Processing " << pairs_to_process.size() << " pairwise comparisons..." << std::endl;
     
+    // Set thread count for PRC analysis based on user configuration
+    int prc_num_threads = (prc_threads_count > 0) ? prc_threads_count : omp_get_max_threads();
+    std::cout << "PRC analysis using " << prc_num_threads << " threads";
+    if (prc_threads_count > 0) std::cout << " (user-specified)";
+    else std::cout << " (auto-detected)";
+    std::cout << std::endl;
+    
+    omp_set_num_threads(prc_num_threads);
+    
     // Track progress with thread-safe counter
     int completed_count = 0;
     int total_pairs = pairs_to_process.size();

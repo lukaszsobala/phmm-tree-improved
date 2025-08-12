@@ -50,7 +50,9 @@ int main(int argc, char * argv[]){
         "-upgma",     // 14
         "-nj",        // 15
         "-fm",        // 16
-        "-min"        // 17
+        "-min",       // 17
+        "-prc_threads",   // 18
+        "-phylo_threads"  // 19
     };
     const size_t kArgsCount = sizeof(kArgs) / sizeof(kArgs[0]);
 	//string to save the compute model from the user input
@@ -214,6 +216,30 @@ int main(int argc, char * argv[]){
                             output_error_("Cannot specify both '-fm' and '-min' arguments");
                         }
                         break;
+                    case 18:
+                        // -prc_threads
+                        arg_num++;
+                        if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                            output_error_("'-prc_threads' argument must be followed by a positive integer");
+                        }
+                        strc_cmd.prc_threads = atoi(argv[arg_num]);
+                        if(strc_cmd.prc_threads < 0){
+                            output_error_("'-prc_threads' must be a positive integer (0 for auto-detect)");
+                        }
+                        find_argu = true;
+                        break;
+                    case 19:
+                        // -phylo_threads
+                        arg_num++;
+                        if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                            output_error_("'-phylo_threads' argument must be followed by a positive integer");
+                        }
+                        strc_cmd.phylo_threads = atoi(argv[arg_num]);
+                        if(strc_cmd.phylo_threads < 0){
+                            output_error_("'-phylo_threads' must be a positive integer (0 for auto-detect)");
+                        }
+                        find_argu = true;
+                        break;
                     default:
                         output_error_("Arguments");
                         break;
@@ -332,6 +358,15 @@ int main(int argc, char * argv[]){
     } else if (any_analysis_specified && (strc_cmd.run_fitch || strc_cmd.run_kitsch)) {
         std::cout << "Variant selection: both f-m and minimum evolution (default)" << std::endl;
     }
+
+    // Transfer thread control parameters to HMMTree instance
+    test.prc_threads_count = strc_cmd.prc_threads;
+    test.phylo_threads_count = strc_cmd.phylo_threads;
+    
+    std::cout << "Thread configuration - PRC analysis: " << 
+        (test.prc_threads_count == 0 ? "auto-detect" : std::to_string(test.prc_threads_count)) << 
+        ", Phylogenetic analysis: " << 
+        (test.phylo_threads_count == 0 ? "auto-detect" : std::to_string(test.phylo_threads_count)) << std::endl;
 
     std::string str_file_path_2="";
     if(strc_cmd.als_phmms || strc_cmd.als_phhms){

@@ -12,3 +12,6 @@ debug*
 *FIX*
 *ANALYSIS*
 *_orig.c
+quick_*
+thread_test_*
+*COMPLETE*

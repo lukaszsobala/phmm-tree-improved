@@ -58,6 +58,10 @@ phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc] [analysis_methods]  [file_
             -fm: Run only f-m variants (affects Fitch and Kitsch methods)\n\
             -min: Run only minimum evolution variants (affects Fitch and Kitsch methods)\n\
 \n\
+[thread_control]: Optional flags to control parallel processing:\n\
+            -prc_threads <num>: Number of threads for PRC distance calculations (0 = auto-detect)\n\
+            -phylo_threads <num>: Number of threads for phylogenetic algorithms (0 = auto-detect)\n\
+\n\
 <option>:   -uals: The input file has to have at least 9 unaligned sequences in FASTA format\n\
 \n\
 	This mode requires an argument '-id' between 0.1 and 1.0 to set the usearch identity in cluster process. And the file name must be included in argument [file_path_name]. Users can also set the PRC parametor by giving [prc_hit] option a non negative value; the default value for pHMM-Tree is 10; set it be 0 if you want to use the PRC default value (100). Users may need to set [hmm_acc] option to use the 'ACC' key in the matrixs and tree files if the HMM files have 'ACC' keys, the default key is 'NAME'.Use '-lib' to run in PRC library style, the default is pairwise style.\n\
@@ -310,6 +314,10 @@ typedef struct cmd_params {
     unsigned int prc_prc_hit_value;
     double uals_id_value;
 
+    // Thread control parameters
+    int prc_threads;        // Number of threads for PRC distance calculations
+    int phylo_threads;      // Number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
+
 	cmd_params(){
 		prc_mode = false;
         prc_hmms = false;
@@ -338,6 +346,10 @@ typedef struct cmd_params {
 
         prc_prc_hit_value = 0;
         uals_id_value = 0.0;
+
+        // Default: auto-detect threads (0 means auto-detect)
+        prc_threads = 0;
+        phylo_threads = 0;
 
 	}
 }CMD_PARAMS;
@@ -371,6 +383,10 @@ public:
         run_fm_only = false;
         run_min_only = false;
         
+        // Initialize thread control - default to auto-detect (0)
+        prc_threads_count = 0;
+        phylo_threads_count = 0;
+        
         files_folder="";
         folder_hmms ="";
         folder_tree_files ="";
@@ -403,6 +419,10 @@ public:
     // Variant selection flags for Fitch/Kitsch
     bool run_fm_only;        // Run only f-m variants
     bool run_min_only;       // Run only minimum evolution variants
+    
+    // Thread control parameters
+    int prc_threads_count;    // Number of threads for PRC analysis
+    int phylo_threads_count;  // Number of threads for phylogenetic analysis
     
     std::string files_folder;               // the folder to save the files created by the input path or file name
     std::string folder_hmms;

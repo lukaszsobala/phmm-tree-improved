@@ -33,6 +33,9 @@
 #include "phylip.h"
 #include "dist.h"
 
+/* Static variable for thread count control */
+static int upgma_requested_threads = 0;
+
 #ifdef OPENMP_ENABLED
 #include <omp.h>
 #endif
@@ -51,7 +54,7 @@ void upgma_jointree(void);
 void upgma_maketree(void);
 void upgma_freerest(void);
 #ifdef OPENMP_ENABLED
-void init_upgma_parallel(void);
+void init_upgma_parallel(int requested_threads);
 #endif
 /* function prototypes */
 #endif
@@ -100,18 +103,27 @@ void upgma_getoptions()
 
 
 #ifdef OPENMP_ENABLED
-void init_upgma_parallel(void)
+void init_upgma_parallel(int requested_threads)
 {
-  /* Initialize parallel processing */
+  /* Initialize parallel processing with user-specified thread count */
 #ifdef AUTO_THREAD_DETECTION
-  upgma_num_threads = omp_get_max_threads();
+  int max_threads = omp_get_max_threads();
+  /* Use requested threads or auto-detect if 0 */
+  if (requested_threads > 0) {
+    upgma_num_threads = (requested_threads <= max_threads) ? requested_threads : max_threads;
+  } else {
+    upgma_num_threads = max_threads; /* Auto-detect */
+  }
   omp_set_num_threads(upgma_num_threads);
 #else
   upgma_num_threads = omp_get_max_threads();
 #endif
   
   if (progress) {
-    printf("UPGMA method: OpenMP parallel processing with %d thread(s)\n", upgma_num_threads);
+    printf("UPGMA method: OpenMP parallel processing with %d thread(s)", upgma_num_threads);
+    if (requested_threads > 0) printf(" (user-specified)");
+    else printf(" (auto-detected)");
+    printf("\n");
   }
 }
 #endif
@@ -477,7 +489,7 @@ void upgma_maketree()
   long i ;
 
 #ifdef OPENMP_ENABLED
-  init_upgma_parallel();
+  init_upgma_parallel(upgma_requested_threads);
 #endif
 
   inputdata(replicates, printdata, lower, upper, x, reps);
@@ -517,8 +529,11 @@ void upgma_maketree()
 }  /* upgma_maketree */
 
 
-int upgma_build_tree(const char *path_name_infile, const char *path_name_outfile)
+int upgma_build_tree(const char *path_name_infile, const char *path_name_outfile, int num_threads)
 {  /* main program */
+  /* Store requested thread count in static variable for use by init_upgma_parallel */
+  upgma_requested_threads = num_threads;
+  
   init();
   char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_upgma_outfile")+1);
   char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_upgma_outtree")+1);

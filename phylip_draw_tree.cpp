@@ -3,12 +3,12 @@
 #include <sys/timeb.h>
 
 int HMMTree::Phylip_draw_tree2(){
-     kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0);
-     kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1);
-     fitch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0);
-     fitch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1);
-     neighbor_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"neighbor").c_str());
-     upgma_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"upgma").c_str());
+     kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
+     kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1, phylo_threads_count);
+     fitch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
+     fitch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1, phylo_threads_count);
+     neighbor_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"neighbor").c_str(), phylo_threads_count);
+     upgma_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"upgma").c_str(), phylo_threads_count);
      //UPGMA_build_tree("ssssss");
 return 1;
 }
@@ -27,10 +27,10 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
         if (run_fm) {
-            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_f-m").c_str(), 0);
+            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_f-m").c_str(), 0, phylo_threads_count);
         }
         if (run_min) {
-            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_min").c_str(), 1);
+            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_min").c_str(), 1, phylo_threads_count);
         }
         
         ftime(&endTime);
@@ -46,10 +46,10 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
         if (run_fm) {
-            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_f-m").c_str(), 0);
+            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_f-m").c_str(), 0, phylo_threads_count);
         }
         if (run_min) {
-            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_min").c_str(), 1);
+            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_min").c_str(), 1, phylo_threads_count);
         }
         
         ftime(&endTime);
@@ -59,7 +59,7 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
     if (run_nj) {
         std::cout << "Running Neighbor-Joining analysis..." << std::endl;
         ftime(&startTime);
-        neighbor_build_tree(matrix_file.c_str(), (folder_tree_files + "neighbor").c_str());
+        neighbor_build_tree(matrix_file.c_str(), (folder_tree_files + "neighbor").c_str(), phylo_threads_count);
         ftime(&endTime);
         std::cout << "Neighbor-Joining analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
     }
@@ -67,7 +67,7 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
     if (run_upgma) {
         std::cout << "Running UPGMA analysis..." << std::endl;
         ftime(&startTime);
-        upgma_build_tree(matrix_file.c_str(), (folder_tree_files + "upgma").c_str());
+        upgma_build_tree(matrix_file.c_str(), (folder_tree_files + "upgma").c_str(), phylo_threads_count);
         ftime(&endTime);
         std::cout << "UPGMA analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
     }

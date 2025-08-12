@@ -2,7 +2,7 @@
 #include <cstdint>
 
 //init the matrix 、 vector  and map
-int HMMTree::matrix_init_matrix_vecotr_map()
+int HMMTree::matrix_init_matrix_vector_map()
 {
 	std::vector<std::string> vec_matrix_hmm_filenames;
 	if(!get_file_names(folder_hmms,vec_matrix_hmm_filenames,".hmm")){
@@ -21,7 +21,7 @@ int HMMTree::matrix_init_matrix_vecotr_map()
 		std::ifstream  if_name_acc_temp;
 		if_name_acc_temp.open(folder_hmms+vec_matrix_hmm_filenames[unint_matrix_hmm]);
 		if(!if_name_acc_temp.is_open()){
-            std::cout<<"matrix_init_matrix_vecotr_map(): Open "<<vec_matrix_hmm_filenames[unint_matrix_hmm]<<"failed !"<<std::endl;
+            std::cout<<"matrix_init_matrix_vector_map(): Open "<<vec_matrix_hmm_filenames[unint_matrix_hmm]<<"failed!"<<std::endl;
             return 0;
 		}
         HMM_NAME_ACC hmm_name_acc_temp;
@@ -118,7 +118,7 @@ int HMMTree::matrix_init_matrix_vecotr_map()
 }
 
 //init the matrix 、 vector  and map
-int HMMTree::matrix_init_matrix_vecotr_map_hhsuite()
+int HMMTree::matrix_init_matrix_vector_map_hhsuite()
 {
 	std::vector<std::string> vec_matrix_hmm_filenames;
 
@@ -139,7 +139,7 @@ int HMMTree::matrix_init_matrix_vecotr_map_hhsuite()
 		if_name_acc_temp.open(folder_hhms+vec_matrix_hmm_filenames[unint_matrix_hmm]);
 
 		if(!if_name_acc_temp.is_open()){
-            std::cout<<"matrix_init_matrix_vecotr_map(): Open "<<vec_matrix_hmm_filenames[unint_matrix_hmm]<<"failed !"<<std::endl;
+            std::cout<<"matrix_init_matrix_vector_map_hhsuite(): Open "<<vec_matrix_hmm_filenames[unint_matrix_hmm]<<"failed!"<<std::endl;
             return 0;
 		}
         HMM_NAME_ACC hmm_name_acc_temp;
@@ -239,10 +239,10 @@ int HMMTree::matrix_init_matrix_vecotr_map_hhsuite()
 }
 
 
-//temple test function to compare each 2 hmms
+//Temporary test function to compare each pair of HMMs
 int  HMMTree::matrix_get_each2_hmms_result_2(){
 
-    //temp variable to save the distance
+    //Temporary variable to save the distance
     STUC_RHH_NOTE STUC_RHH_NOTE_distanc_temp;
     //compute the distance  and get the distance
     prc_set_STUC_RHH_NOTE_dist(&STUC_RHH_NOTE_distanc_temp);
@@ -338,15 +338,14 @@ int HMMTree::matrix_get_lib_hmms_result_2(){
 int HMMTree::matrix_mega_out_put_dist_matrix_to_file()
 {
 	//matrix_out_put_dist_matrix_to_window();
-	//temp file stream to output the matrix to a phiply file
+    //Temporary file stream to output the matrix to a PHYLIP file
 	std::ofstream file_dist_matrix_out;
 
 	/*
-	char c_int2str[255];                   //temp varibale to save the result of turn unsigned int to str
+    char c_int2str[255];                   //Temporary variable to save the result of converting unsigned int to string
 
-	//turn unsigned int to str
-	_itoa_s(dist_matrix.size(), c_int2str, 10);
-	append
+    //Convert unsigned int to string
+    _itoa_s(dist_matrix.size(), c_int2str, 10);
 	*/
 
 	std::string str_name_temp = folder_matrixs+"file_dist_matrix_out_mega.meg";                 //temp string variable to name the out distance file
@@ -443,10 +442,10 @@ int HMMTree::matrix_mega_out_put_dist_matrix_to_file()
 	for (unsigned int i_vec_row_dist_matrix = 0; i_vec_row_dist_matrix < dist_matrix.size(); i_vec_row_dist_matrix++)
 	{
 		file_dist_matrix_out << std::left << std::setw(6) << vec_str_tags[i_vec_row_dist_matrix];
-		for (unsigned int i_vec_coll_dist_matrix = 0; i_vec_coll_dist_matrix < i_vec_row_dist_matrix; i_vec_coll_dist_matrix++)
+    for (unsigned int i_vec_col_dist_matrix = 0; i_vec_col_dist_matrix < i_vec_row_dist_matrix; i_vec_col_dist_matrix++)
 		{
 		    //<< std::fixed<<std::setprecision(10)
-			file_dist_matrix_out << std::left << std::setw(18) << (dist_matrix[i_vec_row_dist_matrix][i_vec_coll_dist_matrix]+ dist_matrix[i_vec_coll_dist_matrix][i_vec_row_dist_matrix]) /2.0;
+            file_dist_matrix_out << std::left << std::setw(18) << (dist_matrix[i_vec_row_dist_matrix][i_vec_col_dist_matrix]+ dist_matrix[i_vec_col_dist_matrix][i_vec_row_dist_matrix]) /2.0;
 		}
 		file_dist_matrix_out << std::endl;
 	}
@@ -463,15 +462,14 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
 		std::cout<<"Format error!!!"<<std::endl;
 	}
 	//matrix_out_put_dist_matrix_to_window();
-	//temp file stream to output the matrix to a phiply file
+    //Temporary file stream to output the matrix to a PHYLIP file
 	std::ofstream file_dist_matrix_out;
 
 	/*
-	char c_int2str[255];                   //temp varibale to save the result of turn unsigned int to str
+    char c_int2str[255];                   //Temporary variable to save the result of converting unsigned int to string
 
-	//turn unsigned int to str
-	_itoa_s(dist_matrix.size(), c_int2str, 10);
-	append
+    //Convert unsigned int to string
+    _itoa_s(dist_matrix.size(), c_int2str, 10);
 	*/
 
 	std::string str_name_temp = folder_matrixs+"file_dist_matrix_out_phylip.txt";                 //temp string variable to name the out distance file
@@ -542,10 +540,10 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
             all_names_num++;
             file_dist_matrix_out << std::left << std::setw(16) << str_hmms_names.c_str() << "    ";
 
-            for (unsigned int i_vec_coll_dist_matrix = 0; i_vec_coll_dist_matrix < dist_matrix.size(); i_vec_coll_dist_matrix++)
+            for (unsigned int i_vec_col_dist_matrix = 0; i_vec_col_dist_matrix < dist_matrix.size(); i_vec_col_dist_matrix++)
             {
 
-                file_dist_matrix_out << std::left << std::setw(18) <<dist_matrix[i_vec_row_dist_matrix][i_vec_coll_dist_matrix];
+                file_dist_matrix_out << std::left << std::setw(18) <<dist_matrix[i_vec_row_dist_matrix][i_vec_col_dist_matrix];
 
             }
 

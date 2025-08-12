@@ -26,8 +26,8 @@ int HMMTree::prc_each2(){
 	vec_hmms_filenames.clear();
 
 	//init the matrix, vector and map;
-    if(!matrix_init_matrix_vecotr_map()){
-        std::cout<<"Fatal error: matrix_init_matrix_vecotr_map() failed !"<<std::endl;
+	if(!matrix_init_matrix_vector_map()){
+		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed !"<<std::endl;
         exit(1);
 	}
 
@@ -184,8 +184,8 @@ int HMMTree::prc_library()
 	file_test_hmm_version.close();
 
 	//init the matrix, vector and map;
-    if(!matrix_init_matrix_vecotr_map()){
-        std::cout<<"Fatal error: matrix_init_matrix_vecotr_map() failed !"<<std::endl;
+	if(!matrix_init_matrix_vector_map()){
+		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed !"<<std::endl;
         exit(1);
 	}
 

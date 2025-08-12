@@ -96,8 +96,8 @@ int HMMTree::hhsuite_hhalign_each2(){
 
 
 	//init the matrix, vector and map;
-    if(!matrix_init_matrix_vecotr_map_hhsuite()){
-        std::cout<<"Fatal error: matrix_init_matrix_vecotr_map() failed !"<<std::endl;
+	if(!matrix_init_matrix_vector_map_hhsuite()){
+		std::cout<<"Fatal error: matrix_init_matrix_vector_map_hhsuite() failed !"<<std::endl;
         exit(1);
 	}
 

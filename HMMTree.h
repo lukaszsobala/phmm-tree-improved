@@ -41,82 +41,98 @@ const unsigned int PTH_F_HMM = 3;					//set the hmm files path,used in function 
 const unsigned int PTH_F_EACH_2_RESULT = 4;         //set the each two hmm compare result files path,used in function path_get of class path_filename ,the parametor of index_to_set
 const unsigned int PTH_F_1_LIARBRY_RESULT = 5;      //set the one to a liarbry of hmms files path,used in function path_get of class path_filename ,the parametor of index_to_set
 
-const std::string STR_ARGUMENTS_ERROR_MSG="pHMM-Tree\n\
-(c) Yin Lab (NIU) and Zhang Lab (NKU) 2016\n\
-\n\
-pHMM-Tree has several arguments that must be passed in, in addition to the 3 options.\n\
-\n\
-phmm-tree <mode> <option>  [-id] [-prc_hit] [hmm_acc] [analysis_methods]  [file_path / file_path_name]\n\
-<mode>:     -prc: Use PRC software to compare the profile HMMs in HMMER format.  \n\
-<mode>:     -hhsuite: Use hhsuite software to compare the profile HMMs in HHM format. \n\
-\n\
-[analysis_methods]: Optional flags to select specific phylogenetic methods (run all if none specified):\n\
-            -fitch: Run Fitch-Margoliash method (both f-m and minimum evolution)\n\
-            -kitsch: Run Kitsch method (contemporary tips - both f-m and minimum evolution)\n\
-            -upgma: Run UPGMA (Unweighted Pair Group Method with Arithmetic Mean)\n\
-            -nj: Run Neighbor-Joining method\n\
-            -fm: Run only f-m variants (affects Fitch and Kitsch methods)\n\
-            -min: Run only minimum evolution variants (affects Fitch and Kitsch methods)\n\
-\n\
-[thread_control]: Optional flags to control parallel processing:\n\
-            -prc_threads <num>: Number of threads for PRC distance calculations (0 = auto-detect)\n\
-            -phylo_threads <num>: Number of threads for phylogenetic algorithms (0 = auto-detect)\n\
-\n\
-<option>:   -uals: The input file has to have at least 9 unaligned sequences in FASTA format\n\
-\n\
-	This mode requires an argument '-id' between 0.1 and 1.0 to set the usearch identity in cluster process. And the file name must be included in argument [file_path_name]. Users can also set the PRC parametor by giving [prc_hit] option a non negative value; the default value for pHMM-Tree is 10; set it be 0 if you want to use the PRC default value (100). Users may need to set [hmm_acc] option to use the 'ACC' key in the matrixs and tree files if the HMM files have 'ACC' keys, the default key is 'NAME'.Use '-lib' to run in PRC library style, the default is pairwise style.\n\
-\n\
-	Cmd Examples:phmm-tree -prc -uals -id 0.9 ./some_path/a.fasta\n\
-                     phmm-tree -prc -uals -id 0.9 -prc_hit 15 ./some_path/a.fasta\n\
-                     phmm-tree -prc -uals -id 0.9 -prc_hit 15 -acc ./some_path/a.fasta\n\
-                     phmm-tree -prc -uals -id 0.9 -fitch -fm ./some_path/a.fasta\n\
-                     phmm-tree -prc -uals -id 0.9 -kitsch -min ./some_path/a.fasta\n\
-                     phmm-tree -prc -uals -id 0.9 -fitch -upgma ./some_path/a.fasta\n\
-                     phmm-tree -hhsuite  -uals -id 0.9 -nj ./some_path/a.fasta\n\
-\n\
-<option>:   -als: The input data include at least three files containing aligned sequences in FASTA format\n\
-\n\
-	[prc_hit] and [hmm_acc] option can also work in this mode, please read the '-uals' option part to find the details. As to the [file_path file_path_name] option, only the file path are allowed. \n\
-\n\
-	Cmd Examples:phmm-tree -prc -als  ./some_path/\n\
-                     phmm-tree -prc -als  -prc_hit 15 ./some_path/\n\
-                     phmm-tree -prc -als  -prc_hit 15 -acc ./some_path/\n\
-                     phmm-tree -prc -als  -kitsch -nj ./some_path/\n\
-                     phmm-tree -prc -als  -fitch -fm ./some_path/\n\
-                     phmm-tree -hhsuite  -als  ./some_path/\n\
-\n\
-<option>:   -als_phmms: The input data include two folders, one with aligments files and the other with profile HMM files in HMMER2.x or HMMER3.x format \n\
-\n\
-	The options are same as the '-hmms' option mode.\n\
-\n\
-	Cmd Examples:	phmm-tree -prc -als_phmms ./some_hmms_path/  ./some_als_path/ \n\
-			phmm-tree -prc -als_phmms -prc_hit 15 ./some_hmms_path/  ./some_als_path/   \n\
-			phmm-tree -prc -als_phmms -prc_hit 15 -acc ./some_hmms_path/  ./some_als_path/  \n\
-			phmm-tree -prc -als_phmms -fitch -upgma ./some_hmms_path/  ./some_als_path/  \n\
-			phmm-tree -prc -als_phmms -kitsch -min ./some_hmms_path/  ./some_als_path/  \n\
-\n\
-<option>:   -als_phhms: The input data include two folders, one with aligments files and the other with profile HMM files in HHM/hhsuite format\n\
-\n\
-	The options are same as the '-hhms' option mode.\n\
-\n\
-	Cmd Examples:	phmm-tree  -hhsuite  -als_phhms  ./some_hhms_path/  ./some_als_path/ \n\
-			phmm-tree  -hhsuite  -als_phhms -nj -upgma ./some_hhms_path/  ./some_als_path/ \n\
-\n\
-<option>:   -hmms: The input data include one folder with at least three profile HMM files in HMMER2.x or HMMER3.x format\n\
-\n\
-	The options are same as the '-als' option mode.\n\
-\n\
-	Cmd Examples:phmm-tree -prc -hmms ./some_path/\n\
-                     phmm-tree -prc -hmms -prc_hit 15 ./some_path/\n\
-                     phmm-tree -prc -hmms -prc_hit 15 -acc ./some_path/\n\
-                     phmm-tree -prc -hmms -fitch ./some_path/\n\
-                     phmm-tree -prc -hmms -kitsch -fm ./some_path/\n\
-\n\
-<option>:   -hhms: The input data include one folder with  at least three profile HMM files in HHM format\n\
-\n\
-	The options are same as the '-als' option mode.\n\
-\n\
-	Cmd Examples:phmm-tree  -hhsuite  -hhms  ./some_path/";
+const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
+"(c) Yin Lab (NIU) and Zhang Lab (NKU) 2016\n"
+"\n"
+"Usage: phmm-tree <mode> <option> [-id <identity>] [-prc_hit <value>] [-acc] [analysis_methods] [file_path or file_path_name]\n"
+"\n"
+"USAGE (structured)\n"
+"  phmm-tree <mode> <input_option> [flags] [analysis_methods] <path>\n"
+"\n"
+"MODES\n"
+"  -prc      Compare profile HMMs in HMMER format using PRC.\n"
+"  -hhsuite  Compare profile HMMs in HHM format using hhsuite.\n"
+"\n"
+"INPUT OPTIONS (choose one)\n"
+"  -uals       Unaligned FASTA file with at least 9 sequences.\n"
+"               - Requires -id <0.1..1.0> to set usearch identity for clustering.\n"
+"               - Provide a file path/name.\n"
+"               - -prc_hit <value> sets PRC parameter (default: 10; 0 uses PRC default 100).\n"
+"               - -acc uses the 'ACC' key in matrix/tree if present (default is 'NAME').\n"
+"               - -lib runs PRC in library mode (default is pairwise mode).\n"
+"\n"
+"  -als        Directory containing at least three aligned FASTA files.\n"
+"               - -prc_hit and -acc are supported (same as in -uals).\n"
+"               - Provide only a directory path.\n"
+"\n"
+"  -als_phmms  Two folders: one with alignments and one with HMMER2.x/3.x profile HMM files.\n"
+"               - Options are the same as for -hmms.\n"
+"\n"
+"  -als_phhms  Two folders: one with alignments and one with HHsuite HHM files.\n"
+"               - Options are the same as for -hhms.\n"
+"\n"
+"  -hmms       Directory with at least three HMMER2.x/3.x profile HMM files.\n"
+"               - Options are the same as for -als.\n"
+"\n"
+"  -hhms       Directory with at least three HHsuite HHM files.\n"
+"               - Options are the same as for -als.\n"
+"\n"
+"FLAGS\n"
+"  -id <identity>         Usearch identity (0.1..1.0) for -uals.\n"
+"  -prc_hit <value>       PRC parameter (default: 10; 0 uses PRC default 100).\n"
+"  -acc                   Use ACC in matrix/tree if available (default: NAME).\n"
+"  -lib                   PRC library mode (for -prc; default is pairwise).\n"
+"\n"
+"ANALYSIS METHODS (optional; if none specified, all run)\n"
+"  -fitch    Run Fitch-Margoliash (both f-m and minimum evolution).\n"
+"  -kitsch   Run Kitsch (contemporary tips; both f-m and minimum evolution).\n"
+"  -upgma    Run UPGMA (Unweighted Pair Group Method with Arithmetic Mean).\n"
+"  -nj       Run Neighbor-Joining.\n"
+"  -fm       Run only f-m variants (affects Fitch and Kitsch).\n"
+"  -min      Run only minimum evolution variants (affects Fitch and Kitsch).\n"
+"\n"
+"THREAD CONTROL (optional; 0 = auto-detect)\n"
+"  -prc_threads <num>     Number of threads for PRC distance calculations.\n"
+"  -phylo_threads <num>   Number of threads for phylogenetic algorithms.\n"
+"\n"
+"EXAMPLES\n"
+"  PRC + unaligned FASTA:\n"
+"    phmm-tree -prc -uals -id 0.9 ./some_path/a.fasta\n"
+"    phmm-tree -prc -uals -id 0.9 -prc_hit 15 ./some_path/a.fasta\n"
+"    phmm-tree -prc -uals -id 0.9 -prc_hit 15 -acc ./some_path/a.fasta\n"
+"    phmm-tree -prc -uals -id 0.9 -fitch -fm ./some_path/a.fasta\n"
+"    phmm-tree -prc -uals -id 0.9 -kitsch -min ./some_path/a.fasta\n"
+"    phmm-tree -prc -uals -id 0.9 -fitch -upgma ./some_path/a.fasta\n"
+"    phmm-tree -hhsuite -uals -id 0.9 -nj ./some_path/a.fasta\n"
+"\n"
+"  PRC + aligned FASTA folder:\n"
+"    phmm-tree -prc -als ./some_path/\n"
+"    phmm-tree -prc -als -prc_hit 15 ./some_path/\n"
+"    phmm-tree -prc -als -prc_hit 15 -acc ./some_path/\n"
+"    phmm-tree -prc -als -kitsch -nj ./some_path/\n"
+"    phmm-tree -prc -als -fitch -fm ./some_path/\n"
+"    phmm-tree -hhsuite -als ./some_path/\n"
+"\n"
+"  PRC + alignments with HMMER HMMs:\n"
+"    phmm-tree -prc -als_phmms ./some_hmms_path/ ./some_als_path/\n"
+"    phmm-tree -prc -als_phmms -prc_hit 15 ./some_hmms_path/ ./some_als_path/\n"
+"    phmm-tree -prc -als_phmms -prc_hit 15 -acc ./some_hmms_path/ ./some_als_path/\n"
+"    phmm-tree -prc -als_phmms -fitch -upgma ./some_hmms_path/ ./some_als_path/\n"
+"    phmm-tree -prc -als_phmms -kitsch -min ./some_hmms_path/ ./some_als_path/\n"
+"\n"
+"  HHsuite + alignments with HHMs:\n"
+"    phmm-tree -hhsuite -als_phhms ./some_hhms_path/ ./some_als_path/\n"
+"    phmm-tree -hhsuite -als_phhms -nj -upgma ./some_hhms_path/ ./some_als_path/\n"
+"\n"
+"  PRC + HMMER HMM folder:\n"
+"    phmm-tree -prc -hmms ./some_path/\n"
+"    phmm-tree -prc -hmms -prc_hit 15 ./some_path/\n"
+"    phmm-tree -prc -hmms -prc_hit 15 -acc ./some_path/\n"
+"    phmm-tree -prc -hmms -fitch ./some_path/\n"
+"    phmm-tree -prc -hmms -kitsch -fm ./some_path/\n"
+"\n"
+"  HHsuite + HHM folder:\n"
+"    phmm-tree -hhsuite -hhms ./some_path/\n";
 /* public_functions */
 //test the input string is num str or not
 int is_num_str(char *char_str_num);
@@ -447,36 +463,41 @@ public:
 	void create_files_folder(std::string input_file_or_folder_path, int prc_hhsuite, int int_run_mode);
 	//use usearch do clusters
     int usearch_cluster(std::string file_path_name, double identity);
-	//aligen all the squences in the current folder
+
+	//Align all sequences in the current folder using MAFFT
 	int align_do_mafft_all_from_file();
 
-	//hmmbuild all the fasta files in the folder
+	//Build HMMs from all FASTA files in the folder using hmmbuild
 	int hmm_do_hmmbuild_all_from_file();
 
-	//compute the distance of two hmms
+	//Compute the distance between two HMMs
 	int prc_each2();
-	//prc hmm1 to a library
-    int prc_hmm1_library(std::string str_name_hmm1, std::string str_library,std::string prc_out_path_filename);
 
-    //compute the distance of hmm1 to a library
-    int prc_library();
+	//Compute the distance between one HMM and a library of HMMs
+	int prc_hmm1_library(std::string hmm1_name, std::string library, std::string output_path_filename);
 
-    //
-    int matrix_get_lib_hmms_result_2();
-	//
-    int matrix_get_each2_hmms_result_2();
-    //
-    int matrix_get_each2_hhms_result_hhsuite();
+	//Compute the distance between all HMMs and a library
+	int prc_library();
 
-	//init the matrix 、 vector  and map
-	int matrix_init_matrix_vecotr_map();
-	//init the matrix 、 vector  and map
-    int matrix_init_matrix_vecotr_map_hhsuite();
+	//Fill the matrix with distances between HMMs and a library
+	int matrix_get_lib_hmms_result_2();
 
-    //function deal a fasta sequences input
+	//Fill the matrix with distances between each pair of HMMs
+	int matrix_get_each2_hmms_result_2();
+
+	//Fill the matrix with distances between each pair of HHsuite HMMs
+	int matrix_get_each2_hhms_result_hhsuite();
+
+	//Initialize the matrix, vector, and map for HMMs
+	int matrix_init_matrix_vector_map();
+
+	//Initialize the matrix, vector, and map for HHsuite HMMs
+	int matrix_init_matrix_vector_map_hhsuite();
+
+	//Process a FASTA sequence input for PRC
 	void prc_fasta_seqs_deal(std::string file_path_name, double identity);
 
-	//function deal a fasta sequences input
+	//Process a FASTA sequence input for HHsuite
 	void hhsuite_fasta_seqs_deal(std::string file_path_name, double identity);
 
 

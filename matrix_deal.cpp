@@ -1,4 +1,5 @@
 #include "HMMTree.h"
+#include <cstdint>
 
 //init the matrix 、 vector  and map
 int HMMTree::matrix_init_matrix_vecotr_map()
@@ -88,19 +89,18 @@ int HMMTree::matrix_init_matrix_vecotr_map()
         }
     }
 
-    //update the unordered map
-	for (unsigned int i_vector = 0; i_vector < id_hmm_NAME_ACC_list_vector.size(); i_vector++)
-	{
+    // Update the unordered maps: always map NAME; also map ACC when present
+    for (unsigned int i_vector = 0; i_vector < id_hmm_NAME_ACC_list_vector.size(); i_vector++)
+    {
+        // Always allow lookup by NAME (filenames passed from PRC)
+        hmm_NAME_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector].NAME] = i_vector;
 
-		if(id_hmm_NAME_ACC_list_vector[i_vector].bool_flag_ACC){
-
+        // Additionally allow lookup by ACC if provided in the HMM header
+        if(id_hmm_NAME_ACC_list_vector[i_vector].bool_flag_ACC){
             hmm_ACC_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector].ACC] = i_vector;
-		}else{
-
-            hmm_NAME_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector].NAME] = i_vector;
-		}
-		//std::cout << hmm_NAME_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector]] << std::endl;
-	}
+        }
+        //std::cout << hmm_NAME_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector]] << std::endl;
+    }
 
 	//update the matrix
 
@@ -508,32 +508,32 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
                 vec_unshorted_names.push_back(str_hmms_names);
                 shorted_name_flag = true;
                 of_shorted_names<<str_hmms_names<<"==";
-                
-                // Create base shortened name: first 3 + last 7 characters
-                std::string base_short_name = str_hmms_names.substr(0,3) + str_hmms_names.substr(str_hmms_names.length()-7,7);
-                str_hmms_names = base_short_name;
-                
-                // Handle collisions by appending a unique suffix
-                int collision_counter = 1;
-                while(shorted_names_map.find(str_hmms_names) != shorted_names_map.end() ){
-                    std::string suffix = "_" + int_2_string(collision_counter);
-                    
-                    // If the suffix would make the name too long, truncate the base name
-                    if(base_short_name.length() + suffix.length() > 10) {
-                        int available_length = 10 - suffix.length();
-                        if(available_length < 3) {
-                            // If suffix too long, use shorter suffix format
-                            suffix = int_2_string(collision_counter);
-                            available_length = 10 - suffix.length();
-                        }
-                        str_hmms_names = base_short_name.substr(0, available_length) + suffix;
-                    } else {
-                        str_hmms_names = base_short_name + suffix;
-                    }
-                    
-                    collision_counter++;
-                    std::cout<<"Collision resolved: " << str_hmms_names << std::endl;
-                }
+
+                // Deterministic, collision-resistant 10-char short name:
+                //  - prefix: first 3 chars of original
+                //  - suffix: 7 hex from FNV-1a(fullname + "#" + salt)
+                auto fnv1a = [](const std::string &s){
+                    uint32_t h = 2166136261u;
+                    for(unsigned char c : s){ h ^= c; h *= 16777619u; }
+                    return h;
+                };
+                auto to_hex7 = [](uint32_t v){
+                    static const char* hexd = "0123456789abcdef";
+                    char buf[8];
+                    v &= 0x0fffffff; // 28 bits
+                    for(int i=6;i>=0;--i){ buf[i] = hexd[v & 0xF]; v >>= 4; }
+                    return std::string(buf, buf+7);
+                };
+                std::string original_full = str_hmms_names;
+                std::string prefix = original_full.substr(0,3);
+                int salt = 0;
+                std::string candidate;
+                do {
+                    uint32_t h = fnv1a(original_full + "#" + int_2_string(salt));
+                    candidate = prefix + to_hex7(h);
+                    salt++;
+                } while(shorted_names_map.find(candidate) != shorted_names_map.end());
+                str_hmms_names = candidate;
                 of_shorted_names<<str_hmms_names<<std::endl;
                 vec_shorted_names.push_back(str_hmms_names);
                 shorted_num++;
@@ -559,32 +559,30 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
                 vec_unshorted_names.push_back(str_hmms_names);
                 shorted_name_flag = true;
                 of_shorted_names<<str_hmms_names<<"==";
-                
-                // Create base shortened name: first 3 + last 7 characters
-                std::string base_short_name = str_hmms_names.substr(0,3) + str_hmms_names.substr(str_hmms_names.length()-7,7);
-                str_hmms_names = base_short_name;
-                
-                // Handle collisions by appending a unique suffix
-                int collision_counter = 1;
-                while(shorted_names_map.find(str_hmms_names) != shorted_names_map.end() ){
-                    std::string suffix = "_" + int_2_string(collision_counter);
-                    
-                    // If the suffix would make the name too long, truncate the base name
-                    if(base_short_name.length() + suffix.length() > 10) {
-                        int available_length = 10 - suffix.length();
-                        if(available_length < 3) {
-                            // If suffix too long, use shorter suffix format
-                            suffix = int_2_string(collision_counter);
-                            available_length = 10 - suffix.length();
-                        }
-                        str_hmms_names = base_short_name.substr(0, available_length) + suffix;
-                    } else {
-                        str_hmms_names = base_short_name + suffix;
-                    }
-                    
-                    collision_counter++;
-                    std::cout<<"Collision resolved: " << str_hmms_names << std::endl;
-                }
+
+                // Deterministic, collision-resistant 10-char short name (same as ACC branch)
+                auto fnv1a = [](const std::string &s){
+                    uint32_t h = 2166136261u;
+                    for(unsigned char c : s){ h ^= c; h *= 16777619u; }
+                    return h;
+                };
+                auto to_hex7 = [](uint32_t v){
+                    static const char* hexd = "0123456789abcdef";
+                    char buf[8];
+                    v &= 0x0fffffff; // 28 bits
+                    for(int i=6;i>=0;--i){ buf[i] = hexd[v & 0xF]; v >>= 4; }
+                    return std::string(buf, buf+7);
+                };
+                std::string original_full = str_hmms_names;
+                std::string prefix = original_full.substr(0,3);
+                int salt = 0;
+                std::string candidate;
+                do {
+                    uint32_t h = fnv1a(original_full + "#" + int_2_string(salt));
+                    candidate = prefix + to_hex7(h);
+                    salt++;
+                } while(shorted_names_map.find(candidate) != shorted_names_map.end());
+                str_hmms_names = candidate;
                 of_shorted_names<<str_hmms_names<<std::endl;
                 vec_shorted_names.push_back(str_hmms_names);
                 shorted_num++;
@@ -714,24 +712,37 @@ int HMMTree::matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RH
     //compute the distance and get the distance
     prc_set_STUC_RHH_NOTE_dist_threadsafe(&STUC_RHH_NOTE_distanc_temp, local_res_msg, local_hmm1, local_hmm2);
 
-    int row_number_matrix = 0;
-    int col_number_matrix = 0;
+    int row_number_matrix = -1;
+    int col_number_matrix = -1;
+    
+    // Try to find hmm1 in maps - first by NAME then by ACC
     if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) != hmm_NAME_id_list_unordered_map.end()){
         row_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
     }else if(hmm_ACC_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm1.name) != hmm_ACC_id_list_unordered_map.end()){
         row_number_matrix = hmm_ACC_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm1.name];
     }else{
-        // Silently skip entries that cannot be found in matrix maps
-        return 1;
+        std::cout << "ERROR: Cannot find hmm1 '" << STUC_RHH_NOTE_distanc_temp.hmm1.name << "' in matrix maps!" << std::endl;
+        return 0;
     }
+    
+    // Try to find hmm2 in maps - first by NAME then by ACC
     if(hmm_NAME_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) != hmm_NAME_id_list_unordered_map.end()){
         col_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
     }else if(hmm_ACC_id_list_unordered_map.find(STUC_RHH_NOTE_distanc_temp.hmm2.name) != hmm_ACC_id_list_unordered_map.end()){
         col_number_matrix = hmm_ACC_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
     }else{
-        // Silently skip entries that cannot be found in matrix maps
-        return 1;
+        std::cout << "ERROR: Cannot find hmm2 '" << STUC_RHH_NOTE_distanc_temp.hmm2.name << "' in matrix maps!" << std::endl;
+        return 0;
     }
+    
+    // Validate indices
+    if(row_number_matrix < 0 || col_number_matrix < 0 || 
+       row_number_matrix >= (int)dist_matrix.size() || 
+       col_number_matrix >= (int)dist_matrix.size()) {
+        std::cout << "ERROR: Invalid matrix indices: row=" << row_number_matrix << ", col=" << col_number_matrix << std::endl;
+        return 0;
+    }
+    
     //put the distance into the matrix
     dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     dist_matrix[col_number_matrix][row_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;

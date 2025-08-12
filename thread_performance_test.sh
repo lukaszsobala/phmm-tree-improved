@@ -85,12 +85,41 @@ run_test() {
         echo "✓ Test completed successfully in ${elapsed} seconds"
         
         # Extract individual algorithm timings from the log
-        prc_time=$(grep "PRC analysis completed in:" "$RESULTS_DIR/${test_name}.log" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p')
-        kitsch_time=$(grep "Kitsch analysis completed in:" "$RESULTS_DIR/${test_name}.log" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p')
-        fitch_time=$(grep "Fitch-Margoliash analysis completed in:" "$RESULTS_DIR/${test_name}.log" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p')
-        nj_time=$(grep "Neighbor-Joining analysis completed in:" "$RESULTS_DIR/${test_name}.log" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p')
-        upgma_time=$(grep "UPGMA analysis completed in:" "$RESULTS_DIR/${test_name}.log" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p')
-        total_phylo_time=$(grep "Phylogenetic tree building completed in:" "$RESULTS_DIR/${test_name}.log" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p')
+        # Handle both "X.Y seconds" and "X minute, Y seconds" formats
+        extract_time() {
+            local line="$1"
+            if echo "$line" | grep -q "minute"; then
+                # Format: "X minute, Y seconds" - convert to total seconds
+                minutes=$(echo "$line" | sed -n 's/.*completed in: \([0-9]*\) minute.*/\1/p')
+                seconds=$(echo "$line" | sed -n 's/.*minute, \([0-9.]*\) seconds.*/\1/p')
+                if [ -n "$minutes" ] && [ -n "$seconds" ]; then
+                    echo "$minutes * 60 + $seconds" | bc -l
+                else
+                    echo "N/A"
+                fi
+            else
+                # Format: "X.Y seconds" - extract directly
+                echo "$line" | sed -n 's/.*completed in: \([0-9.]*\) seconds.*/\1/p'
+            fi
+        }
+        
+        prc_line=$(grep "PRC analysis completed in:" "$RESULTS_DIR/${test_name}.log")
+        prc_time=$(extract_time "$prc_line")
+        
+        kitsch_line=$(grep "Kitsch analysis completed in:" "$RESULTS_DIR/${test_name}.log")
+        kitsch_time=$(extract_time "$kitsch_line")
+        
+        fitch_line=$(grep "Fitch-Margoliash analysis completed in:" "$RESULTS_DIR/${test_name}.log")
+        fitch_time=$(extract_time "$fitch_line")
+        
+        nj_line=$(grep "Neighbor-Joining analysis completed in:" "$RESULTS_DIR/${test_name}.log")
+        nj_time=$(extract_time "$nj_line")
+        
+        upgma_line=$(grep "UPGMA analysis completed in:" "$RESULTS_DIR/${test_name}.log")
+        upgma_time=$(extract_time "$upgma_line")
+        
+        phylo_line=$(grep "Phylogenetic tree building completed in:" "$RESULTS_DIR/${test_name}.log")
+        total_phylo_time=$(extract_time "$phylo_line")
         
         # Use default values if extraction fails
         prc_time=${prc_time:-"N/A"}

@@ -21,12 +21,12 @@ set(SOURCES
     upgma.c
     kitsch.c
     class_functions.cpp
-    matrix_deal.cpp
+    process_matrices.cpp
     public_functions.cpp
-    align_deal.cpp
-    hmm_deal.cpp
-    usearch_deal.cpp
-    prc_deal.cpp
+    process_alignments.cpp
+    process_hmms.cpp
+    process_usearch.cpp
+    process_prc.cpp
     HMMTree.cpp
     phylip_draw_tree.cpp
     hhsuite.cpp

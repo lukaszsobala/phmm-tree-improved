@@ -494,32 +494,32 @@ public:
 	int matrix_init_matrix_vector_map_hhsuite();
 
 	// Process a FASTA sequence input for PRC
-	void prc_fasta_seqs_deal(std::string file_path_name, double identity);
+	void process_fasta_sequences(std::string file_path_name, double identity);
 
 	// Process a FASTA sequence input for HH-suite
-	void hhsuite_fasta_seqs_deal(std::string file_path_name, double identity);
+	void process_hhsuite_fasta_sequences(std::string file_path_name, double identity);
 
 
     // Process an alignments input with PRC
-	void prc_alignments_deal(std::string file_path_name);
+	void process_prc_alignments(std::string file_path_name);
 
 	// Process alignments and profile HMMs (HMMER) with PRC
-	void prc_alignments_phmms_deal(std::string file_path_name, std::string file_path_name_2);
+	void process_prc_alignments_phmms(std::string file_path_name, std::string file_path_name_2);
 
     // Process an alignments input with HH-suite
-	void hhsuite_alignments_deal(std::string file_path_name);
+	void process_hhsuite_alignments(std::string file_path_name);
 
 	// Process alignments and profile HHMs with HH-suite
-	void hhsuite_alignments_phhms_deal(std::string file_path_name, std::string file_path_name_2);
+	void process_hhsuite_alignments_phhms(std::string file_path_name, std::string file_path_name_2);
 
 	// HMM 1000 occurrence test (?)
-	int hmm_1000_A_B_accurence_test(std::string infile_path_and_name,int x);
+	int hmm_1000_A_B_occurence_test(std::string infile_path_and_name,int x);
 
 	// Process a folder of HMMs (HMMER) with PRC
-	void prc_HMMs_deal(std::string infile_path_and_name);
+	void process_prc_HMMs(std::string infile_path_and_name);
 
 	// Process a folder of HHMs (HH-suite) with HH-suite
-	void hhsuite_HHMs_deal(std::string infile_path_and_name);
+	void process_hhsuite_HHMs(std::string infile_path_and_name);
 
 	void draw_tree_test(){
 	   draw_tree_selective(run_fitch_analysis, run_kitsch_analysis, run_upgma_analysis, run_nj_analysis, run_fm_only, run_min_only);

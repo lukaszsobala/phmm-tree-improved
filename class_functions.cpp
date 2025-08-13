@@ -345,7 +345,7 @@ void HMMTree::dir_exist_or_create(int prc_hhsuite, int mode_num){
 }
 
 // Process input FASTA sequences using PRC
-void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
+void HMMTree::process_fasta_sequences(std::string file_path_name, double identity){
    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,0);
 
@@ -435,7 +435,7 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
 
 
 // Process input FASTA sequences using HH-suite
-void HMMTree::hhsuite_fasta_seqs_deal(std::string file_path_name, double identity)
+void HMMTree::process_hhsuite_fasta_sequences(std::string file_path_name, double identity)
 {
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,0);
@@ -492,7 +492,7 @@ void HMMTree::hhsuite_fasta_seqs_deal(std::string file_path_name, double identit
 }
 
 // Process input alignments using PRC
-void HMMTree::prc_alignments_deal(std::string file_path_name){
+void HMMTree::process_prc_alignments(std::string file_path_name){
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 
@@ -574,7 +574,7 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
 
 
 // Process input alignments using HH-suite
-void HMMTree::hhsuite_alignments_deal(std::string file_path_name)
+void HMMTree::process_hhsuite_alignments(std::string file_path_name)
 {
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
@@ -622,7 +622,7 @@ void HMMTree::hhsuite_alignments_deal(std::string file_path_name)
 }
 
 // Process input HMM profiles using PRC
-void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
+void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
 
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,2);
@@ -698,7 +698,7 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
 
 
 // Process input HHM profiles using HH-suite
-void HMMTree::hhsuite_HHMs_deal(std::string infile_path_and_name)
+void HMMTree::process_hhsuite_HHMs(std::string infile_path_and_name)
 {
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,2);
@@ -733,7 +733,7 @@ void HMMTree::hhsuite_HHMs_deal(std::string infile_path_and_name)
 
 
 // Process both input alignments and profile HMMs using PRC
-void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string file_path_name_2){
+void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::string file_path_name_2){
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 
@@ -835,7 +835,7 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
 
 
 // Process both input alignments and profile HHMs using HH-suite
-void HMMTree::hhsuite_alignments_phhms_deal(std::string file_path_name, std::string file_path_name_2){
+void HMMTree::process_hhsuite_alignments_phhms(std::string file_path_name, std::string file_path_name_2){
     // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 

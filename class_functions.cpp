@@ -1,6 +1,6 @@
 #include "HMMTree.h"
 
-//create fils folder named after the input file or path
+// Create folder named after the input file or path
 void HMMTree::create_files_folder(std::string input_file_or_folder_path, int prc_hhsuite, int int_run_mode){
     std::string str_new_folder = "";
     std::string str_input_folder_or_file_name = "";
@@ -100,7 +100,7 @@ void HMMTree::create_files_folder(std::string input_file_or_folder_path, int prc
 }
 
 
-//test the depend programs exist or not
+// Test if the required program dependencies exist
 void HMMTree::test_depend_programs(int mode_num){
     bool all_find = true;
     int prc_ = PRC_exist();
@@ -173,7 +173,7 @@ void HMMTree::test_depend_programs(int mode_num){
 }
 
 
-//test the depend programs exist or not
+// Test if the required program dependencies exist
 void HMMTree::test_depend_programs_2(int prc_hhsuite, int mode_num){
 
     bool all_find = true;
@@ -270,7 +270,7 @@ void HMMTree::test_depend_programs_2(int prc_hhsuite, int mode_num){
     return ;
 }
 
-//test if the dir exists, or create them
+// Check if directories exist, otherwise create them
 void HMMTree::dir_exist_or_create(int prc_hhsuite, int mode_num){
 
     if(prc_hhsuite == 0){
@@ -344,31 +344,31 @@ void HMMTree::dir_exist_or_create(int prc_hhsuite, int mode_num){
 
 }
 
-//function deal a fasta sequences input
+// Process input FASTA sequences using PRC
 void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
-   //test the depend programs exist or not
+   // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,0);
 
-    //use usearch do clusters
+    // Use USEARCH for clustering
     if(!usearch_cluster(file_path_name, identity)){
         output_error_("USEARCH cluster ");
         return;
     }
 
 
-    //aligen all the squences in the current folder
+    // Align all sequences in the current folder
     if(!align_do_mafft_all_from_file()){
         output_error_("MAFFT align ");
         return;
     }
 
-    //hmmbuild all the fasta files in the folder
+    // Build HMM profiles for all FASTA files in the folder
     if(!hmm_do_hmmbuild_all_from_file()){
         output_error_("HMMER hmmbuild ");
         return;
     }
 
-        //compute the distance of two hmms
+    // Check profile HMM format and convert if necessary
    if(2 == prc_check_profile_HMM_format()){
         if(!hmm_hmmconvert()){
             std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
@@ -381,7 +381,7 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
     ftime(&prcStartTime);
     std::cout << "PRC deal: Processing distance calculations..." << std::endl;
 
-        //compute the distance of two hmms
+    // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
@@ -400,21 +400,21 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
     std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -434,52 +434,53 @@ void HMMTree::prc_fasta_seqs_deal(std::string file_path_name, double identity){
 }
 
 
-//function deal a fasta sequences input
+// Process input FASTA sequences using HH-suite
 void HMMTree::hhsuite_fasta_seqs_deal(std::string file_path_name, double identity)
 {
-    //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,0);
 
-    //use usearch do clusters
+    // Use USEARCH for clustering
     if(!usearch_cluster(file_path_name, identity)){
         output_error_("USEARCH cluster ");
         return;
     }
 
 
-    //aligen all the squences in the current folder
+    // Align all sequences in the current folder
     if(!align_do_mafft_all_from_file()){
         output_error_("MAFFT align ");
         return;
     }
 
-    //hmmbuild all the fasta files in the folder
+    // Build HHM profiles for all alignments
     if(!hhsuite_hhmake_all()){
         output_error_("hhsuite hhmake");
         return;
     }
 
+    // Calculate distances between HHM pairs
     if(!hhsuite_hhalign_each2()){
         output_error_("hhsuite hhalign");
         return;
     }
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -490,18 +491,18 @@ void HMMTree::hhsuite_fasta_seqs_deal(std::string file_path_name, double identit
     return ;
 }
 
-//function deal alignments input
+// Process input alignments using PRC
 void HMMTree::prc_alignments_deal(std::string file_path_name){
-     //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 
-    //move the alignments to the aligment folder
+    // Move the alignments to the alignment folder
     if(!align_move_aligned(file_path_name)){
         output_error_("'align_move_aligned()'  ");
         return;
     }
 
-    //hmmbuild all the fasta files in the folder
+    // Build HMM profiles for all alignments
     if(!hmm_do_hmmbuild_all_from_file()){
         output_error_("HMMER hmmbuild  ");
         return;
@@ -519,7 +520,7 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
     ftime(&prcStartTime);
     std::cout << "PRC deal: Processing distance calculations..." << std::endl;
 
-        //compute the distance of two hmms
+    // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
@@ -538,21 +539,21 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
     std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -569,50 +570,49 @@ void HMMTree::prc_alignments_deal(std::string file_path_name){
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
     return ;
-
 }
 
 
-
-//function deal alignments input
+// Process input alignments using HH-suite
 void HMMTree::hhsuite_alignments_deal(std::string file_path_name)
 {
-    //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 
-    //move the alignments to the aligment folder
+    // Move the alignments to the alignment folder
     if(!align_move_aligned(file_path_name)){
         output_error_("'align_move_aligned()'  ");
         return;
     }
 
-    //hmmbuild all the fasta files in the folder
+    // Build HHM profiles for all alignments
     if(!hhsuite_hhmake_all()){
         output_error_("hhsuite hhmake");
         return;
     }
 
+    // Calculate distances between HHM pairs
     if(!hhsuite_hhalign_each2()){
         output_error_("hhsuite hhalign");
         return;
     }
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -621,12 +621,12 @@ void HMMTree::hhsuite_alignments_deal(std::string file_path_name)
     return ;
 }
 
-//function deal HMMs input
+// Process input HMM profiles using PRC
 void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
 
-    //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,2);
-    //copy the input hmms to the hmms folder
+    // Copy the input HMMs to the hmms folder
     if(!hmm_copy_hmmfiles(infile_path_and_name)){
         output_error_("hmm_copy_hmmfiles():  ");
         return ;
@@ -644,7 +644,7 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
     ftime(&prcStartTime);
     std::cout << "PRC deal: Processing distance calculations..." << std::endl;
 
-        //compute the distance of two hmms
+    // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
@@ -663,21 +663,21 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
     std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -694,37 +694,36 @@ void HMMTree::prc_HMMs_deal(std::string infile_path_and_name){
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
     return ;
-
-
 }
 
 
-//function deal HMMs input
+// Process input HHM profiles using HH-suite
 void HMMTree::hhsuite_HHMs_deal(std::string infile_path_and_name)
 {
-    //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,2);
-    //copy the input hmms to the hmms folder
+    // Copy the input HHMs to the hhms folder
     if(!hhsuite_copy_hhmfiles(infile_path_and_name)){
         output_error_("hhsuite_copy_hhmfiles():  ");
         return ;
     }
 
+    // Calculate distances between HHM pairs
     if(!hhsuite_hhalign_each2()){
         output_error_("hhsuite hhalign");
         return;
     }
 
 
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
     draw_tree_test();
@@ -733,9 +732,9 @@ void HMMTree::hhsuite_HHMs_deal(std::string infile_path_and_name)
 }
 
 
-//function deal alignments and phmms input
+// Process both input alignments and profile HMMs using PRC
 void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string file_path_name_2){
-    //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 
 
@@ -752,25 +751,25 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
 	}
 
 
-    //move the alignments to the aligment folder
+    // Move the alignments to the alignment folder
     if(!als_phmms_phhms_move_aligned(file_path_name)){
         output_error_("'als_phmms_phhms_move_aligned()'  ");
         return;
     }
 
-    //hmmbuild all the fasta files in the folder
+    // Build HMM profiles for all alignments
     if(!hmm_do_hmmbuild_all_from_file()){
         output_error_("HMMER hmmbuild  ");
         return;
     }
 
-    //copy the hmms files to the hmms folder
+    // Copy the HMM files to the hmms folder
     if(!hmm_als_phmms_copy_hmmfiles(file_path_name_2)){
         output_error_("'hmm_als_phmms_copy_hmmfiles()' ");
         return;
     }
 
-        //compute the distance of two hmms
+    // Check profile HMM format and convert if necessary
     if(2 == prc_check_profile_HMM_format()){
         if(!hmm_hmmconvert()){
             std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
@@ -783,7 +782,7 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
     ftime(&prcStartTime);
     std::cout << "PRC deal: Processing distance calculations..." << std::endl;
 
-        //compute the distance of two hmms
+    // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
@@ -802,21 +801,21 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
     std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -835,10 +834,9 @@ void HMMTree::prc_alignments_phmms_deal(std::string file_path_name, std::string 
 }
 
 
-
-//function deal alignments and phhms input
+// Process both input alignments and profile HHMs using HH-suite
 void HMMTree::hhsuite_alignments_phhms_deal(std::string file_path_name, std::string file_path_name_2){
-    //test the depend programs exist or not
+    // Test if the required program dependencies exist
     test_depend_programs_2(prc_hhsuite,1);
 
     if (!dir_exist_opendir(file_path_name))
@@ -853,45 +851,46 @@ void HMMTree::hhsuite_alignments_phhms_deal(std::string file_path_name, std::str
 		return;
 	}
 
-    //move the alignments to the aligment folder
+    // Move the alignments to the alignment folder
     if(!als_phmms_phhms_move_aligned(file_path_name)){
         output_error_("'als_phmms_phhms_move_aligned()'  ");
         return;
     }
 
-    //hmmbuild all the fasta files in the folder
+    // Build HHM profiles for all alignments
     if(!hhsuite_hhmake_all()){
         output_error_("hhsuite hhmake");
         return;
     }
 
+    // Copy the HHM files to the hhms folder
     if(!hhsuite_als_phhms_copy_hhmfiles(file_path_name_2)){
         output_error_("'hhsuite_als_phhms_copy_hhmfiles()'  ");
         return;
     }
 
-
+    // Calculate distances between HHM pairs
     if(!hhsuite_hhalign_each2()){
         output_error_("hhsuite hhalign");
         return;
     }
 
 /*
-    //temple test function to compare each 2 hmms
+    // Test function to compare each pair of HMMs
     if(!matrix_get_each2_hmms_result()){
          output_error_("'matrix_get_each2_hmms_result()' ");
         return;
     }
 */
-    //out put the distance matrix to a file
-    if(!matrix_mega_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_mega_out_put_dist_matrix_to_file()' ");
+    // Output the distance matrix to a MEGA format file
+    if(!matrix_mega_output_dist_matrix_to_file()){
+        output_error_("'matrix_mega_output_dist_matrix_to_file()' ");
         return;
     }
 
-    //out put the distance matrix to a file in phylip format
-    if(!matrix_phylip_out_put_dist_matrix_to_file()){
-        output_error_("'matrix_phylip_out_put_dist_matrix_to_file()'  ");
+    // Output the distance matrix to a PHYLIP format file
+    if(!matrix_phylip_output_dist_matrix_to_file()){
+        output_error_("'matrix_phylip_output_dist_matrix_to_file()'  ");
         return;
     }
 
@@ -899,3 +898,4 @@ void HMMTree::hhsuite_alignments_phhms_deal(std::string file_path_name, std::str
     trees_replace_shorted_names(folder_tree_files);
     return ;
 }
+

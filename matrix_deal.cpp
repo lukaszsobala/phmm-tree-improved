@@ -335,9 +335,9 @@ int HMMTree::matrix_get_lib_hmms_result_2(){
 }
 
 //out put the distance matrix
-int HMMTree::matrix_mega_out_put_dist_matrix_to_file()
+int HMMTree::matrix_mega_output_dist_matrix_to_file()
 {
-	//matrix_out_put_dist_matrix_to_window();
+	//matrix_output_dist_matrix_to_window();
     //Temporary file stream to output the matrix to a PHYLIP file
 	std::ofstream file_dist_matrix_out;
 
@@ -456,12 +456,12 @@ int HMMTree::matrix_mega_out_put_dist_matrix_to_file()
 }
 
 //out put the distance matrix
-int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
+int HMMTree::matrix_phylip_output_dist_matrix_to_file()
 {
 	if(!matrix_check_matrix_format()){
 		std::cout<<"Format error!!!"<<std::endl;
 	}
-	//matrix_out_put_dist_matrix_to_window();
+	//matrix_output_dist_matrix_to_window();
     //Temporary file stream to output the matrix to a PHYLIP file
 	std::ofstream file_dist_matrix_out;
 
@@ -614,8 +614,8 @@ int HMMTree::matrix_phylip_out_put_dist_matrix_to_file()
 	return 1;
 }
 
-//matrix_out_put_dist_matrix_to_window
-int HMMTree::matrix_out_put_dist_matrix_to_window()
+//matrix_output_dist_matrix_to_window
+int HMMTree::matrix_output_dist_matrix_to_window()
 {
 
 	for (unsigned int i_vec_row_dist_matrix = 0; i_vec_row_dist_matrix < dist_matrix.size(); i_vec_row_dist_matrix++)

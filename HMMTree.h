@@ -8,8 +8,8 @@
 #include <math.h>
 #include <fstream>
 #include <iomanip>
-#include <stdio.h> /*fprintf(),stderr,BUFSIZ*/
-#include <fcntl.h> /*open(),flag*/
+#include <stdio.h> /* fprintf, stderr, BUFSIZ */
+#include <fcntl.h> /* open, flags */
 
 //#include <hash_map>
 #include <unordered_map>
@@ -30,16 +30,16 @@ extern "C"{
 #include "upgma.h"
 }
 
-const unsigned int MAX_BUF_LEN = 1024;             //program exists test
-const unsigned int BUFFER_SIZE = 1024;             //file copy
-//const double CLUSTER_OK_THRESHOLD = 0.90;                //a threshold to evaluate the cluster result
-const double DBL_MAX_USER = 0.001;				//define the null score of the result
-const unsigned int PTH_MATRIX_OUT = 0;				//set the last matrix out put path,used in function path_get of class path_filename ,the parametor of index_to_set
-const unsigned int PTH_UNALG_SEQ = 1;				//set the unaligned sequences file path,used in function path_get of class path_filename ,the parametor of index_to_set
-const unsigned int PTH_F_ALG_CLU = 2;				//set the clusters and aligenments path,used in function path_get of class path_filename ,the parametor of index_to_set
-const unsigned int PTH_F_HMM = 3;					//set the hmm files path,used in function path_get of class path_filename ,the parametor of index_to_set
-const unsigned int PTH_F_EACH_2_RESULT = 4;         //set the each two hmm compare result files path,used in function path_get of class path_filename ,the parametor of index_to_set
-const unsigned int PTH_F_1_LIARBRY_RESULT = 5;      //set the one to a liarbry of hmms files path,used in function path_get of class path_filename ,the parametor of index_to_set
+const unsigned int MAX_BUF_LEN = 1024;             // buffer length for program existence checks (e.g., popen/which)
+const unsigned int BUFFER_SIZE = 1024;             // buffer size for file copy
+//const double CLUSTER_OK_THRESHOLD = 0.90;        // threshold to evaluate clustering quality
+const double DBL_MAX_USER = 0.001;                 // sentinel value used as a "null" score
+const unsigned int PTH_MATRIX_OUT = 0;             // output path for the final distance matrix (path_filename::path_get, parameter index_to_set)
+const unsigned int PTH_UNALG_SEQ = 1;              // path for unaligned sequences (path_filename::path_get, parameter index_to_set)
+const unsigned int PTH_F_ALG_CLU = 2;              // path for clusters and alignments (path_filename::path_get, parameter index_to_set)
+const unsigned int PTH_F_HMM = 3;                  // path for HMM files (path_filename::path_get, parameter index_to_set)
+const unsigned int PTH_F_EACH_2_RESULT = 4;        // path for pairwise HMM comparison result files (path_filename::path_get, parameter index_to_set)
+const unsigned int PTH_F_1_LIARBRY_RESULT = 5;     // path for one-vs-library HMM comparison result files (path_filename::path_get, parameter index_to_set)
 
 const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
 "(c) Yin Lab (NIU) and Zhang Lab (NKU) 2016\n"
@@ -57,12 +57,12 @@ const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
 "  -uals       Unaligned FASTA file with at least 9 sequences.\n"
 "               - Requires -id <0.1..1.0> to set usearch identity for clustering.\n"
 "               - Provide a file path/name.\n"
-"               - -prc_hit <value> sets PRC parameter (default: 10; 0 uses PRC default 100).\n"
-"               - -acc uses the 'ACC' key in matrix/tree if present (default is 'NAME').\n"
-"               - -lib runs PRC in library mode (default is pairwise mode).\n"
+"               - prc_hit <value> sets PRC parameter (default: 10; 0 uses PRC default 100).\n"
+"               - acc uses the 'ACC' key in matrix/tree if present (default is 'NAME').\n"
+"               - lib runs PRC in library mode (default is pairwise mode).\n"
 "\n"
 "  -als        Directory containing at least three aligned FASTA files.\n"
-"               - -prc_hit and -acc are supported (same as in -uals).\n"
+"               - prc_hit and -acc are supported (same as in -uals).\n"
 "               - Provide only a directory path.\n"
 "\n"
 "  -als_phmms  Two folders: one with alignments and one with HMMER2.x/3.x profile HMM files.\n"
@@ -134,58 +134,58 @@ const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
 "  HHsuite + HHM folder:\n"
 "    phmm-tree -hhsuite -hhms ./some_path/\n";
 /* public_functions */
-//test the input string is num str or not
+// Test whether the input string is numeric
 int is_num_str(char *char_str_num);
-//split the string by char list
+// Split a string by any character in the delimiter list
 std::vector<std::string> str_Split_by_char_list(std::string str, const char *pattern);
-//out put the string
-void out_put_str(std::string  str);
-//turn unsigned int to string
+// Print the string if non-empty
+void output_str(std::string  str);
+// Convert unsigned int to string
 std::string uint2str(unsigned int num);
-//function to test the dir exists or not
+// Check whether the directory exists
 bool dir_exist_opendir(std::string path);
-//function to test the folder is empty or not
+// Check whether the directory is non-empty
 bool dir_noempty_opendir_readir(std::string path);
-//file exists and empty check
+// Check that a file exists and is not empty
 bool file_exists_and_empty_check(std::string str_path_name);
-//convert int to string
+// Convert int to string
 std::string int_2_string(int int_number);
-//convert double to string
+// Convert double to string (6 decimal places)
 std::string double_2_string(double double_x);
-//get the file name in the folder
+// List file names in a directory (optional extension filter)
 int get_file_names(std::string path, std::vector<std::string> & vec_file_names, std::string extention);
-//delete the files in a path
+// Delete all files in a directory
 int delete_files(std::string path);
-//mv the files from path1 to path2
+// Move files from path1 to path2
 int mv_files(std::string path1, std::string path2, std::string extention);
-//copy one file from pathname1 to pathname2
+// Copy one file from pathname1 to pathname2
 int copy_one_file(std::string pathname1, std::string pathname2);
-//copy files from path1 to path2
+// Copy files from path1 to path2
 int copy_files(std::string path1, std::string path2,std::string extention);
-//copy files from path1 to path2
+// Copy alignment-related files from path1 to path2
 int copy_files_als_phmms_phhms_aligned(std::string path1, std::string path2,std::string extention);
-//system return value deal
+// Handle return value from system()
 int system_return(int status);
-//format time duration for human-readable output
+// Format a time duration as a human-readable string
 std::string format_time_duration(long total_milliseconds);
-//error deal
+// Print error and exit
 void output_error_(std::string error_msg);
-//test the exists of USEARCH
+// Check if USEARCH exists (PATH or current directory)
 int USEARCH_exist();
-//test the exists of MAFFT
+// Check if MAFFT exists (PATH or current directory)
 int MAFFT_exist();
-//test the exists of HMMER hmmbuild
+// Check if HMMER hmmbuild exists (PATH or current directory)
 int HMMER_hmmbuild_exist();
-//test the exists of HMMER hmmconvert
+// Check if HMMER hmmconvert exists (PATH or current directory)
 int HMMER_hmmconvert_exist();
-//test the exists of PRC
+// Check if PRC exists (PATH or current directory)
 int PRC_exist();
 
-//test the exists of HMMER hmmbuild
+// Check if HH-suite hhmake exists (PATH or current directory)
 int hhsuite_hhmake_exist();
-//test the exists of HMMER hmmbuild
+// Check if HH-suite hhalign exists (PATH or current directory)
 int hhsuite_hhalign_exist();
- //replace the string by another string in a string
+// Replace all occurrences of s2 with s3 in s1, respecting protected prefixes in un_shorted
 void string_replace(std::string &s1,const std::string&s2,const std::string&s3,unsigned int index_i, std::vector<std::string> un_shorted);
 
 typedef struct stru_hmm_node {
@@ -219,22 +219,22 @@ typedef struct stru_hmm {
 }STRU_HMM;
 
 
-//struct to save the the detail message of each line
+// Structure to store per-alignment-line details
 typedef struct struct_Result_hmm1_hmm2_each_line
 {
     std::string hmm1_name;
     std::string hmm2_name;
-	int begin_hmm1;         //the bigin pot int the hmm1
-	int end_hmm1;			//the end pot int the hmm2
-	int begin_hmm2;			//the bigin pot int the hmm2
-	int end_hmm2;			//the end pot int the hmm2
-	int hit_no;				//the hit number of two hmms ,which means that there are hit_no of similar pot
-	double co_emis;         //waitting for the comment
-	double simple;		    //waitting for the comment
-	double reverse;         //waitting for the comment
-	double E_value;         //waitting for the comment
+	int begin_hmm1;         // begin position in hmm1
+	int end_hmm1;           // end position in hmm1
+	int begin_hmm2;         // begin position in hmm2
+	int end_hmm2;           // end position in hmm2
+	int hit_no;             // number of matching positions between the two HMMs
+	double co_emis;         // co-emission score reported by PRC
+	double simple;          // simple score reported by PRC
+	double reverse;         // reverse score reported by PRC
+	double E_value;         // E-value reported by PRC
 
-							//init the parameters
+	// Initialize members
 	struct_Result_hmm1_hmm2_each_line()
 	{
         hmm1_name="";
@@ -250,11 +250,11 @@ typedef struct struct_Result_hmm1_hmm2_each_line
 	}
 }STUC_RHHEL_NOTE;
 
-//struct to put the hmm name and the id number together
+// Structure that associates an HMM name with an ID
 struct name_id
 {
-	std::string name;               //hmm name
-	unsigned int identity_number;   // hmm id number
+	std::string name;               // HMM name
+	unsigned int identity_number;   // HMM ID
 	name_id()
 	{
 		name = "";
@@ -264,16 +264,16 @@ struct name_id
 
 typedef struct struct_Result_hmm1_hmm2
 {
-	name_id hmm1;              //the first name and id of the hmm
-	name_id hmm2;              //the second name and id of the hmm
-	double distance;           //the diatance of two hmms
+	name_id hmm1;              // name and ID of HMM1
+	name_id hmm2;              // name and ID of HMM2
+	double distance;           // distance between the two HMMs
 	struct_Result_hmm1_hmm2()
 	{
 		distance = 0.0;
 	}
 }STUC_RHH_NOTE;
 
-//struct to save the path and the filenames
+// Structure to hold a path and its filenames
 typedef struct strcut_path_filenames
 {
 	unsigned int count_of_filenames;
@@ -286,12 +286,12 @@ typedef struct strcut_path_filenames
 	}
 }STUC_PFNS;
 
-//struct to get the HMM name and acc structer
+// Structure to hold HMM filename, NAME, and ACC fields
 typedef struct hmm_name_acc {
     std::string filename;
 	std::string NAME;
 	std::string ACC;
-	bool bool_flag_ACC;
+	bool bool_flag_ACC;   // true if ACC is present/used
 	hmm_name_acc(){
 		NAME = "";
 		ACC = "";
@@ -300,7 +300,7 @@ typedef struct hmm_name_acc {
 	}
 }HMM_NAME_ACC;
 
-//struct to get the HMM name and acc structer
+// Structure to hold parsed command-line parameters
 typedef struct cmd_params {
 	bool prc_mode;
 	bool prc_hmms;
@@ -324,15 +324,15 @@ typedef struct cmd_params {
     bool run_nj;
 
     // Fitch/Kitsch variant selection
-    bool run_fm_only;       // Run only f-m variants
-    bool run_min_only;      // Run only minimum evolution variants
+    bool run_fm_only;       // run only f-m variants
+    bool run_min_only;      // run only minimum evolution variants
 
     unsigned int prc_prc_hit_value;
     double uals_id_value;
 
     // Thread control parameters
-    int prc_threads;        // Number of threads for PRC distance calculations
-	int phylo_threads;      // Number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
+    int prc_threads;        // number of threads for PRC distance calculations
+	int phylo_threads;      // number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
 
 	cmd_params(){
 		prc_mode = false;
@@ -350,7 +350,7 @@ typedef struct cmd_params {
         als_phmms = false;
         als_phhms = false;
 
-        // By default, run all analyses if none specified
+        // By default, run all analyses if none are specified
         run_fitch = false;
         run_kitsch = false;
         run_upgma = false;
@@ -363,14 +363,13 @@ typedef struct cmd_params {
         prc_prc_hit_value = 0;
         uals_id_value = 0.0;
 
-	// Default threads: PRC auto-detect (0), phylo default to 1 (0 still means auto-detect)
+	    // Default threads: PRC auto-detect (0); phylo default 1 (0 still means auto-detect)
         prc_threads = 0;
-	phylo_threads = 1;
-
+	    phylo_threads = 1;
 	}
 }CMD_PARAMS;
 
-//the main class
+// Main class
 class HMMTree{
 public:
 	HMMTree() {
@@ -399,9 +398,9 @@ public:
         run_fm_only = false;
         run_min_only = false;
         
-	// Initialize thread control - PRC auto-detect (0), phylo default to 1
+	    // Initialize thread control - PRC auto-detect (0), phylo default to 1
         prc_threads_count = 0;
-	phylo_threads_count = 1;
+	    phylo_threads_count = 1;
         
         files_folder="";
         folder_hmms ="";
@@ -420,11 +419,11 @@ public:
         prc_hhsuite = 0;
 	};
 	~HMMTree() {};
-    double CLUSTER_OK_THRESHOLD;                //a threshold to evaluate the cluster result
-    bool NAME_OR_ACC;                   //use 'NAME' or 'ACC' in the matrix when the hmm files have 'ACC' key
-    bool use_ACC;                         //use the ACC key in the phylip matrix or not
-    bool pairwise_mode;                    //use pairwise mode or not in PRC process
-    int prc_hit_no;                         //use the ACC key in the phylip matrix or not
+    double CLUSTER_OK_THRESHOLD;                // threshold to evaluate clustering quality
+    bool NAME_OR_ACC;                           // whether to use NAME or ACC in matrices when ACC is available
+    bool use_ACC;                               // use the ACC key in PHYLIP/MEGA matrices if available
+    bool pairwise_mode;                         // PRC pairwise mode (true) vs. library mode (false)
+    int prc_hit_no;                             // PRC hit parameter (default 10; 0 uses PRC default 100)
     
     // Analysis selection flags
     bool run_fitch_analysis;
@@ -433,14 +432,14 @@ public:
     bool run_nj_analysis;
     
     // Variant selection flags for Fitch/Kitsch
-    bool run_fm_only;        // Run only f-m variants
-    bool run_min_only;       // Run only minimum evolution variants
+    bool run_fm_only;        // run only f-m variants
+    bool run_min_only;       // run only minimum evolution variants
     
     // Thread control parameters
-    int prc_threads_count;    // Number of threads for PRC analysis
-    int phylo_threads_count;  // Number of threads for phylogenetic analysis
+    int prc_threads_count;    // number of threads for PRC analysis
+    int phylo_threads_count;  // number of threads for phylogenetic analysis
     
-    std::string files_folder;               // the folder to save the files created by the input path or file name
+    std::string files_folder;               // base output folder derived from the input path or filename
     std::string folder_hmms;
     std::string folder_tree_files;
     std::string folder_matrixs;
@@ -459,162 +458,163 @@ public:
     static bool als_phmms_phhms;
 
 
-	//create fils folder named after the input file or path
+	// Create an output folder named after the input file or path
 	void create_files_folder(std::string input_file_or_folder_path, int prc_hhsuite, int int_run_mode);
-	//use usearch do clusters
+	// Cluster sequences with USEARCH
     int usearch_cluster(std::string file_path_name, double identity);
 
-	//Align all sequences in the current folder using MAFFT
+	// Align all sequences in the current folder using MAFFT
 	int align_do_mafft_all_from_file();
 
-	//Build HMMs from all FASTA files in the folder using hmmbuild
+	// Build HMMs from all FASTA files in the folder using hmmbuild
 	int hmm_do_hmmbuild_all_from_file();
 
-	//Compute the distance between two HMMs
+	// Compute the distance between two HMMs
 	int prc_each2();
 
-	//Compute the distance between one HMM and a library of HMMs
+	// Compute the distance between one HMM and a library of HMMs
 	int prc_hmm1_library(std::string hmm1_name, std::string library, std::string output_path_filename);
 
-	//Compute the distance between all HMMs and a library
+	// Compute the distance between all HMMs and a library
 	int prc_library();
 
-	//Fill the matrix with distances between HMMs and a library
+	// Populate the matrix with distances between HMMs and a library
 	int matrix_get_lib_hmms_result_2();
 
-	//Fill the matrix with distances between each pair of HMMs
+	// Populate the matrix with distances between each pair of HMMs
 	int matrix_get_each2_hmms_result_2();
 
-	//Fill the matrix with distances between each pair of HHsuite HMMs
+	// Populate the matrix with distances between each pair of HH-suite HMMs
 	int matrix_get_each2_hhms_result_hhsuite();
 
-	//Initialize the matrix, vector, and map for HMMs
+	// Initialize the matrix, vector, and map for HMMs
 	int matrix_init_matrix_vector_map();
 
-	//Initialize the matrix, vector, and map for HHsuite HMMs
+	// Initialize the matrix, vector, and map for HH-suite HMMs
 	int matrix_init_matrix_vector_map_hhsuite();
 
-	//Process a FASTA sequence input for PRC
+	// Process a FASTA sequence input for PRC
 	void prc_fasta_seqs_deal(std::string file_path_name, double identity);
 
-	//Process a FASTA sequence input for HHsuite
+	// Process a FASTA sequence input for HH-suite
 	void hhsuite_fasta_seqs_deal(std::string file_path_name, double identity);
 
 
-    //function deal alignments input
+    // Process an alignments input with PRC
 	void prc_alignments_deal(std::string file_path_name);
 
-	//function deal alignments and phmms input
+	// Process alignments and profile HMMs (HMMER) with PRC
 	void prc_alignments_phmms_deal(std::string file_path_name, std::string file_path_name_2);
 
-    //function deal alignments input
+    // Process an alignments input with HH-suite
 	void hhsuite_alignments_deal(std::string file_path_name);
 
-	//function deal alignments and phhms input
+	// Process alignments and profile HHMs with HH-suite
 	void hhsuite_alignments_phhms_deal(std::string file_path_name, std::string file_path_name_2);
 
-	//hmm 1000 accurence test
+	// HMM 1000 occurrence test (?)
 	int hmm_1000_A_B_accurence_test(std::string infile_path_and_name,int x);
 
-	//function deal HMMs input
+	// Process a folder of HMMs (HMMER) with PRC
 	void prc_HMMs_deal(std::string infile_path_and_name);
 
-	//function deal HMMs input
+	// Process a folder of HHMs (HH-suite) with HH-suite
 	void hhsuite_HHMs_deal(std::string infile_path_and_name);
 
 	void draw_tree_test(){
 	   draw_tree_selective(run_fitch_analysis, run_kitsch_analysis, run_upgma_analysis, run_nj_analysis, run_fm_only, run_min_only);
 	}
 
-	//function to run selected phylogenetic analyses
+	// Run selected phylogenetic analyses
 	void draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only);
-    //function to replace the shortednames to the before-replaced names
+    // Replace shortened names in tree files with original names
 	void trees_replace_shorted_names(std::string str_treefiles_path);
 
 
 
 private:
 
-    //usearch is in the first folder or not?
+    // USEARCH present in working directory?
     bool bool_userach_in_folder;
-    //MAFFT is in the first folder or not?
+    // MAFFT present in working directory?
     bool bool_MAFFT_in_folder;
-    //HMMER is in the first folder or not?
+    // HMMER (hmmbuild) present in working directory?
     bool bool_HMMER_hmmbuild_in_folder;
 
-    //HMMER is in the first folder or not?
+    // HMMER (hmmconvert) present in working directory?
     bool bool_HMMER_hmmconvert_in_folder;
-    //
+    // HH-suite (hhmake) present in working directory?
     bool bool_hhsuite_hhmake_in_folder;
-    //
+    // HH-suite (hhalign) present in working directory?
     bool bool_hhsuite_hhalign_in_folder;
-    //PRC is in the first folder or not?
+    // PRC present in working directory?
     bool bool_PRC_in_folder;
 
 
 
-    //count the hmmA hmm member' number
+    // Count of HMM-A members
     unsigned int hmm_a_mem_num;
-    //count the hmmB hmm member' number
+    // Count of HMM-B members
     unsigned int hmm_b_mem_num;
 
-    //test the depend programs exist or not
+    // Verify required programs exist
     void test_depend_programs(int mode_num);
     void test_depend_programs_2(int prc_hhsuite, int mode_num);
-    //use usearch do clusters
+    // Cluster unaligned sequences with USEARCH
 	int usearch_cluster_unalign_seqs(std::string file_path_name, double identity);
-	//rename the clusteer reslut files
+	// Rename USEARCH cluster result files
 	int usearch_rename_result();
-	//test if the dir exists, or create them
+	// Ensure required directories exist; create if missing
 	void dir_exist_or_create(int prc_hhsuite, int mode_num);
 
-	//fasta file format and exists check
+	// Verify FASTA file exists and format is valid
 	bool align_fasta_file_exist_format_check(std::string infile_path_and_name);
 
-	//seqs align by mafft LINS_i approch
+	// Align a family with MAFFT L-INS-i approach
 	int align_mafft_LINS_i_one(std::string family_name);
 
-	//move the alignments to the aligned folder
+	// Move alignments to the aligned folder
 	int align_move_aligned(std::string file_path_name);
-	//move the alignments to the aligned folder
+	// Move alignments (for als_phmms/phhms modes) to the aligned folder
 	int als_phmms_phhms_move_aligned(std::string file_path_name);
 
-	//HMM file format and exists check
+	// Verify HMM file exists and format is valid
 	bool hmm_file_exist_format_check(std::string infile_path_and_name);
 
-	//divide hmms into single hmm files and the hmms in the file must be ended by "//"
+	// Split a multi-HMM file into single HMM files (each ends with "//")
 	int hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std::string outfiles_path, std::string str_key);
 
-	//hmmbuild a hmm model
+	// Build one HMM with hmmbuild
 	int hmm_hmmbuild_one(std::string family_name);
-	//set the pfam clan vector and the hmms data vector and map
+	// Populate Pfam clan vector and HMM data vector/map
 	int hmm_set_pfamclan_vector_hmmdat_vector_map();
-	//hmmconvert one hmmer3 hmm model to hmmer2 hmm model
+	// Convert one HMMER3 HMM to HMMER2
 	int hmm_hmmconvert_3_to_2_one(std::string hmmer3_name);
-	//hmmconvert all hmmer3 hmm models to hmmer2 hmm models
+	// Convert all HMMER3 HMMs to HMMER2
 	int hmm_hmmconvert_3_to_2();
-	//hmmconvert
+	// HMMER hmmconvert dispatcher
 	int hmm_hmmconvert();
-    //copy the hmm files from user dir to hmms
+    // Copy HMM files from user directory to hmms
     int hmm_copy_hmmfiles(std::string path);
 
-    //copy the hmm files from user dir to hmms
+    // Copy HMM files (als_phmms mode) from user directory to hmms
     int hmm_als_phmms_copy_hmmfiles(std::string path);
 
-    //hhmake build one HMM
+    // Build one HHM with hhmake
     int hhsuite_hhmake_one(std::string family_name);
-    //hhmake build all HMM
+    // Build all HHMs with hhmake
     int hhsuite_hhmake_all();
-    //hhalign
+    // Pairwise hhalign over all HHMs
     int hhsuite_hhalign_each2();
-    //
+    // Read hhalign results from files
     void hhsuite_read_result_from_file_hhalign(FILE * file_stream1, FILE * file_stream2);
 
+    // Copy HHM files from user directory to hhms
     int hhsuite_copy_hhmfiles(std::string path);
-    //copy the hhm files from user dir to hmms
+    // Copy HHM files (als_phhms mode) from user directory to hhms
     int hhsuite_als_phhms_copy_hhmfiles(std::string path);
 
-	//clear the message
+	// Clear PRC results
 	void clear_Prc_Result()
 	{
 		res_msg.clear();
@@ -629,43 +629,48 @@ private:
 	}
 
 
-    //check the profile HMM files is HMMER2.O or not
+    // Check whether profile HMM files are in HMMER2.0 format
     int prc_check_profile_HMM_format();
 
-	//read into the  message from the prc_each2 file
+	// Read PRC pairwise result from file
 	void prc_read_result_from_file(FILE * file_stream);
+	// Thread-safe reader for PRC result
 	void prc_read_result_from_file_threadsafe(FILE * file_stream, std::vector<STUC_RHHEL_NOTE>& local_res_msg);
+	// Thread-safe distance computation from PRC lines
 	double prc_hmms_dist_compute_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg);
+	// Thread-safe setter for distance result
 	void prc_set_STUC_RHH_NOTE_dist_threadsafe(STUC_RHH_NOTE* STUC_RHH_NOTE_res, const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2);
+	// Thread-safe aggregator into the pairwise matrix
 	int matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2);
 	
-	// Helper function to normalize PRC output identifiers to filename
+	// Helper to normalize PRC output identifiers to filenames
 	std::string normalize_prc_identifier_to_filename(const std::string& prc_identifier);
 
+	// Read PRC library-mode result file
 	void prc_read_lib_result_from_file(std::string str_prc_lib_result_filename);
 
-	//compute the distence
+	// Compute distance from PRC lines
 	double prc_hmms_dist_compute();
 
-	//set the hmm1 and hmm2 message to the result matrix class
+	// Set hmm1/hmm2 and distance into result struct
 	void prc_set_STUC_RHH_NOTE_dist(STUC_RHH_NOTE* STUC_RHH_NOTE_res);
 
-	//out put the distance matrix to a file in mega format
-	int matrix_mega_out_put_dist_matrix_to_file();
+	// Output the distance matrix to a file in MEGA format
+	int matrix_mega_output_dist_matrix_to_file();
 
-	//out put the distance matrix to a file in phylip format
-	int matrix_phylip_out_put_dist_matrix_to_file();
+	// Output the distance matrix to a file in PHYLIP format
+	int matrix_phylip_output_dist_matrix_to_file();
 
-	//out put the distance matrix to the window
-	int matrix_out_put_dist_matrix_to_window();
+	// Print the distance matrix to stdout
+	int matrix_output_dist_matrix_to_window();
 
-	//check the matrix is the right format or not
+	// Validate matrix format
 	bool matrix_check_matrix_format();
 
-	//double compute average distance score
+	// Compute average distance
 	double matrix_compute_average_dist();
 
-	//clear the matrix, maps and the vector
+	// Clear matrix, maps, and vectors
 	void all_clear_matrix_maps_vecotr(){
 		//id_hmmname_hmmacc_list_vector.clear();
 		hmm_NAME_id_list_unordered_map.clear();
@@ -675,63 +680,62 @@ private:
 		dist_matrix.clear();
 	}
 
-    //out put the hmm data to check
+    // Output an HMM (debug)
     void output_hmm_test(STRU_HMM hmm);
 
 
-    //get data from the hmm file
+    // Parse HMM data from file
     int hmm_get_data(std::string str_path_name, STRU_HMM *hmm) ;
 
-    //compute the hmm note dist by KLD
+    // Compute HMM node distance via KLD
     double hmm_compu_note(STRU_HMM_NODE note1, STRU_HMM_NODE note2);
 
-    //compute the two hmms' distance by the longest subseq
+    // Compute 2-HMM distance by longest subsequence
     double hmm_compu_dist(STRU_HMM hmm1, STRU_HMM hmm2, double EQUAL_LEVEL) ;
 
-    //compute the each two dist
+    // Compute pairwise distance between two HMM files
     double hmm_each2_dist(std::string str_path_name1 , std::string str_path_name2, double  EQUAL_LEVEL);
 
-    //Phylip draw tree
+    // PHYLIP: draw tree
     int Phylip_draw_tree();
 
-    //Phylip draw tree
+    // PHYLIP: draw tree (variant)
     int Phylip_draw_tree2();
 
 	std::string PRC_CopyRight_license;
-	std::string head_msg[8];           //a string array to save the head message of the prc result
-	std::string hmm1;                  //the first name of the hmm
-	std::string hmm2;                  //the second name of the hmm
-									   //int identity_number_hmm1;          //the identity number of hmm1
-									   //int identity_number_hmm2;          //id number of hmm2
-	int length_hmm1;                   //the length of the first hmm
-	int length_hmm2;                   //the length of the second hmm
+	std::string head_msg[8];           // header fields of PRC result
+	std::string hmm1;                  // name of HMM1
+	std::string hmm2;                  // name of HMM2
+									   //int identity_number_hmm1;          // ID of HMM1
+									   //int identity_number_hmm2;          // ID of HMM2
+	int length_hmm1;                   // length of HMM1
+	int length_hmm2;                   // length of HMM2
 
-	std::vector<STUC_RHHEL_NOTE> res_msg;        //the last messages of the result
+	std::vector<STUC_RHHEL_NOTE> res_msg;        // parsed PRC result lines
 
-	//Prc_Result deal_prc_results;			//deal the prc reasult
-	//path_filename path_and_filenames;		// deal with the path and the filenames
+	//Prc_Result deal_prc_results;                 // process PRC results
+	//path_filename path_and_filenames;            // path and filename utilities
 
-	//std::vector<HMM_NAME_ID_AC> vector_hmms_AB;      //VECTOR to save the shosen hmmAs and hmmBs
+	//std::vector<HMM_NAME_ID_AC> vector_hmms_AB;  // selected HMM groups A and B
 
-	//std::vector<PFAM_C> vector_pfam_clans;		//vector to save the clans' messages read from the Pfam-c file
-	//std::vector<HMM_DAT> vector_hmm_dat;		//a vector to save the hmms data in Pfam.hmm.dat file
+	//std::vector<PFAM_C> vector_pfam_clans;       // Pfam clan metadata
+	//std::vector<HMM_DAT> vector_hmm_dat;         // Pfam hmm.dat metadata
 	std::unordered_map <std::string, unsigned int> hmm_ACC_id_list_unordered_map;
-	//std::vector<unsigned int> vector_index_right_accuracy;		//a vector to save the right accuracy clans' indexes of compute times
-	//std::vector<PFAM_CLAN_AVG_DIS> vector_result_all;		//a vector to save the average distance score of clan A, B and A_B
-    //std::vector<PFAM_CLAN> vector_rand_2clan_index;			//A vector to save the indexs of the two rand clans
-	std::vector<HMM_NAME_ACC> id_hmm_NAME_ACC_list_vector;			//a vector to save the pairs of hmm id and name
-    //std::vector<std::string> id_hmm_list_vector;					//a vector to save the pairs of hmm id and name
-	std::unordered_map <std::string, unsigned int> hmm_NAME_id_list_unordered_map;	//a unordered map to save the pairs of hmm name and id
+	//std::vector<unsigned int> vector_index_right_accuracy; // accuracy indices
+	//std::vector<PFAM_CLAN_AVG_DIS> vector_result_all;      // average distances per clan
+    //std::vector<PFAM_CLAN> vector_rand_2clan_index;        // indices of random clan pairs
+	std::vector<HMM_NAME_ACC> id_hmm_NAME_ACC_list_vector;  // list of HMM filename/NAME/ACC
+    //std::vector<std::string> id_hmm_list_vector;           // list of HMM IDs
+	std::unordered_map <std::string, unsigned int> hmm_NAME_id_list_unordered_map; // map NAME -> ID
 
-	std::vector<std::vector<double> > dist_matrix;					 //two dimencions array two save the last result
+	std::vector<std::vector<double> > dist_matrix;          // 2D array storing the final distance matrix
 
-    //a unordered map to save the names in phylip draw tree step before names short step
+    // Names used in PHYLIP tree drawing before shortening
     std::vector <std::string> vec_unshorted_names;
-        //a unordered map to save the names in phylip draw tree step after names short step
+    // Names used in PHYLIP tree drawing after shortening
     std::vector <std::string> vec_shorted_names;
 
 	std::unordered_map <std::string, unsigned int> hmm_NAME_unordered_map;
-
 
 	std::unordered_map <std::string, unsigned int> hmm_ACC_unordered_map;
 

@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iomanip>
 
-//test the input string is num str or not
+// Test whether the input string is numeric.
 int is_num_str(char *char_str_num){
 
     std::string str_temp = char_str_num;
@@ -32,11 +32,10 @@ int is_num_str(char *char_str_num){
     return 1;
 }
 
-
-//split the string by a list of char
+// Split a string using any character from the given list.
 std::vector<std::string> str_Split_by_char_list(std::string str, const char *pattern)
 {
-	//vector to save the pattern char
+	// Build a string containing the delimiter characters.
 	std::string str_pat = "";
 
 	for (unsigned int i_pat = 0; i_pat < strlen(pattern); i_pat++)
@@ -44,25 +43,25 @@ std::vector<std::string> str_Split_by_char_list(std::string str, const char *pat
 		str_pat += pattern[i_pat];
 	}
 
-	//vector to save the result
+	// Result vector.
 	std::vector<std::string> result;
 
-	//temp string to save the string to split,and protect to be unbroken
-	std::string temp = str + pattern;
+	// Temporary buffer: original string plus pattern to simplify loop termination.
+	std::string temp = str + pattern; // buffer combining original string with pattern to simplify splitting logic
 
-	//iterator of the string
+	// Iterator over the buffer string.
 	std::string::iterator itr_str = temp.begin();
 
-	//temp string to save the split result
+	// Current token buffer.
 	std::string str_temp = "";
 
-	//a ciculation to split the string
+	// Loop to split the string.
 	while (itr_str != temp.end())
 	{
-		//if here is a char in the list then stop to deal it
+		// If current char is a delimiter, end the current token.
 		if (str_pat.find(*itr_str) != -1)
 		{
-			//at this time if the length of temp string is not null then pu it to the result array
+			// If the current token is non-empty, push it to the result vector.
 			if (str_temp.length() > 0)
 			{
 				result.push_back(str_temp);
@@ -70,20 +69,18 @@ std::vector<std::string> str_Split_by_char_list(std::string str, const char *pat
 			}
 		}
 		else
-		{//if it is a char out of the list then save it to the temp string
+		{// If not a delimiter, append it to the current token.
 			str_temp += *itr_str;
 		}
-		//iterator self encrease
+		// Advance iterator.
 		itr_str++;
 	}
 
 	return result;
 }
 
-
-
-//out put the string
-void out_put_str(std::string  str)
+// Print the string if non-empty.
+void output_str(std::string  str)
 {
 	if ((int)str.length() > 0)
 	{
@@ -91,7 +88,7 @@ void out_put_str(std::string  str)
 	}
 }
 
-//turn unsigned int to string
+// Convert unsigned int to a decimal string.
 std::string uint2str(unsigned int num)
 {
 	std::string result = "";
@@ -111,7 +108,8 @@ std::string uint2str(unsigned int num)
 	}
 	return result;
 }
-//function to test the dir exists or not
+
+// Check whether a directory exists.
 bool dir_exist_opendir(std::string path)
 {
 	DIR *dirptr = NULL;
@@ -129,7 +127,7 @@ bool dir_exist_opendir(std::string path)
 	return true;
 }
 
-//function to test the folder is empty or not
+// Check whether a directory is non-empty.
 bool dir_noempty_opendir_readir(std::string path)
 {
 	DIR *dirptr = NULL;
@@ -137,9 +135,9 @@ bool dir_noempty_opendir_readir(std::string path)
 	{
 		return false;
 	}
-	//open the dir
+	// Open the directory.
 	dirptr=opendir(path.c_str());
-	//save the file message in the dir
+	// Iterate directory entries.
 	struct dirent *p_dirent;
 	int file_num = 0;
 	while(p_dirent=readdir(dirptr))
@@ -155,7 +153,7 @@ bool dir_noempty_opendir_readir(std::string path)
 	return true;
 }
 
-//file exists and empty check
+// Check that a file exists and is not empty.
 bool file_exists_and_empty_check(std::string str_path_name)
 {
 	std::ifstream ifstream_empty_test;
@@ -176,7 +174,7 @@ bool file_exists_and_empty_check(std::string str_path_name)
 	return true;
 }
 
-//file exists and empty check
+// Check whether a file exists.
 bool file_exists_als_phmms_phhms(std::string str_path_name)
 {
 	std::ifstream ifstream_empty_test;
@@ -189,7 +187,7 @@ bool file_exists_als_phmms_phhms(std::string str_path_name)
 	return true;
 }
 
-//convert int to string
+// Convert int to string.
 std::string int_2_string(int int_number) {
 	char a[10];
 	std::string str;
@@ -218,21 +216,21 @@ int system_return(int status){
     }
     else
     {
-        //printf("exit status value = [0x%x]\n", status);
+        // printf("exit status value = [0x%x]\n", status);
 
-        if (WIFEXITED(status))  //successfully quit
+        if (WIFEXITED(status))  // Process exited normally.
         {
-            if (0 == WEXITSTATUS(status)) //successful
+            if (0 == WEXITSTATUS(status)) // Success.
             {
-                //printf("run shell script successfully.\n");
+                // printf("run shell script successfully.\n");
             }
-            else  //failed
+            else  // Non-zero exit status.
             {
                 std::cout<<"run shell script fail, script exit code: %d\n"<< WEXITSTATUS(status)<<std::endl;
                 result = 1;
             }
         }
-        else  //failed quit
+        else  // Process did not exit normally.
         {
             std::cout<<"exit status = [%d]\n"<<WEXITSTATUS(status)<<std::endl;
             result = 1;
@@ -241,8 +239,7 @@ int system_return(int status){
     return result;
 }
 
-
-//get the file name in the folder
+// List file names in a directory, optionally filtering by extension.
 int get_file_names(std::string path, std::vector<std::string> & vec_file_names, std::string extention){
     if(!dir_exist_opendir(path)){
         return 0;
@@ -255,7 +252,7 @@ int get_file_names(std::string path, std::vector<std::string> & vec_file_names, 
     struct dirent * ptr;
     int i=0;
     dir = opendir(path.c_str()); //open a dir
-    while((ptr = readdir(dir)) != NULL) //circle read the data in the dir
+    while((ptr = readdir(dir)) != NULL) // Iterate over directory entries.
     {
         if(ptr->d_type == 8){
             if(!ext_filter){
@@ -271,7 +268,8 @@ int get_file_names(std::string path, std::vector<std::string> & vec_file_names, 
     closedir(dir);//
     return 1;
 }
-//delete the files in a path
+
+// Delete all files in a directory.
 int delete_files(std::string path){
     std::vector<std::string> vec_file_names;
     get_file_names(path,vec_file_names,"");
@@ -285,7 +283,7 @@ int delete_files(std::string path){
     return 1;
 }
 
-//mv the files from path1 to path2
+// Move files from path1 to path2.
 int mv_files(std::string path1, std::string path2, std::string extention){
     std::vector <std::string> vec_filenames_path1;
     get_file_names(path1,vec_filenames_path1,extention);
@@ -302,7 +300,7 @@ int mv_files(std::string path1, std::string path2, std::string extention){
     return 1;
 }
 
-//copy files from path1 to path2
+// Copy files from path1 to path2.
 int copy_files(std::string path1, std::string path2,std::string extention){
 
     std::vector <std::string> vec_names_path1;
@@ -328,34 +326,33 @@ int copy_files(std::string path1, std::string path2,std::string extention){
     return 1;
 }
 
-
-//copy files from path1 to path2
+// Copy a single file from pathname1 to pathname2.
 int copy_one_file(std::string pathname1, std::string pathname2){
     int from_fd,to_fd;
     int bytes_read,bytes_write;
     char buffer[BUFFER_SIZE];
     char *ptr;
 
-    /* open the  source file */
-    if((from_fd=open(pathname1.c_str(),O_RDONLY))==-1) /*open file readonly, return -1 error，or describe note*/
+    /* Open the source file. */
+    if((from_fd=open(pathname1.c_str(),O_RDONLY))==-1) /* open file read-only; return -1 on error */
     {
         fprintf(stderr,"Open %s Error:%s\n",pathname1.c_str(),strerror(errno));
         exit(1);
     }
 
-    /* create the target file */
-    /* use O_CREAT option ,open() need the third argument,
-    mode=S_IRUSR|S_IWUSR means S_IRUSR can read S_IWUSR user can write */
+    /* Create the target file. */
+    /* When using O_CREAT, open() needs a third argument;
+       mode S_IRUSR|S_IWUSR means user read/write. */
     if((to_fd=open(pathname2.c_str(),O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR))==-1)
     {
         fprintf(stderr,"Open %s Error:%s\n",pathname2.c_str(),strerror(errno));
         exit(1);
     }
 
-    /* copy the file */
+    /* Copy the file. */
     while(bytes_read=read(from_fd,buffer,BUFFER_SIZE))
     {
-        /* fatal error deal */
+        /* Handle fatal error. */
         if((bytes_read==-1)&&(errno!=EINTR))
             break;
         else if(bytes_read>0)
@@ -363,20 +360,20 @@ int copy_one_file(std::string pathname1, std::string pathname2){
             ptr=buffer;
             while(bytes_write=write(to_fd,ptr,bytes_read))
             {
-                /* fatal error deal */
+                /* Handle fatal error. */
                 if((bytes_write==-1)&&(errno!=EINTR))
                     break;
-                /* all words copyed */
+                /* All bytes copied. */
                 else if(bytes_write==bytes_read)
                     break;
-                /* if partial copyed , continue */
+                /* If partially copied, continue. */
                 else if(bytes_write>0)
                 {
                     ptr+=bytes_write;
                     bytes_read-=bytes_write;
                 }
             }
-            /* fatal error while writing */
+            /* Handle fatal error while writing. */
             if(bytes_write==-1)
             break;
         }
@@ -392,7 +389,7 @@ void output_error_(std::string error_msg){
     exit(1);
 }
 
-//test the exists of usearch
+// Check if USEARCH exists.
 int USEARCH_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -417,7 +414,7 @@ int USEARCH_exist(){
     return 0;
 }
 
-//test the exists of PRC
+// Check if PRC exists.
 int PRC_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -442,7 +439,7 @@ int PRC_exist(){
     return 0;
 }
 
-//test the exists of MAFFT
+// Check if MAFFT exists.
 int MAFFT_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -466,7 +463,8 @@ int MAFFT_exist(){
 
     return 0;
 }
-//test the exists of HMMER
+
+// Check if HMMER hmmbuild exists.
 int HMMER_hmmbuild_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -491,7 +489,8 @@ int HMMER_hmmbuild_exist(){
     return 0;
 
 }
-//test the exists of HMMER hmmconvert
+
+// Check if HMMER hmmconvert exists.
 int HMMER_hmmconvert_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -515,7 +514,7 @@ int HMMER_hmmconvert_exist(){
     return 0;
 }
 
-//test the exists of HMMER hmmbuild
+// Check if HH-suite hhmake exists.
 int hhsuite_hhmake_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -540,7 +539,8 @@ int hhsuite_hhmake_exist(){
     return 0;
 
 }
-//test the exists of HMMER hmmbuild
+
+// Check if HH-suite hhalign exists.
 int hhsuite_hhalign_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
@@ -565,8 +565,7 @@ int hhsuite_hhalign_exist(){
     return 0;
 }
 
-
- //replace the string by another string in a string
+// Replace occurrences of s2 with s3 in s1, considering un_shorted as protected prefixes.
 void string_replace(std::string &s1,const std::string&s2,const std::string&s3,unsigned int index_i, std::vector<std::string> un_shorted)
 {	/*
 	std::string::size_type pos=0;
@@ -615,7 +614,7 @@ void string_replace(std::string &s1,const std::string&s2,const std::string&s3,un
 
 }
 
-//format time duration for human-readable output  
+// Format a time duration as a human-readable string.
 std::string format_time_duration(long total_milliseconds) {
     // Convert milliseconds to seconds
     double total_seconds = total_milliseconds / 1000.0;

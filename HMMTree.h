@@ -92,8 +92,8 @@ const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
 "  -min      Run only minimum evolution variants (affects Fitch and Kitsch).\n"
 "\n"
 "THREAD CONTROL (optional; 0 = auto-detect)\n"
-"  -prc_threads <num>     Number of threads for PRC distance calculations.\n"
-"  -phylo_threads <num>   Number of threads for phylogenetic algorithms.\n"
+"  -prc_threads <num>     Number of threads for PRC distance calculations (default: auto-detect).\n"
+"  -phylo_threads <num>   Number of threads for phylogenetic algorithms (default: 1).\n"
 "\n"
 "EXAMPLES\n"
 "  PRC + unaligned FASTA:\n"
@@ -332,7 +332,7 @@ typedef struct cmd_params {
 
     // Thread control parameters
     int prc_threads;        // Number of threads for PRC distance calculations
-    int phylo_threads;      // Number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
+	int phylo_threads;      // Number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
 
 	cmd_params(){
 		prc_mode = false;
@@ -363,9 +363,9 @@ typedef struct cmd_params {
         prc_prc_hit_value = 0;
         uals_id_value = 0.0;
 
-        // Default: auto-detect threads (0 means auto-detect)
+	// Default threads: PRC auto-detect (0), phylo default to 1 (0 still means auto-detect)
         prc_threads = 0;
-        phylo_threads = 0;
+	phylo_threads = 1;
 
 	}
 }CMD_PARAMS;
@@ -399,9 +399,9 @@ public:
         run_fm_only = false;
         run_min_only = false;
         
-        // Initialize thread control - default to auto-detect (0)
+	// Initialize thread control - PRC auto-detect (0), phylo default to 1
         prc_threads_count = 0;
-        phylo_threads_count = 0;
+	phylo_threads_count = 1;
         
         files_folder="";
         folder_hmms ="";

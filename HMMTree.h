@@ -405,7 +405,7 @@ public:
         files_folder="";
         folder_hmms ="";
         folder_tree_files ="";
-        folder_matrixs ="";
+        folder_matrices ="";
         folder_clusters ="";
         folder_unalign_seqs ="";
         folder_invalid_clusters ="";
@@ -442,7 +442,7 @@ public:
     std::string files_folder;               // base output folder derived from the input path or filename
     std::string folder_hmms;
     std::string folder_tree_files;
-    std::string folder_matrixs;
+    std::string folder_matrices;
     std::string folder_clusters;
     std::string folder_unalign_seqs;
     std::string folder_invalid_clusters;

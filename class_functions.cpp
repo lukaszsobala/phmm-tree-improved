@@ -86,7 +86,7 @@ void HMMTree::create_files_folder(std::string input_file_or_folder_path, int prc
     folder_hmms_from_als =files_folder + "hmms_from_als"+"/";
     folder_prcfiles = files_folder + "prcfiles"+"/";
     folder_tree_files =files_folder + "tree_files"+"/";
-    folder_matrixs =files_folder + "matrixs"+"/";
+    folder_matrices =files_folder + "matrices"+"/";
     folder_clusters =files_folder + "clusters"+"/";
     folder_unalign_seqs =files_folder + "unalign_seqs"+"/";
     folder_invalid_clusters =files_folder + "invalid_clusters"+"/";
@@ -300,10 +300,10 @@ void HMMTree::dir_exist_or_create(int prc_hhsuite, int mode_num){
         system_return(system(("mkdir  -m 777 "+folder_tree_files).c_str()));
     }
 
-    //test the matrixs folder
-    if(!dir_exist_opendir(folder_matrixs))
+    //test the matrices folder
+    if(!dir_exist_opendir(folder_matrices))
     {
-        system_return(system(("mkdir  -m 777 "+folder_matrixs).c_str()));
+        system_return(system(("mkdir  -m 777 "+folder_matrices).c_str()));
     }
     switch(mode_num){
         case 0:

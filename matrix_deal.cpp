@@ -1,7 +1,7 @@
 #include "HMMTree.h"
 #include <cstdint>
 
-//init the matrix 、 vector  and map
+// Initialize the matrix, vector, and maps
 int HMMTree::matrix_init_matrix_vector_map()
 {
 	std::vector<std::string> vec_matrix_hmm_filenames;
@@ -102,8 +102,7 @@ int HMMTree::matrix_init_matrix_vector_map()
         //std::cout << hmm_NAME_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector]] << std::endl;
     }
 
-	//update the matrix
-
+	// Initialize the distance matrix
 	for (unsigned int i_matrix_row = 0; i_matrix_row < id_hmm_NAME_ACC_list_vector.size(); i_matrix_row++)
 	{
 		std::vector<double> vector_distance_temp;
@@ -117,7 +116,7 @@ int HMMTree::matrix_init_matrix_vector_map()
 	return 1;
 }
 
-//init the matrix 、 vector  and map
+// Initialize the matrix, vector, and maps (HH-suite)
 int HMMTree::matrix_init_matrix_vector_map_hhsuite()
 {
 	std::vector<std::string> vec_matrix_hmm_filenames;
@@ -209,7 +208,7 @@ int HMMTree::matrix_init_matrix_vector_map_hhsuite()
         }
     }
 
-    //update the unordered map
+    // Update lookup maps
 	for (unsigned int i_vector = 0; i_vector < id_hmm_NAME_ACC_list_vector.size(); i_vector++)
 	{
 
@@ -223,7 +222,7 @@ int HMMTree::matrix_init_matrix_vector_map_hhsuite()
 		//std::cout << hmm_NAME_id_list_unordered_map[id_hmm_NAME_ACC_list_vector[i_vector]] << std::endl;
 	}
 
-	//update the matrix
+	// Initialize the distance matrix
 
 	for (unsigned int i_matrix_row = 0; i_matrix_row < id_hmm_NAME_ACC_list_vector.size(); i_matrix_row++)
 	{
@@ -239,14 +238,14 @@ int HMMTree::matrix_init_matrix_vector_map_hhsuite()
 }
 
 
-//Temporary test function to compare each pair of HMMs
+// Temporary test: compare each pair of HMMs
 int  HMMTree::matrix_get_each2_hmms_result_2(){
 
-    //Temporary variable to save the distance
+    // Temporary variable to store the distance
     STUC_RHH_NOTE STUC_RHH_NOTE_distanc_temp;
-    //compute the distance  and get the distance
+    // Compute and retrieve the distance
     prc_set_STUC_RHH_NOTE_dist(&STUC_RHH_NOTE_distanc_temp);
-    //clear the result class
+    // Clear PRC results
     clear_Prc_Result();
 
     int row_number_matrix = 0;
@@ -267,7 +266,7 @@ int  HMMTree::matrix_get_each2_hmms_result_2(){
         // Silently skip entries that cannot be found in matrix maps
         return 1;
     }
-    //put the distance into the matrix
+    // Write the distance into the matrix
     dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     dist_matrix[col_number_matrix][row_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
 
@@ -275,7 +274,7 @@ int  HMMTree::matrix_get_each2_hmms_result_2(){
 	return 1;
 }
 
-//
+// Populate matrix from PRC library-mode results
 int HMMTree::matrix_get_lib_hmms_result_2(){
 
     std::vector<int> vec_int;
@@ -315,13 +314,13 @@ int HMMTree::matrix_get_lib_hmms_result_2(){
             continue;
         }
         if(vec_int[col_number_matrix] == 0 ){
-            //put the distance into the matrix
+            // Write the distance into the matrix
             dist_matrix[row_number_matrix][col_number_matrix] = answer;
             dist_matrix[col_number_matrix][row_number_matrix] = answer;
             vec_int[col_number_matrix] = 1;
         }else{
             if(dist_matrix[row_number_matrix][col_number_matrix] > answer){
-                //put the distance into the matrix
+                // Write the distance into the matrix
                 dist_matrix[row_number_matrix][col_number_matrix] = answer;
                 dist_matrix[col_number_matrix][row_number_matrix] = answer;
             }
@@ -329,12 +328,12 @@ int HMMTree::matrix_get_lib_hmms_result_2(){
         uint_res_msg++;
     }
     vec_int.clear();
-    //clear the result class
+    // Clear PRC results
     clear_Prc_Result();
 	return 1;
 }
 
-//out put the distance matrix
+// Output the distance matrix (MEGA format)
 int HMMTree::matrix_mega_output_dist_matrix_to_file()
 {
 	//matrix_output_dist_matrix_to_window();
@@ -348,7 +347,7 @@ int HMMTree::matrix_mega_output_dist_matrix_to_file()
     _itoa_s(dist_matrix.size(), c_int2str, 10);
 	*/
 
-	std::string str_name_temp = folder_matrixs+"file_dist_matrix_out_mega.meg";                 //temp string variable to name the out distance file
+	std::string str_name_temp = folder_matrices+"file_dist_matrix_out_mega.meg"; // temporary string for output filename
 	file_dist_matrix_out.open(str_name_temp.c_str(),std::ios_base::out|std::ios_base::trunc);
 
 	if (!file_dist_matrix_out.is_open())
@@ -357,7 +356,7 @@ int HMMTree::matrix_mega_output_dist_matrix_to_file()
 		return 0;
 	}
 
-	//out put the count of the hmms to the file
+	// Output the number of HMMs to the file
 	//file_dist_matrix_out << std::left << std::setw(8) << dist_matrix.size() << std::endl;
 	/*
 	#mega
@@ -399,7 +398,7 @@ int HMMTree::matrix_mega_output_dist_matrix_to_file()
 	[6] #Perissodactyla
 
 	*/
-	//vector to save the number string "[x]"
+	// Vector to store index tags like "[x]"
     std::vector<std::string> vec_str_tags;
 	if(NAME_OR_ACC){
         for (unsigned int i_vec_row_dist_matrix = 0; i_vec_row_dist_matrix < dist_matrix.size(); i_vec_row_dist_matrix++)
@@ -451,11 +450,11 @@ int HMMTree::matrix_mega_output_dist_matrix_to_file()
 	}
 	vec_str_tags.clear();
 	file_dist_matrix_out.close();
-	chmod((folder_matrixs+"file_dist_matrix_out_mega.meg").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
+	chmod((folder_matrices+"file_dist_matrix_out_mega.meg").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
 	return 1;
 }
 
-//out put the distance matrix
+// Output the distance matrix (PHYLIP format)
 int HMMTree::matrix_phylip_output_dist_matrix_to_file()
 {
 	if(!matrix_check_matrix_format()){
@@ -472,7 +471,7 @@ int HMMTree::matrix_phylip_output_dist_matrix_to_file()
     _itoa_s(dist_matrix.size(), c_int2str, 10);
 	*/
 
-	std::string str_name_temp = folder_matrixs+"file_dist_matrix_out_phylip.txt";                 //temp string variable to name the out distance file
+	std::string str_name_temp = folder_matrices+"file_dist_matrix_out_phylip.txt"; // temporary string for output filename
 	file_dist_matrix_out.open(str_name_temp.c_str(),std::ios_base::out|std::ios_base::trunc);
 	if (!file_dist_matrix_out.is_open())
 	{
@@ -480,13 +479,13 @@ int HMMTree::matrix_phylip_output_dist_matrix_to_file()
 		return 0;
 	}
 
-	//out put the count of the hmms to the file
+	// Output the number of HMMs to the file
 	file_dist_matrix_out << std::left << std::setw(8) << dist_matrix.size() << std::endl;
 
     std::ofstream of_shorted_names;
-    of_shorted_names.open(folder_matrixs+"shorted_names.txt",std::ios_base::out|std::ios_base::trunc);
+    of_shorted_names.open(folder_matrices+"shorted_names.txt",std::ios_base::out|std::ios_base::trunc);
    // of_shorted_names.
-   // chmod("./matrixs/shorted_names.txt",S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+   // chmod("./matrices/shorted_names.txt",S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 
     if (!of_shorted_names.is_open())
 	{
@@ -494,7 +493,7 @@ int HMMTree::matrix_phylip_output_dist_matrix_to_file()
 		return 0;
 	}
 	bool shorted_name_flag=false;
-    //a unordered map to save the shorted names in phylip draw tree step
+    // An unordered map to store shortened names used during PHYLIP tree drawing
     std::unordered_map <std::string, int> shorted_names_map;
     int all_names_num = 0;
     int shorted_num = 0;
@@ -603,18 +602,19 @@ int HMMTree::matrix_phylip_output_dist_matrix_to_file()
 	file_dist_matrix_out.close();
 	
 	// Set file permissions after closing
-	chmod((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
+	chmod((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
 	if(shorted_name_flag) {
-		chmod((folder_matrixs+"shorted_names.txt").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
+		chmod((folder_matrices+"shorted_names.txt").c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH);
 	}
 	
+	// If no shortened names were used, remove the file
 	if(!shorted_name_flag){
-        system_return(system(("rm -f "+folder_matrixs+"shorted_names.txt").c_str()));
+        system_return(system(("rm -f "+folder_matrices+"shorted_names.txt").c_str()));
 	}
 	return 1;
 }
 
-//matrix_output_dist_matrix_to_window
+// Print the distance matrix to stdout
 int HMMTree::matrix_output_dist_matrix_to_window()
 {
 
@@ -652,9 +652,7 @@ bool HMMTree::matrix_check_matrix_format(){
 	return true;
 }
 
-
-
-//double compute average distance score
+// Compute average distance score
 double HMMTree::matrix_compute_average_dist(){
 	double result=0;
 	for (unsigned int i_vec_row_dist_matrix = 0; i_vec_row_dist_matrix < dist_matrix.size(); i_vec_row_dist_matrix++)
@@ -669,17 +667,15 @@ double HMMTree::matrix_compute_average_dist(){
 	return result*2/(dist_matrix.size()*dist_matrix.size());
 }
 
-//
+// Fill matrix for HH-suite pairwise results
 int HMMTree::matrix_get_each2_hhms_result_hhsuite(){
-    //temp variable to save the distance
+    // Temporary variable to store the distance
     STUC_RHH_NOTE STUC_RHH_NOTE_distanc_temp;
-    //compute the distance  and get the distance
+    // Compute and retrieve the distance
     prc_set_STUC_RHH_NOTE_dist(&STUC_RHH_NOTE_distanc_temp);
-    //std::cout<<"555555555555555555555555555555"<<std::endl;
-    //clear the result class
+    // Clear PRC results
     clear_Prc_Result();
     //std::cout<<STUC_RHH_NOTE_distanc_temp.distance<<"   "<<std::endl;
-    //std::cout<<STUC_RHH_NOTE_distanc_temp.hmm1.name<<"   "<<STUC_RHH_NOTE_distanc_temp.hmm2.name<<"  :   "<<STUC_RHH_NOTE_distanc_temp.distance<<std::endl;
 
     int row_number_matrix = 0;
     int col_number_matrix = 0;
@@ -694,7 +690,7 @@ int HMMTree::matrix_get_each2_hhms_result_hhsuite(){
         col_number_matrix = hmm_NAME_id_list_unordered_map[STUC_RHH_NOTE_distanc_temp.hmm2.name];
     }
     //std::cout<<"7777777777777777777777777777777"<<std::endl;
-    //put the distance into the matrix
+    // Write the distance into the matrix
     dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     dist_matrix[col_number_matrix][row_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     //std::cout<<"88888888888888888888888888888888"<<std::endl;
@@ -702,12 +698,12 @@ int HMMTree::matrix_get_each2_hhms_result_hhsuite(){
 	return 1;
 }
 
-//Thread-safe version that takes local parameters instead of using class members
+// Thread-safe version that takes local parameters instead of using class members
 int HMMTree::matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2)
 {
-    //temp variable to save the distance
+    // Temporary variable to store the distance
     STUC_RHH_NOTE STUC_RHH_NOTE_distanc_temp;
-    //compute the distance and get the distance
+    // Compute and retrieve the distance
     prc_set_STUC_RHH_NOTE_dist_threadsafe(&STUC_RHH_NOTE_distanc_temp, local_res_msg, local_hmm1, local_hmm2);
 
     int row_number_matrix = -1;
@@ -741,7 +737,7 @@ int HMMTree::matrix_get_each2_hmms_result_2_threadsafe(const std::vector<STUC_RH
         return 0;
     }
     
-    //put the distance into the matrix
+    // Write the distance into the matrix
     dist_matrix[row_number_matrix][col_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
     dist_matrix[col_number_matrix][row_number_matrix] = STUC_RHH_NOTE_distanc_temp.distance;
 

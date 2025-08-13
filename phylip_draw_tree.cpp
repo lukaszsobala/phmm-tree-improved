@@ -3,19 +3,19 @@
 #include <sys/timeb.h>
 
 int HMMTree::Phylip_draw_tree2(){
-     kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
-     kitsch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1, phylo_threads_count);
-     fitch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
-     fitch_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1, phylo_threads_count);
-     neighbor_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"neighbor").c_str(), phylo_threads_count);
-     upgma_build_tree((folder_matrixs+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"upgma").c_str(), phylo_threads_count);
+     kitsch_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
+     kitsch_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1, phylo_threads_count);
+     fitch_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
+     fitch_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"min").c_str(), 1, phylo_threads_count);
+     neighbor_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"neighbor").c_str(), phylo_threads_count);
+     upgma_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"upgma").c_str(), phylo_threads_count);
      //UPGMA_build_tree("ssssss");
 return 1;
 }
 
 //function to run selected phylogenetic analyses
 void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only) {
-    std::string matrix_file = folder_matrixs + "file_dist_matrix_out_phylip.txt";
+    std::string matrix_file = folder_matrices + "file_dist_matrix_out_phylip.txt";
     struct timeb startTime, endTime;
     
     if (run_kitsch) {

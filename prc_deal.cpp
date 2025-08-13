@@ -2,7 +2,7 @@
 #include <omp.h>
 #include <sstream>
 
-//compute the distance of two hmms
+// Compute pairwise distances between HMMs using PRC
 int HMMTree::prc_each2(){
 	std::vector<std::string> vec_hmms_filenames;
 	if(!get_file_names(folder_hmms,vec_hmms_filenames,"")){
@@ -25,13 +25,13 @@ int HMMTree::prc_each2(){
 	}
 	vec_hmms_filenames.clear();
 
-	//init the matrix, vector and map;
+	// Initialize the matrix, vector, and maps
 	if(!matrix_init_matrix_vector_map()){
 		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed !"<<std::endl;
         exit(1);
 	}
 
-    // Create list of all pairs to process
+    // Create the list of all HMM pairs to process
     std::vector<std::pair<unsigned int, unsigned int>> pairs_to_process;
     for (unsigned int i = 0; i < hmm_names.size() - 1; i++) {
         for (unsigned int j = i + 1; j < hmm_names.size(); j++) {
@@ -39,7 +39,7 @@ int HMMTree::prc_each2(){
         }
     }
 
-    std::cout << "PRC deal: Processing " << pairs_to_process.size() << " pairwise comparisons..." << std::endl;
+    std::cout << "Profile Comparer (PRC): Processing " << pairs_to_process.size() << " pairwise comparisons..." << std::endl;
     
     // Set thread count for PRC analysis based on user configuration
     int prc_num_threads = (prc_threads_count > 0) ? prc_threads_count : omp_get_max_threads();
@@ -50,7 +50,7 @@ int HMMTree::prc_each2(){
     
     omp_set_num_threads(prc_num_threads);
     
-    // Track progress with thread-safe counter
+    // Track progress with a thread-safe counter
     int completed_count = 0;
     int total_pairs = pairs_to_process.size();
 
@@ -63,12 +63,12 @@ int HMMTree::prc_each2(){
         std::string str_name_hmm1 = hmm_names[i_hmm_names1];
         std::string str_name_hmm2 = hmm_names[i_hmm_names2];
 
-        // Get thread ID for unique temporary handling
+        // Get thread ID for progress reporting/debugging
         int thread_id = omp_get_thread_num();
         
         // Thread-local variables to avoid race conditions
         std::vector<STUC_RHHEL_NOTE> local_res_msg;
-        // Extract just the filename from the full path for matrix lookup
+        // Extract the filename from the full path for matrix lookup
         std::string local_hmm1 = str_name_hmm1.substr(str_name_hmm1.find_last_of('/') + 1);
         std::string local_hmm2 = str_name_hmm2.substr(str_name_hmm2.find_last_of('/') + 1);
         
@@ -114,7 +114,7 @@ int HMMTree::prc_each2(){
 	return 1;
 }
 
-//prc hmm1 to a library
+// Run PRC for one HMM against a library
 int HMMTree::prc_hmm1_library(std::string str_name_hmm1, std::string str_library,std::string prc_out_path_filename)
 {
 	std::string str_cmd = "";
@@ -136,7 +136,7 @@ int HMMTree::prc_hmm1_library(std::string str_name_hmm1, std::string str_library
 	return system(str_cmd.c_str());
 }
 
-//compute the distance of hmm1 to a library
+// Compute distances: one HMM against a library
 int HMMTree::prc_library()
 {
 	std::vector<std::string> vec_hmms_filenames;
@@ -160,7 +160,8 @@ int HMMTree::prc_library()
 	}
 	vec_hmms_filenames.clear();
 
-	// check the hmm files version is HMMER2 or not
+	// Verify HMM files are HMMER2
+	// Make sure the HMM files version is HMMER2
 	std::ifstream file_test_hmm_version;
 	std::string str_oneline_file="";
 	file_test_hmm_version.open(hmm_names[0].c_str());
@@ -183,13 +184,13 @@ int HMMTree::prc_library()
 	}
 	file_test_hmm_version.close();
 
-	//init the matrix, vector and map;
+	// Initialize the matrix, vector, and maps
 	if(!matrix_init_matrix_vector_map()){
 		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed !"<<std::endl;
         exit(1);
 	}
 
-	//if the prcfiles folder is not empty then empty it
+	// If the prcfiles folder is non-empty, clean it
 	if(dir_noempty_opendir_readir(folder_prcfiles))
 	{
 		//system_return(system("rm ./prcfiles/*.txt"));
@@ -249,8 +250,8 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 		exit(0);
 	}
 
-	std::string str_msg_temp;                 //temp variable to save the msg readed from the file
-	int line_num_temp = 0;                        //temp variable to count the line of the data
+	std::string str_msg_temp;                 // temporary buffer for lines read from file
+	int line_num_temp = 0;                    // line counter
 	bool bool_flag = false;
 	while (std::getline(i_result_file, str_msg_temp))
 	{
@@ -265,13 +266,13 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 			{
 				break;
 			}
-			//temp variable to save the line messages of the result file
+			// Temporary struct to hold parsed fields from this line
 			STUC_RHHEL_NOTE struct_line_temp;
 
-			//push the varibale to the calss variable to save it
+			// Append to the class result vector
 			res_msg.push_back(struct_line_temp);
 
-			//split the string to get messages
+			// Split the line into fields
 			std::vector<std::string> result_line_split;
 			result_line_split = str_Split_by_char_list(str_msg_temp, " \t");
 
@@ -281,7 +282,7 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 			    continue;
 			}
 
-			//put the message into the class result array
+			// Store parsed fields into the class result array
 			res_msg.back().hmm1_name = normalize_prc_identifier_to_filename(result_line_split[0]);
 			res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
 			res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());
@@ -315,7 +316,7 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 	return ;
 }
 
-//read into the  message from the file
+// Read PRC output from stream (pairwise mode) into class members
 void HMMTree::prc_read_result_from_file(FILE * file_stream)
 {
     char   buf[1024];
@@ -336,13 +337,13 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
 			{
 				break;
 			}
-			//temp variable to save the line messages of the result file
+			// Temporary struct to hold parsed fields from this line
 			STUC_RHHEL_NOTE struct_line_temp;
 
-			//push the varibale to the calss variable to save it
+			// Append to the class result vector
 			res_msg.push_back(struct_line_temp);
 
-			//split the string to get messages
+			// Split the line into fields
 			std::vector<std::string> result_line_split;
 			result_line_split = str_Split_by_char_list(str_msg_temp, " \t");
 
@@ -352,7 +353,7 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
 			    continue;
 			}
 
-			//put the message into the class result array
+			// Store parsed fields into the class result array
 			res_msg.back().hmm1_name = normalize_prc_identifier_to_filename(result_line_split[0]);
 			res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
 			res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());
@@ -364,6 +365,7 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
 			res_msg.back().simple = atof(result_line_split[10].c_str());
 			res_msg.back().reverse = atof(result_line_split[11].c_str());
 
+			// Capture names once
 			if(!get_names){
                 hmm1 = res_msg.back().hmm1_name;
                 hmm2 = res_msg.back().hmm2_name;
@@ -387,7 +389,7 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
 	return ;
 }
 
-//compute the distence
+// Compute the distance
 double HMMTree::prc_hmms_dist_compute()
 {
     double answer=0;
@@ -401,7 +403,7 @@ double HMMTree::prc_hmms_dist_compute()
 	return 1.0/answer;
 }
 
-//Thread-safe version that uses local res_msg instead of class member
+// Thread-safe version that uses a local res_msg instead of the class member
 double HMMTree::prc_hmms_dist_compute_threadsafe(const std::vector<STUC_RHHEL_NOTE>& local_res_msg)
 {
     double answer=0;
@@ -417,7 +419,7 @@ double HMMTree::prc_hmms_dist_compute_threadsafe(const std::vector<STUC_RHHEL_NO
 	return 1.0/answer;
 }
 
-//set the hmm1 and hmm2 message to the result matrix class
+// Set hmm1/hmm2 and distance into the result struct
 void HMMTree::prc_set_STUC_RHH_NOTE_dist(STUC_RHH_NOTE* STUC_RHH_NOTE_res)
 {
 	STUC_RHH_NOTE_res->hmm1.name = hmm1;
@@ -425,7 +427,7 @@ void HMMTree::prc_set_STUC_RHH_NOTE_dist(STUC_RHH_NOTE* STUC_RHH_NOTE_res)
 	STUC_RHH_NOTE_res->distance = prc_hmms_dist_compute();
 }
 
-//Thread-safe version that takes local parameters instead of using class members
+// Thread-safe version that takes local parameters instead of using class members
 void HMMTree::prc_set_STUC_RHH_NOTE_dist_threadsafe(STUC_RHH_NOTE* STUC_RHH_NOTE_res, const std::vector<STUC_RHHEL_NOTE>& local_res_msg, const std::string& local_hmm1, const std::string& local_hmm2)
 {
 	STUC_RHH_NOTE_res->hmm1.name = local_hmm1;
@@ -433,7 +435,7 @@ void HMMTree::prc_set_STUC_RHH_NOTE_dist_threadsafe(STUC_RHH_NOTE* STUC_RHH_NOTE
 	STUC_RHH_NOTE_res->distance = prc_hmms_dist_compute_threadsafe(local_res_msg);
 }
 
-//check the profile HMM files is HMMER2.O or not
+// Verify profile HMM files are HMMER2
 int HMMTree::prc_check_profile_HMM_format(){
     std::vector<std::string> vec_hmm3_2_filenames;
 	if(!get_file_names(folder_hmms,vec_hmm3_2_filenames,"")){
@@ -476,7 +478,7 @@ int HMMTree::prc_check_profile_HMM_format(){
 	return 1;
 }
 
-//Thread-safe version that uses local variables instead of class members
+// Thread-safe reader that fills a local vector instead of class members
 void HMMTree::prc_read_result_from_file_threadsafe(FILE * file_stream, std::vector<STUC_RHHEL_NOTE>& local_res_msg)
 {
     char   buf[1024];
@@ -496,13 +498,13 @@ void HMMTree::prc_read_result_from_file_threadsafe(FILE * file_stream, std::vect
 			{
 				break;
 			}
-			//temp variable to save the line messages of the result file
+			// Temporary struct to hold parsed fields from this line
 			STUC_RHHEL_NOTE struct_line_temp;
 
-			//push the variable to the local vector instead of class member
+			// Push into the local vector (not the class member)
 			local_res_msg.push_back(struct_line_temp);
 
-			//split the string to get messages
+			// Split the line into fields
 			std::vector<std::string> result_line_split;
 			result_line_split = str_Split_by_char_list(str_msg_temp, " \t");
 
@@ -512,7 +514,7 @@ void HMMTree::prc_read_result_from_file_threadsafe(FILE * file_stream, std::vect
 			    continue;
 			}
 
-			//put the message into the local result array
+			// Store parsed fields into the local result array
 			local_res_msg.back().hmm1_name = normalize_prc_identifier_to_filename(result_line_split[0]);
 			local_res_msg.back().begin_hmm1 = atoi(result_line_split[1].c_str());
 			local_res_msg.back().end_hmm1 = atoi(result_line_split[2].c_str());

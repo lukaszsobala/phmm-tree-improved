@@ -713,7 +713,6 @@ private:
 
 	std::vector<STUC_RHHEL_NOTE> res_msg;        // parsed PRC result lines
 
-	//Prc_Result deal_prc_results;                 // process PRC results
 	//path_filename path_and_filenames;            // path and filename utilities
 
 	//std::vector<HMM_NAME_ID_AC> vector_hmms_AB;  // selected HMM groups A and B

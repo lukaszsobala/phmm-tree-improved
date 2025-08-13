@@ -379,19 +379,19 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
     ftime(&prcStartTime);
-    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+    std::cout << "PRC processing: distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
-            output_error_("PRC deal 'prc_library()' ");
+            output_error_("PRC processing 'prc_library()' ");
             return;
         }
 
     }else{
         if(!prc_each2()){
-                output_error_("PRC deal 'prc_each2()' ");
+                output_error_("PRC processing 'prc_each2()' ");
                 return;
             }
     }
@@ -518,19 +518,19 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
     ftime(&prcStartTime);
-    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+    std::cout << "PRC processing: distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
-            output_error_("PRC deal 'prc_library()' ");
+            output_error_("PRC processing 'prc_library()' ");
             return;
         }
 
     }else{
         if(!prc_each2()){
-                output_error_("PRC deal 'prc_each2()' ");
+                output_error_("PRC processing 'prc_each2()' ");
                 return;
             }
     }
@@ -642,19 +642,19 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
     ftime(&prcStartTime);
-    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+    std::cout << "PRC processing: Processing distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
-            output_error_("PRC deal 'prc_library()' ");
+            output_error_("PRC processing 'prc_library()' ");
             return;
         }
 
     }else{
         if(!prc_each2()){
-                output_error_("PRC deal 'prc_each2()' ");
+                output_error_("PRC processing 'prc_each2()' ");
                 return;
             }
     }
@@ -780,19 +780,19 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
     ftime(&prcStartTime);
-    std::cout << "PRC deal: Processing distance calculations..." << std::endl;
+    std::cout << "PRC processing: distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
     if(!pairwise_mode){
 
         if(!prc_library()){
-            output_error_("PRC deal 'prc_library()' ");
+            output_error_("PRC processing 'prc_library()' ");
             return;
         }
 
     }else{
         if(!prc_each2()){
-                output_error_("PRC deal 'prc_each2()' ");
+                output_error_("PRC processing 'prc_each2()' ");
                 return;
             }
     }

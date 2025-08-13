@@ -100,7 +100,7 @@ int HMMTree::hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std
 		boll_flag_all_divide_true_or_only_one_false = false;
 	}
 
-	std::ifstream ifstream_file_hmms;			//the file steam variable to deal the input hmms file
+	std::ifstream ifstream_file_hmms;			//the file steam variable to process the input hmms file
 	ifstream_file_hmms.open(infile_path_and_name.c_str());
 
 	//read the input file and divide the hmms into single hmm files
@@ -113,7 +113,7 @@ int HMMTree::hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std
 			if(str_temp_one_line_file.find("HMMER") == -1)
 			{
 				ifstream_file_hmms.close();
-				std::cout<<"There is an format error in input file of hmm models !"<<std::endl;
+				std::cout<<"There is an format error in input file of hmm models!"<<std::endl;
 				error_flag = true;
 				break;
 			}
@@ -138,7 +138,7 @@ int HMMTree::hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std
                 ofstream_file_hmm.open(str_temp_hmm_outfiles_path_and_nmae.c_str(),std::ios_base::out|std::ios_base::trunc);
 				if (!ofstream_file_hmm.is_open())
 				{
-					std::cout << "Failed to open the output hmm file !" << std::endl;
+					std::cout << "Failed to open the output hmm file!" << std::endl;
 					ifstream_file_hmms.close();
 					return 0;
 				}
@@ -178,7 +178,7 @@ bool HMMTree::hmm_file_exist_format_check(std::string infile_path_and_name)
 	ifstream_test_fasta_format.open(infile_path_and_name.c_str());
 	if (!ifstream_test_fasta_format.is_open())
 	{
-		std::cout << "File '" << infile_path_and_name << "' doesn't exist !" << std::endl;
+		std::cout << "File '" << infile_path_and_name << "' doesn't exist!" << std::endl;
 		return false;
 	}
 	ifstream_test_fasta_format.close();
@@ -195,7 +195,7 @@ bool HMMTree::hmm_file_exist_format_check(std::string infile_path_and_name)
 	ifstream_hmm_HMMER_num.open("./hmm_HMMER_num.txt");
 	if (!ifstream_hmm_HMMER_num.is_open())
 	{
-		std::cout << "Failed to open 'hmm_HMMER_num.txt' when check the HMM format !" << std::endl;
+		std::cout << "Failed to open 'hmm_HMMER_num.txt' when check the HMM format!" << std::endl;
 		return false;
 	}
 	std::string str_hmm_HMMER_num = "";
@@ -207,7 +207,7 @@ bool HMMTree::hmm_file_exist_format_check(std::string infile_path_and_name)
 	ifstream_hmm_ends_num.open("./hmm_ends_num.txt");
 	if (!ifstream_hmm_ends_num.is_open())
 	{
-		std::cout << "Failed to open 'hmm_ends_num.txt' when check the HMM format !" << std::endl;
+		std::cout << "Failed to open 'hmm_ends_num.txt' when check the HMM format!" << std::endl;
 		return false;
 	}
 
@@ -227,7 +227,7 @@ bool HMMTree::hmm_file_exist_format_check(std::string infile_path_and_name)
 
 	if ((0 == int_hmm_HMMER_num) || (0 == int_hmm_ends_num) || (int_hmm_HMMER_num != int_hmm_ends_num))
 	{
-		std::cout << "The content in file '" << infile_path_and_name << "' is not in HMM format !" << std::endl;
+		std::cout << "The content in file '" << infile_path_and_name << "' is not in HMM format!" << std::endl;
 		return false;
 	}
 
@@ -238,7 +238,7 @@ bool HMMTree::hmm_file_exist_format_check(std::string infile_path_and_name)
 		return true;
 	}
 
-	std::cout << "'" << infile_path_and_name.c_str() << "' is not in HMM format, the file should be ended by '.hmm' exitemsion !" << std::endl;
+	std::cout << "'" << infile_path_and_name.c_str() << "' is not in HMM format, the file should be ended by '.hmm' exitemsion!" << std::endl;
 	return false;
 }
 
@@ -379,7 +379,7 @@ int HMMTree::hmm_copy_hmmfiles(std::string path){
 
     if (!dir_exist_opendir(path))
 	{
-        std::cout<<"Failed to open the file directory !"<<std::endl;
+        std::cout<<"Failed to open the file directory!"<<std::endl;
 		return 0;
 	}
     create_files_folder(path,prc_hhsuite,2);
@@ -410,7 +410,7 @@ int HMMTree::hmm_als_phmms_copy_hmmfiles(std::string path){
 
     if (!dir_exist_opendir(path))
 	{
-        std::cout<<"Failed to open the file directory !"<<std::endl;
+        std::cout<<"Failed to open the file directory!"<<std::endl;
 		return 0;
 	}
    // create_files_folder(path,prc_hhsuite,2);
@@ -453,10 +453,10 @@ int HMMTree::hmm_hmmconvert(){
             bool_HMMER_hmmconvert_in_folder = true;
         }
     }else{
-        std::cout<<"Can not find 'hmmconvert' program in the PATH variable or folder !"<<std::endl;
+        std::cout<<"Can not find 'hmmconvert' program in the PATH variable or folder!"<<std::endl;
         exit(1);
     }
-    std::cout<<"Convert HMM file version to hmmer2 by hmmconvert command !"<<std::endl;
+    std::cout<<"Convert HMM file version to hmmer2 by hmmconvert command!"<<std::endl;
     //test the hmmer2 folder
     if(!dir_exist_opendir(folder_hmmer2))
     {
@@ -483,7 +483,7 @@ int HMMTree::hmm_hmmconvert(){
     }
 
     if(!hmm_hmmconvert_3_to_2()){
-        std::cout<<"HMMER hmmconvert ERROR !"<<std::endl<<"Please be sure your hmm file version be right!"<<std::endl;
+        std::cout<<"HMMER hmmconvert ERROR!"<<std::endl<<"Please be sure your hmm file version be right!"<<std::endl;
         return 0;
     }
 

@@ -27,7 +27,7 @@ int HMMTree::prc_each2(){
 
 	// Initialize the matrix, vector, and maps
 	if(!matrix_init_matrix_vector_map()){
-		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed !"<<std::endl;
+		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed!"<<std::endl;
         exit(1);
 	}
 
@@ -110,7 +110,7 @@ int HMMTree::prc_each2(){
         }
     }
     
-    std::cout << "PRC deal completed: " << completed_count << " comparisons processed." << std::endl;
+    std::cout << "PRC processing completed: " << completed_count << " comparisons processed." << std::endl;
 	return 1;
 }
 
@@ -167,18 +167,18 @@ int HMMTree::prc_library()
 	file_test_hmm_version.open(hmm_names[0].c_str());
 	if (!file_test_hmm_version.is_open())
 	{
-		std::cout << "Failed to open hmm file !" << std::endl;
+		std::cout << "Failed to open hmm file!" << std::endl;
 		return 0;
 	}
 	if(file_test_hmm_version.eof())
 	{
-		std::cout << "The hmm file is empty !" << std::endl;
+		std::cout << "The hmm file is empty!" << std::endl;
 		return 0;
 	}
 	std::getline(file_test_hmm_version, str_oneline_file);
 	if(str_oneline_file.find("HMMER2") == -1)
 	{
-		std::cout<<"HMMER version error, PRC can only deal hmm files of HMMER2 version!"<<std::endl;
+		std::cout<<"HMMER version error, PRC can only process hmm files of HMMER2 version!"<<std::endl;
 		file_test_hmm_version.close();
 		return 2;
 	}
@@ -186,7 +186,7 @@ int HMMTree::prc_library()
 
 	// Initialize the matrix, vector, and maps
 	if(!matrix_init_matrix_vector_map()){
-		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed !"<<std::endl;
+		std::cout<<"Fatal error: matrix_init_matrix_vector_map() failed!"<<std::endl;
         exit(1);
 	}
 
@@ -200,7 +200,7 @@ int HMMTree::prc_library()
 	}
     unsigned int uint_computed_num = 0;
     std::string str_lib_list=files_folder+"list.lib";
-    std::cout<<"PRC deal: "<<std::endl;
+    std::cout<<"PRC processing: "<<std::endl;
 	for (unsigned int i_hmm_names1 = 0; i_hmm_names1 < hmm_names.size() - 1; i_hmm_names1++)
 	{
         std::string str_hmm_names = "";
@@ -443,7 +443,7 @@ int HMMTree::prc_check_profile_HMM_format(){
         return 0;
 	}
 	if(vec_hmm3_2_filenames.size() < 3){
-	    std::cout<<"Please be sure there are at least three Profile HMM files !"<<std::endl;
+	    std::cout<<"Please be sure there are at least three Profile HMM files!"<<std::endl;
         return 0;
 	}
 
@@ -467,7 +467,7 @@ int HMMTree::prc_check_profile_HMM_format(){
         std::getline(file_test_hmm_version, str_oneline_file);
         if(str_oneline_file.find("HMMER2") == -1)
         {
-            std::cout<<"HMMER version error, PRC can only deal hmm files of HMMER2 verson !"<<std::endl;
+            std::cout<<"HMMER version error, PRC can only process hmm files of HMMER2 verson!"<<std::endl;
             file_test_hmm_version.close();
             return 2;
         }

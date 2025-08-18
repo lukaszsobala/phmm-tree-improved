@@ -27,6 +27,17 @@
    POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+  Modification notice (phmm-tree integration):
+  - No core Kitsch (contemporary tips) algorithm changes.
+  - Adjustments limited to concurrency orchestration, toolchain updates,
+    warning cleanups, and non-functional I/O/log tweaks.
+  - PHYLIP version remains 3.696; not a new upstream release.
+
+  Integration adjustments (c) 2025, Łukasz F. Sobala <lukasz.sobala@hirszfeld.pl>
+  Made with permission from the original phmm-tree creator: Yanbin Yin <yanbin.yin@gmail.com>
+*/
+
 
 #include <float.h>
 

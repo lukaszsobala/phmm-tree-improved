@@ -28,6 +28,17 @@
    POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+  Modification notice (phmm-tree integration):
+  - No core UPGMA/Neighbor-Joining algorithm changes.
+  - Adjustments limited to concurrency orchestration and build/toolchain
+    updates and warning cleanups; results are unchanged.
+  - PHYLIP version remains 3.696; this is not a new upstream release.
+
+  Integration adjustments (c) 2025, Łukasz F. Sobala <lukasz.sobala@hirszfeld.pl>
+  Made with permission from the original phmm-tree creator: Yanbin Yin <yanbin.yin@gmail.com>
+*/
+
 #include <float.h>
 
 #include "phylip.h"

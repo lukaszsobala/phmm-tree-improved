@@ -31,6 +31,17 @@
    POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+   Modification notice (phmm-tree integration):
+   - No core PHYLIP algorithmic functionality was changed.
+   - Adjustments limited to concurrency facilitation, toolchain updates,
+      warning cleanups, and I/O polish that don’t change outputs.
+   - Upstream PHYLIP version remains 3.696; this is not a new PHYLIP release.
+
+      Integration adjustments (c) 2025, Łukasz F. Sobala <lukasz.sobala@hirszfeld.pl>
+      Made with permission from the original phmm-tree creator: Yanbin Yin <yanbin.yin@gmail.com>
+*/
+
 #define VERSION "3.696"
 
 /* Debugging options */

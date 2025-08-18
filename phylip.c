@@ -29,6 +29,20 @@
    POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+  Modification notice (phmm-tree integration):
+  - No core PHYLIP algorithmic functionality was changed.
+  - Adjustments were limited to enabling safe concurrent execution in phmm-tree
+    (process-based orchestration, minor thread controls), modern toolchain
+    compatibility, warning cleanups, and small I/O/logging polish that do not
+    alter results.
+  - Upstream PHYLIP version remains 3.696; these changes do not constitute a
+    new PHYLIP release.
+
+  Integration adjustments (c) 2025, Łukasz F. Sobala <lukasz.sobala@hirszfeld.pl>
+  Made with permission from the original phmm-tree creator: Yanbin Yin <yanbin.yin@gmail.com>
+*/
+
 #include <stdio.h>
 #include <signal.h>
 

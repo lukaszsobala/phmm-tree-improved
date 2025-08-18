@@ -36,6 +36,17 @@
    POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+  Modification notice (phmm-tree integration):
+  - No core Fitch-Margoliash/minimum evolution algorithm changes.
+  - Adjustments limited to concurrency orchestration, toolchain updates,
+    warning cleanups, and non-functional I/O/log tweaks.
+  - Version remains PHYLIP 3.696; not a new upstream release.
+
+  Integration adjustments (c) 2025, Łukasz F. Sobala <lukasz.sobala@hirszfeld.pl>
+  Made with permission from the original phmm-tree creator: Yanbin Yin <yanbin.yin@gmail.com>
+*/
+
 /* Static variable for thread count control */
 static int fitch_requested_threads = 0;
 

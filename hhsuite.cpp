@@ -101,7 +101,7 @@ int HMMTree::hhsuite_hhalign_each2(){
         exit(1);
 	}
 
-    unsigned int uint_computed_num = 0;
+	/* removed unused counter uint_computed_num */
     std::cout<<"hhsuite processing: ";
 	for (unsigned int i_hhm_names1 = 0; i_hhm_names1 < hhm_names.size() - 1; i_hhm_names1++)
 	{

@@ -445,87 +445,79 @@ int main(int argc, char * argv[]){
         str_file_path_2=argv[argc - 2];
     }
 
-    //time count
-    struct timeb startTime , endTime;
+    // timing helpers
+    long long start_ms = 0;
 
     if(test.prc_hhsuite == 0){
         if(strc_cmd.uals){
-            ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-uals' mode !"<< std::endl;
+            start_ms = now_millis();
+            std::cout << " '-prc' mode, run in '-uals' mode!"<< std::endl;
             // Banner suppressed per request
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.process_fasta_sequences(str_file_path, test.double_user_id);
-            ftime(&endTime);
-            std::cout << "'-prc' mode in '-uals' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-uals' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
         }
 
         if(strc_cmd.als){
-            ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-als' mode !" << std::endl;
+            start_ms = now_millis();
+            std::cout << " '-prc' mode, run in '-als' mode!" << std::endl;
             // Banner suppressed per request
             test.process_prc_alignments(str_file_path);
-            ftime(&endTime);
-            std::cout << "'-prc' mode in '-als' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-als' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
 		}
 
 		if(strc_cmd.als_phmms){
             HMMTree::als_phmms_phhms = true;
-            ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-als_phmms' mode !" << std::endl;
+            start_ms = now_millis();
+            std::cout << " '-prc' mode, run in '-als_phmms' mode!" << std::endl;
             // Banner suppressed per request
             test.process_prc_alignments_phmms(str_file_path, str_file_path_2);
-            ftime(&endTime);
-            std::cout << "'-prc' mode in '-als_phmms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-als_phmms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
 		}
 
 
 		if(strc_cmd.prc_hmms){
-           ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-hmms' mode !"<< std::endl;
+           start_ms = now_millis();
+            std::cout << " '-prc' mode, run in '-hmms' mode!"<< std::endl;
             // Banner suppressed per request
             test.process_prc_HMMs(str_file_path);
-            ftime(&endTime);
-            std::cout << "'-prc' mode in '-hmms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-hmms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
 
 		}
     }else{
         if(strc_cmd.uals){
-            ftime(&startTime);
-            std::cout << " '-hhsuite' mode, run in '-uals' mode !"<< std::endl;
+            start_ms = now_millis();
+            std::cout << " '-hhsuite' mode, run in '-uals' mode!"<< std::endl;
             std::cout << "usearch->mafft->hmmbuild->hhsuite->distance matrix" << std::endl;
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.process_hhsuite_fasta_sequences(str_file_path, test.double_user_id);
-            ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-uals' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-uals' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
         }
 
         if(strc_cmd.als){
-            ftime(&startTime);
-            std::cout <<" '-hhsuite' mode, run in '-als' mode !" << std::endl;
+            start_ms = now_millis();
+            std::cout <<" '-hhsuite' mode, run in '-als' mode!" << std::endl;
             std::cout << "hhmbuild->hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_alignments(str_file_path);
-            ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-als' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-als' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
 		}
 
 
 		if(strc_cmd.als_phhms){
 		    HMMTree::als_phmms_phhms= true;
-            ftime(&startTime);
-            std::cout <<" '-hhsuite' mode, run in '-als_phhms' mode !" << std::endl;
+            start_ms = now_millis();
+            std::cout <<" '-hhsuite' mode, run in '-als_phhms' mode!" << std::endl;
             std::cout << "als->hhmbuild->hhm1s, (hhm1s + hhm2s)->hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_alignments_phhms(str_file_path, str_file_path_2);
-            ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-als_phhms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-als_phhms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
 		}
 
 		if(strc_cmd.hhsuite_hhms){
-           ftime(&startTime);
-            std::cout << " '-hhsuite' mode, run in '-hhms' mode !"<< std::endl;
+           start_ms = now_millis();
+            std::cout << " '-hhsuite' mode, run in '-hhms' mode!"<< std::endl;
             std::cout << "hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_HHMs(str_file_path);
-            ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-hhms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-hhms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
 
 		}
     }

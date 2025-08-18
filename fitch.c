@@ -155,9 +155,7 @@ void init_parallel(int requested_threads)
 void fitch_getoptions(int tree_type)
 {
   /* interactively set options */
-  long inseed0=0, loopcount;
-  Char ch;
-  boolean done=false;
+  /* no interactive seeding here */
 
   /*putchar('\n');*/
   minev = false;
@@ -177,7 +175,6 @@ void fitch_getoptions(int tree_type)
   printdata = false;
   progress = true;
   treeprint = true;
-  loopcount = 0;
   if(tree_type > 0){
     minev = !minev;
     negallowed = true;
@@ -907,7 +904,7 @@ void fitch_maketree()
   /* contruct the tree */
   long nextsp,numtrees;
   boolean succeeded=false;
-  long i, j, which;
+  long i, which;
 
   if (usertree) {
     inputdata(replicates, printdata, lower, upper, x, reps);

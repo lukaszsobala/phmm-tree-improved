@@ -2,27 +2,32 @@
 # Automatically detects available compilers and enables OpenMP
 
 # Compiler detection
-CC := $(shell command -v gcc 2>/dev/null || command -v clang 2>/dev/null || echo cc)
+CC  := $(shell command -v gcc 2>/dev/null  || command -v clang 2>/dev/null  || echo cc)
+CXX := $(shell command -v g++ 2>/dev/null  || command -v clang++ 2>/dev/null || echo c++)
 
 # Base flags
-CFLAGS_BASE = -O3 -Wall -std=c99
-LDFLAGS_BASE = -lm
+CFLAGS_BASE   = -O3 -Wall -std=c99
+CXXFLAGS_BASE = -O3 -Wall -std=gnu++17
+LDFLAGS_BASE  = -lm
 
-# OpenMP detection and flags
-OPENMP_FLAG := $(shell $(CC) -fopenmp -E - </dev/null >/dev/null 2>&1 && echo "-fopenmp" || echo "")
+# OpenMP detection and flags (check with C++ compiler because we link C++)
+OPENMP_FLAG := $(shell $(CXX) -fopenmp -E - </dev/null >/dev/null 2>&1 && echo "-fopenmp" || echo "")
 
 ifeq ($(OPENMP_FLAG),-fopenmp)
-    CFLAGS = $(CFLAGS_BASE) $(OPENMP_FLAG) -DOPENMP_ENABLED
-    LDFLAGS = $(LDFLAGS_BASE) $(OPENMP_FLAG)
-    $(info OpenMP support detected - enabling parallel compilation)
+CFLAGS   = $(CFLAGS_BASE) $(OPENMP_FLAG) -DOPENMP_ENABLED
+CXXFLAGS = $(CXXFLAGS_BASE) $(OPENMP_FLAG) -DOPENMP_ENABLED
+LDFLAGS  = $(LDFLAGS_BASE) $(OPENMP_FLAG)
+$(info OpenMP support detected - enabling parallel compilation)
 else
-    CFLAGS = $(CFLAGS_BASE)
-    LDFLAGS = $(LDFLAGS_BASE)
-    $(info OpenMP not available - compiling sequential version)
+CFLAGS   = $(CFLAGS_BASE)
+CXXFLAGS = $(CXXFLAGS_BASE)
+LDFLAGS  = $(LDFLAGS_BASE)
+$(info OpenMP not available - compiling sequential version)
 endif
 
 # Thread detection at compile time
-CFLAGS += -DAUTO_THREAD_DETECTION
+CFLAGS   += -DAUTO_THREAD_DETECTION
+CXXFLAGS += -DAUTO_THREAD_DETECTION
 
 # Source files
 
@@ -42,7 +47,7 @@ all: $(TARGET)
 
 # Build target
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) -lstdc++
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 
 # Compile C files
 %.o: %.c
@@ -50,7 +55,7 @@ $(TARGET): $(OBJECTS)
 
 # Compile C++ files  
 %.o: %.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@ -lstdc++
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Clean target
 clean:

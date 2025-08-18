@@ -62,7 +62,7 @@ void init_upgma_parallel(int requested_threads);
 
 static Char infilename[FNMLNGTH], outfilename[FNMLNGTH], outtreename[FNMLNGTH];
 static long nonodes2, outgrno, col, datasets, ith;
-static long inseed;
+/* unused legacy seeding variable removed */
 static vector *x;
 static intvector *reps;
 static boolean jumble, lower, upper, outgropt, replicates, trout,
@@ -70,7 +70,7 @@ static boolean jumble, lower, upper, outgropt, replicates, trout,
 static tree curtree;
 static longer seed;
 static long *enterorder;
-static Char progname[20];
+/* unused legacy progname removed */
 
 /* OpenMP parallel processing variables */
 #ifdef OPENMP_ENABLED
@@ -84,7 +84,7 @@ node **cluster;
 void upgma_getoptions()
 {
   /* interactively set options */
-  long inseed0 = 0, loopcount;
+  /* no interactive seeding here */
 
   fprintf(outfile, "\nNeighbor-Joining/UPGMA method version %s\n\n",VERSION);
   jumble = false;
@@ -98,7 +98,6 @@ void upgma_getoptions()
   progress = true;
   treeprint = true;
   njoin = false;
-  loopcount = 0;
 }  /* upgma_getoptions */
 
 

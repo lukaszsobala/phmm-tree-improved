@@ -1,6 +1,6 @@
 #include "HMMTree.h"
 #include <omp.h>
-#include <sys/timeb.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -20,7 +20,6 @@ return 1;
 //function to run selected phylogenetic analyses
 void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only) {
     std::string matrix_file = folder_matrices + "file_dist_matrix_out_phylip.txt";
-    struct timeb startTime, endTime;
     
     // Determine concurrency settings
     int concurrent = phylo_concurrent_threads_count;
@@ -92,7 +91,7 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
     // Run tasks using a simple worker-pool with system() calls (process isolation)
     size_t next = 0; size_t done = 0; int active = 0;
     std::vector<pid_t> pids(tasks.size(), -1);
-    std::vector<timeb> start_times(tasks.size());
+    std::vector<long long> start_times(tasks.size());
     std::vector<int> results(tasks.size(), -1);
 
     auto pretty_name = [&](const std::string& algo) -> std::string {
@@ -116,7 +115,7 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
             _exit(127);
         } else if (pid > 0) {
             pids[idx] = pid;
-            ftime(&start_times[idx]);
+            start_times[idx] = now_millis();
             active++;
         } else {
             std::cerr << "Failed to fork for task " << idx << std::endl;
@@ -136,8 +135,7 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
                 results[i] = WIFEXITED(status) ? WEXITSTATUS(status) : 128;
                 active--; done++;
                 // Report accurate per-task runtime upon completion
-                struct timeb endt; ftime(&endt);
-                long diff_ms = (endt.time - start_times[i].time) * 1000 + (endt.millitm - start_times[i].millitm);
+                long diff_ms = static_cast<long>(now_millis() - start_times[i]);
                 std::cout << '\r' << pretty_name(tasks[i].algo) << " completed in: " << format_time_duration(diff_ms) << std::endl;
                 break;
             }
@@ -189,7 +187,7 @@ void HMMTree::trees_replace_shorted_names(std::string str_treefiles_path){
 
         std::string str_one_line="";
         while(std::getline(input_treefile,str_one_line)){
-            for(int uint_shorted_names_i=0; uint_shorted_names_i < vec_unshorted_names.size(); uint_shorted_names_i++){
+            for(size_t uint_shorted_names_i = 0; uint_shorted_names_i < vec_unshorted_names.size(); ++uint_shorted_names_i){
                 std::string str_unshorted_name = vec_unshorted_names[uint_shorted_names_i];
                 std::string str_shorted_name = vec_shorted_names[uint_shorted_names_i];
 

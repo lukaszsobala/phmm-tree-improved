@@ -2,6 +2,9 @@
 #include <string.h>
 #include <sstream>
 #include <iomanip>
+#include <cerrno>
+#include <sys/stat.h>
+#include <unistd.h>
 
 // Test whether the input string is numeric.
 int is_num_str(char *char_str_num){
@@ -56,10 +59,10 @@ std::vector<std::string> str_Split_by_char_list(std::string str, const char *pat
 	std::string str_temp = "";
 
 	// Loop to split the string.
-	while (itr_str != temp.end())
+    while (itr_str != temp.end())
 	{
 		// If current char is a delimiter, end the current token.
-		if (str_pat.find(*itr_str) != -1)
+        if (str_pat.find(*itr_str) != std::string::npos)
 		{
 			// If the current token is non-empty, push it to the result vector.
 			if (str_temp.length() > 0)
@@ -130,27 +133,20 @@ bool dir_exist_opendir(std::string path)
 // Check whether a directory is non-empty.
 bool dir_noempty_opendir_readir(std::string path)
 {
-	DIR *dirptr = NULL;
-	if(path.length() == 0)
-	{
-		return false;
-	}
-	// Open the directory.
-	dirptr=opendir(path.c_str());
-	// Iterate directory entries.
-	struct dirent *p_dirent;
-	int file_num = 0;
-	while(p_dirent=readdir(dirptr))
-	{
-		file_num++;
-	}
-	if(file_num == 2)
-	{
-		closedir(dirptr);
-		return false;
-	}
-	closedir(dirptr);
-	return true;
+    if (path.empty()) {
+        return false;
+    }
+    DIR* dirptr = opendir(path.c_str());
+    if (!dirptr) {
+        return false;
+    }
+    struct dirent* p_dirent;
+    int file_num = 0;
+    while ((p_dirent = readdir(dirptr)) != NULL) {
+        file_num++;
+    }
+    closedir(dirptr);
+    return file_num > 2; // '.' and '..' only -> empty
 }
 
 // Check that a file exists and is not empty.
@@ -163,8 +159,7 @@ bool file_exists_and_empty_check(std::string str_path_name)
 		std::cout<<"Failed to open file: "<<str_path_name<<std::endl;
 		return false;
 	}
-	char ch=ifstream_empty_test.get();
-	if(ifstream_empty_test.eof())
+    if (ifstream_empty_test.peek() == EOF)
 	{
 		ifstream_empty_test.close();
 		std::cout<<"File '"<<str_path_name<<"' is empty!"<<std::endl;
@@ -211,7 +206,7 @@ int system_return(int status){
     int result = 0;
     if (-1 == status)
     {
-        printf("system error!");
+        std::cerr << "system() failed: errno=" << errno << std::endl;
         result = 1;
     }
     else
@@ -226,13 +221,13 @@ int system_return(int status){
             }
             else  // Non-zero exit status.
             {
-                std::cout<<"run shell script fail, script exit code: %d\n"<< WEXITSTATUS(status)<<std::endl;
+                std::cout << "run shell command failed, exit code: " << WEXITSTATUS(status) << std::endl;
                 result = 1;
             }
         }
         else  // Process did not exit normally.
         {
-            std::cout<<"exit status = [%d]\n"<<WEXITSTATUS(status)<<std::endl;
+            std::cout << "process did not exit normally (status=" << status << ")" << std::endl;
             result = 1;
         }
     }
@@ -250,7 +245,7 @@ int get_file_names(std::string path, std::vector<std::string> & vec_file_names, 
     }
     DIR * dir;
     struct dirent * ptr;
-    int i=0;
+    // removed unused variable 'i'
     dir = opendir(path.c_str()); //open a dir
     while((ptr = readdir(dir)) != NULL) // Iterate over directory entries.
     {
@@ -350,7 +345,7 @@ int copy_one_file(std::string pathname1, std::string pathname2){
     }
 
     /* Copy the file. */
-    while(bytes_read=read(from_fd,buffer,BUFFER_SIZE))
+    while ((bytes_read = read(from_fd, buffer, BUFFER_SIZE)))
     {
         /* Handle fatal error. */
         if((bytes_read==-1)&&(errno!=EINTR))
@@ -358,7 +353,7 @@ int copy_one_file(std::string pathname1, std::string pathname2){
         else if(bytes_read>0)
         {
             ptr=buffer;
-            while(bytes_write=write(to_fd,ptr,bytes_read))
+            while ((bytes_write = write(to_fd, ptr, bytes_read)))
             {
                 /* Handle fatal error. */
                 if((bytes_write==-1)&&(errno!=EINTR))
@@ -395,8 +390,8 @@ int USEARCH_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
-    FILE *file = popen("which usearch", "r");      /**/
-    memset(buf, 0, sizeof(buf));
+    FILE *file = popen("which usearch", "r");
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -420,8 +415,8 @@ int PRC_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
-    FILE *file = popen("which prc", "r");      /**/
-    memset(buf, 0, sizeof(buf));
+    FILE *file = popen("which prc", "r");
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -446,7 +441,7 @@ int PRCX_exist(){
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
     FILE *file = popen("which prcX", "r");
-    memset(buf, 0, sizeof(buf));
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -470,8 +465,8 @@ int MAFFT_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
-    FILE *file = popen("which mafft", "r");      /**/
-    memset(buf, 0, sizeof(buf));
+    FILE *file = popen("which mafft", "r");
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -495,8 +490,8 @@ int HMMER_hmmbuild_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
-    FILE *file = popen("which hmmbuild", "r");      /**/
-    memset(buf, 0, sizeof(buf));
+    FILE *file = popen("which hmmbuild", "r");
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -522,7 +517,7 @@ int HMMER_hmmconvert_exist(){
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
     FILE *file = popen("which hmmconvert", "r");
-    memset(buf, 0, sizeof(buf));
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -545,8 +540,8 @@ int hhsuite_hhmake_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
-    FILE *file = popen("which hhmake", "r");      /**/
-    memset(buf, 0, sizeof(buf));
+    FILE *file = popen("which hhmake", "r");
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -571,8 +566,8 @@ int hhsuite_hhalign_exist(){
     bool usr_bin_path = true;
     char *buf = NULL;
     buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
-    FILE *file = popen("which hhalign", "r");      /**/
-    memset(buf, 0, sizeof(buf));
+    FILE *file = popen("which hhalign", "r");
+    memset(buf, 0, MAX_BUF_LEN);
     if(fgets(buf, MAX_BUF_LEN, file) == NULL){
         usr_bin_path = false;
     }
@@ -605,7 +600,7 @@ void string_replace(std::string &s1,const std::string&s2,const std::string&s3,un
 	return;
 */
 	std::string::size_type pos=0;
-	std::string::size_type pos1=0;
+    // removed unused variable 'pos1'
 	std::string::size_type a=s2.size();
 	std::string::size_type b=s3.size();
 

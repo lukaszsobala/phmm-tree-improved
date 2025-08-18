@@ -107,7 +107,7 @@ void init_neighbor_parallel(int requested_threads)
 void neighbor_getoptions()
 {
   /* interactively set options */
-  long inseed0 = 0, loopcount;
+  /* no interactive seeding here */
 
   fprintf(outfile, "\nNeighbor-Joining/UPGMA method version %s\n\n",VERSION);
   neighbor_jumble = false;
@@ -121,7 +121,6 @@ void neighbor_getoptions()
   neighbor_progress = true;
   neighbor_treeprint = true;
   neighbor_njoin = true;
-  loopcount = 0;
 }  /* neighbor_getoptions */
 
 

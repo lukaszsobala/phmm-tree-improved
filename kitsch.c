@@ -83,7 +83,7 @@ void   kitsch_maketree(void);
 static Char infilename[FNMLNGTH], outfilename[FNMLNGTH], intreename[FNMLNGTH], outtreename[FNMLNGTH];
 static long nonodes, numtrees, col, datasets, ith, njumble, jumb;
 /*   numtrees is used by usertree option part of kitsch_maketree */
-static long inseed;
+/* unused legacy seeding variable removed */
 static tree curtree, bestree;   /* pointers to all nodes in tree */
 static boolean minev, jumble, usertree, lower, upper, negallowed, replicates, trout,
         printdata, progress, treeprint, mulsets, firstset;
@@ -95,8 +95,7 @@ static  long examined;
 static  double like, bestyet;
 static  node *there;
 static  boolean *names;
-static  Char ch;
-static  char *progname;
+/* unused legacy globals removed: ch, progname */
 static double trweight; /* to make treeread happy */
 static boolean goteof, haslengths, lengths;  /* ditto ... */
 
@@ -144,8 +143,7 @@ void init_parallel_kitsch(int requested_threads)
 void kitsch_getoptions(int tree_type)
 {
   /* interactively set options */
-  long inseed0, loopcount;
-  Char ch;
+  /* no interactive seeding here */
 
   minev = false;
   jumble = false;
@@ -160,7 +158,7 @@ void kitsch_getoptions(int tree_type)
   printdata = false;
   progress = true;
   treeprint = true;
-  loopcount = 0;
+  /* no loopcount tracking */
 
   if(tree_type > 0){
         minev = !minev;

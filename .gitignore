@@ -17,3 +17,4 @@ test_*.sh
 test_*/
 thread_test_*
 build/
+build-*

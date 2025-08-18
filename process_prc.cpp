@@ -214,7 +214,7 @@ int HMMTree::prc_library()
             return 0;
 		}
 	}
-    unsigned int uint_computed_num = 0;
+	/* removed unused counter uint_computed_num */
     std::string str_lib_list=files_folder+"list.lib";
     std::cout<<"PRC processing: "<<std::endl;
 	for (unsigned int i_hmm_names1 = 0; i_hmm_names1 < hmm_names.size() - 1; i_hmm_names1++)
@@ -239,7 +239,7 @@ int HMMTree::prc_library()
 		}
 		if_library.close();
         std::string str_lib_result_file =folder_prcfiles + str_prc_num+".scores";
-        bool error_flag = false;
+	/* removed unused error_flag */
         int return_flag = 0;
         return_flag = prc_hmm1_library(hmm_names[i_hmm_names1], str_lib_list,folder_prcfiles + str_prc_num);
         if(system_return(return_flag)){

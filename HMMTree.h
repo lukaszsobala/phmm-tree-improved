@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <time.h>
-#include <sys/timeb.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <float.h>
 
@@ -28,6 +28,13 @@ extern "C"{
 #include "fitch.h"
 #include "neighbor.h"
 #include "upgma.h"
+}
+
+// Monotonic wall-clock time in milliseconds (for timing/logging only)
+static inline long long now_millis() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return static_cast<long long>(tv.tv_sec) * 1000LL + static_cast<long long>(tv.tv_usec) / 1000LL;
 }
 
 const unsigned int MAX_BUF_LEN = 1024;             // buffer length for program existence checks (e.g., popen/which)

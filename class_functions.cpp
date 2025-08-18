@@ -433,8 +433,7 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
     }
 
     // Time the PRC analysis phase
-    struct timeb prcStartTime, prcEndTime;
-    ftime(&prcStartTime);
+    long long prcStartMs = now_millis();
     std::cout << "PRC processing: distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
@@ -452,8 +451,7 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
             }
     }
 
-    ftime(&prcEndTime);
-    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
+    std::cout << "PRC analysis completed in: " << format_time_duration(now_millis() - prcStartMs) << std::endl;
 
 /*
     // Test function to compare each pair of HMMs
@@ -475,14 +473,12 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
     }
 
     // Time the phylogenetic tree building phase
-    struct timeb treeStartTime, treeEndTime;
-    ftime(&treeStartTime);
+    long long treeStartMs = now_millis();
     std::cout << "Building phylogenetic trees..." << std::endl;
     
     draw_tree_test();
     
-    ftime(&treeEndTime);
-    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration(now_millis() - treeStartMs) << std::endl;
     trees_replace_shorted_names(folder_tree_files);
     system_return(system(("rm -rf "+ folder_clusters).c_str()));
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
@@ -608,8 +604,7 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
     }
 
     // Time the PRC analysis phase
-    struct timeb prcStartTime, prcEndTime;
-    ftime(&prcStartTime);
+    long long prcStartMs = now_millis();
     std::cout << "PRC processing: distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
@@ -627,8 +622,7 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
             }
     }
 
-    ftime(&prcEndTime);
-    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
+    std::cout << "PRC analysis completed in: " << format_time_duration(now_millis() - prcStartMs) << std::endl;
 
 /*
     // Test function to compare each pair of HMMs
@@ -650,14 +644,12 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
     }
 
     // Time the phylogenetic tree building phase
-    struct timeb treeStartTime, treeEndTime;
-    ftime(&treeStartTime);
+    long long treeStartMs = now_millis();
     std::cout << "Building phylogenetic trees..." << std::endl;
     
     draw_tree_test();
     
-    ftime(&treeEndTime);
-    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration(now_millis() - treeStartMs) << std::endl;
     
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
@@ -773,8 +765,7 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
     }
 
     // Time the PRC analysis phase
-    struct timeb prcStartTime, prcEndTime;
-    ftime(&prcStartTime);
+    long long prcStartMs = now_millis();
     std::cout << "PRC processing: Processing distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
@@ -792,8 +783,7 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
             }
     }
 
-    ftime(&prcEndTime);
-    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
+    std::cout << "PRC analysis completed in: " << format_time_duration(now_millis() - prcStartMs) << std::endl;
 
 /*
     // Test function to compare each pair of HMMs
@@ -815,14 +805,12 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
     }
 
     // Time the phylogenetic tree building phase
-    struct timeb treeStartTime, treeEndTime;
-    ftime(&treeStartTime);
+    long long treeStartMs = now_millis();
     std::cout << "Building phylogenetic trees..." << std::endl;
     
     draw_tree_test();
     
-    ftime(&treeEndTime);
-    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration(now_millis() - treeStartMs) << std::endl;
     
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
@@ -947,8 +935,7 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
     }
 
     // Time the PRC analysis phase
-    struct timeb prcStartTime, prcEndTime;
-    ftime(&prcStartTime);
+    long long prcStartMs = now_millis();
     std::cout << "PRC processing: distance calculations..." << std::endl;
 
     // Compute distances between HMM pairs
@@ -966,8 +953,7 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
             }
     }
 
-    ftime(&prcEndTime);
-    std::cout << "PRC analysis completed in: " << format_time_duration((prcEndTime.time-prcStartTime.time)*1000 + (prcEndTime.millitm - prcStartTime.millitm)) << std::endl;
+    std::cout << "PRC analysis completed in: " << format_time_duration(now_millis() - prcStartMs) << std::endl;
 
 /*
     // Test function to compare each pair of HMMs
@@ -989,14 +975,12 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
     }
 
     // Time the phylogenetic tree building phase
-    struct timeb treeStartTime, treeEndTime;
-    ftime(&treeStartTime);
+    long long treeStartMs = now_millis();
     std::cout << "Building phylogenetic trees..." << std::endl;
     
     draw_tree_test();
     
-    ftime(&treeEndTime);
-    std::cout << "Phylogenetic tree building completed in: " << format_time_duration((treeEndTime.time-treeStartTime.time)*1000 + (treeEndTime.millitm - treeStartTime.millitm)) << std::endl;
+    std::cout << "Phylogenetic tree building completed in: " << format_time_duration(now_millis() - treeStartMs) << std::endl;
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
     return ;

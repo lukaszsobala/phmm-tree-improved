@@ -120,10 +120,8 @@ void init_upgma_parallel(int requested_threads)
 #endif
   
   if (progress) {
-    printf("UPGMA method: OpenMP parallel processing with %d thread(s)", upgma_num_threads);
-    if (requested_threads > 0) printf(" (user-specified)");
-    else printf(" (auto-detected)");
-    printf("\n");
+    // printf("UPGMA method: OpenMP parallel processing with %d thread(s)", upgma_num_threads);
+    if (requested_threads > 1) printf(" (user-specified)");
   }
 }
 #endif

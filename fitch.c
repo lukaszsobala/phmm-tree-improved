@@ -130,15 +130,11 @@ void init_parallel(int requested_threads)
   
   if (progress) {
     if (minev) {
-      printf("Fitch minimum evolution method: OpenMP parallel processing with %d threads", num_threads);
-      if (requested_threads > 0) printf(" (user-specified)");
-      else printf(" (auto-detected)");
-      printf("\n");
+      // printf("Fitch minimum evolution method: OpenMP parallel processing with %d threads", num_threads);
+      if (requested_threads > 1) printf(" (user-specified)");
     } else {
-      printf("Fitch-Margoliash method: OpenMP parallel processing with %d threads", num_threads);
-      if (requested_threads > 0) printf(" (user-specified)");
-      else printf(" (auto-detected)");
-      printf("\n");
+      // printf("Fitch-Margoliash method: OpenMP parallel processing with %d threads", num_threads);
+      if (requested_threads > 1) printf(" (user-specified)");
     }
   }
 #else

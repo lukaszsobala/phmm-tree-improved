@@ -120,15 +120,11 @@ void init_parallel_kitsch(int requested_threads)
   
   if (progress) {
     if (minev) {
-      printf("Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with %d threads", num_threads_kitsch);
-      if (requested_threads > 0) printf(" (user-specified)");
-      else printf(" (auto-detected)");
-      printf("\n");
+      // printf("Kitsch minimum evolution (contemporary tips): OpenMP parallel processing with %d threads", num_threads_kitsch);
+      if (requested_threads > 1) printf(" (user-specified)");
     } else {
-      printf("Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with %d threads", num_threads_kitsch);
-      if (requested_threads > 0) printf(" (user-specified)");
-      else printf(" (auto-detected)");
-      printf("\n");
+      // printf("Kitsch Fitch-Margoliash (contemporary tips): OpenMP parallel processing with %d threads", num_threads_kitsch);
+      if (requested_threads > 1) printf(" (user-specified)");
     }
   }
 #else

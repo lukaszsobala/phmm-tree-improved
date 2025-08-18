@@ -450,3 +450,30 @@ The `dist.c` module provides core infrastructure for phylogenetic distance-matri
 **Usage Pattern**: These functions are called once per algorithm execution for setup/cleanup, not in performance-critical loops.
 
 The enhanced PHMM-Tree is now production-ready for high-throughput phylogenetic analysis workflows while maintaining the accuracy and reliability of the original implementation.
+
+---
+
+## 🔄 Process-based Concurrency for Phylogenetic Analyses (2025-08-18)
+
+### Overview
+To avoid race conditions and false errors stemming from static/global state in legacy PHYLIP code (phylip.c, neighbor.c, upgma.c, kitsch.c, fitch.c), phylogenetic analyses are now dispatched as separate OS processes rather than OpenMP threads. This isolates each run’s memory and FILE handles, eliminating cross-algorithm interference.
+
+### New CLI
+- `-prc_threads`: the number of prc threads to be used
+- `-phylo_concurrent_threads <N>`: Maximum number of phylogenetic analyses to run concurrently.
+    - `0` or omitted: Auto-detect (uses available CPU threads, capped by number of tasks).
+- `-phylo_threads <M>`: Threads used within each individual algorithm run (defaults to 1). This remains independent from PRC threads.
+
+### Behavior
+- Selected analyses (Kitsch f-m/min, Fitch f-m/min, NJ, UPGMA) are queued as tasks.
+- A small worker pool uses `fork()/exec()` to launch `phmm-tree -phylo_worker <algo> <matrix> <output> <threads>` per task.
+- Concurrency is capped by `-phylo_concurrent_threads` or auto-detected value.
+- Results are collected via `wait()`, and a concise success summary is printed.
+
+### Rationale
+- PHYLIP modules rely on static/global variables and shared FILE pointers. Running them in threads within the same process previously led to flaky errors (e.g., “Unable to read the number of species…” or matrix diagonal issues). Process isolation is a robust remedy without invasive library refactors.
+
+### Notes
+- Implementation files: `HMMTree.cpp` (worker entrypoint and CLI), `phylip_draw_tree.cpp` (task queue + worker pool), `HMMTree.h` (state/config options).
+- Platform: POSIX/Linux (uses `fork/exec/wait`).
+- Logging: Per-task completion messages are suppressed to keep output clean; a final success summary remains.

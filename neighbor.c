@@ -97,10 +97,8 @@ void init_neighbor_parallel(int requested_threads)
 #endif
   
   if (neighbor_progress) {
-    printf("Neighbor-joining method: OpenMP parallel processing with %d thread(s)", neighbor_num_threads);
-    if (requested_threads > 0) printf(" (user-specified)");
-    else printf(" (auto-detected)");
-    printf("\n");
+    // printf("Neighbor-joining method: OpenMP parallel processing with %d thread(s)", neighbor_num_threads);
+    if (requested_threads > 1) printf(" (user-specified)");
   }
 }
 #endif

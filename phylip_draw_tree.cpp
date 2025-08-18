@@ -1,6 +1,10 @@
 #include "HMMTree.h"
 #include <omp.h>
 #include <sys/timeb.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <algorithm>
 
 int HMMTree::Phylip_draw_tree2(){
      kitsch_build_tree((folder_matrices+"file_dist_matrix_out_phylip.txt").c_str(),(folder_tree_files+"f-m").c_str(), 0, phylo_threads_count);
@@ -18,59 +22,137 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
     std::string matrix_file = folder_matrices + "file_dist_matrix_out_phylip.txt";
     struct timeb startTime, endTime;
     
+    // Determine concurrency settings
+    int concurrent = phylo_concurrent_threads_count;
+    if (concurrent <= 0) {
+        // Auto-detect similar to PRC: use available cores, but cap at number of tasks later
+        #ifdef OPENMP_ENABLED
+        concurrent = omp_get_max_threads();
+        #else
+        concurrent = 1;
+        #endif
+    }
+
+    // Build task list (each as an external worker call) to avoid static-state races in PHYLIP
+    struct Task { std::string algo; std::string matrix; std::string output; int threads; };
+    std::vector<Task> tasks;
+
+    auto queue_task = [&](const std::string& algo, const std::string& suffix){
+        tasks.push_back(Task{algo, matrix_file, folder_tree_files + suffix, phylo_threads_count <= 0 ? 1 : phylo_threads_count});
+    };
+
     if (run_kitsch) {
         std::cout << "Running Kitsch analysis (contemporary tips method)..." << std::endl;
-        ftime(&startTime);
+        // Timing moved to worker completion reporting
         
         // Determine which variants to run
         bool run_fm = !min_only;    // Run f-m unless min_only is specified
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
-        if (run_fm) {
-            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_f-m").c_str(), 0, phylo_threads_count);
-        }
-        if (run_min) {
-            kitsch_build_tree(matrix_file.c_str(), (folder_tree_files + "kitsch_min").c_str(), 1, phylo_threads_count);
-        }
-        
-        ftime(&endTime);
-        std::cout << "Kitsch analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+    if (run_fm) queue_task("kitsch_fm", "kitsch_f-m");
+    if (run_min) queue_task("kitsch_min", "kitsch_min");
+        // Completion time is reported per worker when it finishes
     }
     
     if (run_fitch) {
         std::cout << "Running Fitch-Margoliash analysis..." << std::endl;
-        ftime(&startTime);
+        // Timing moved to worker completion reporting
         
         // Determine which variants to run
         bool run_fm = !min_only;    // Run f-m unless min_only is specified
         bool run_min = !fm_only;    // Run min unless fm_only is specified
         
-        if (run_fm) {
-            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_f-m").c_str(), 0, phylo_threads_count);
-        }
-        if (run_min) {
-            fitch_build_tree(matrix_file.c_str(), (folder_tree_files + "fitch_min").c_str(), 1, phylo_threads_count);
-        }
-        
-        ftime(&endTime);
-        std::cout << "Fitch-Margoliash analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+    if (run_fm) queue_task("fitch_fm", "fitch_f-m");
+    if (run_min) queue_task("fitch_min", "fitch_min");
+        // Completion time is reported per worker when it finishes
     }
     
     if (run_nj) {
         std::cout << "Running Neighbor-Joining analysis..." << std::endl;
-        ftime(&startTime);
-        neighbor_build_tree(matrix_file.c_str(), (folder_tree_files + "neighbor").c_str(), phylo_threads_count);
-        ftime(&endTime);
-        std::cout << "Neighbor-Joining analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+        // Timing moved to worker completion reporting
+        queue_task("nj", "neighbor");
+        // Completion time is reported per worker when it finishes
     }
     
     if (run_upgma) {
         std::cout << "Running UPGMA analysis..." << std::endl;
-        ftime(&startTime);
-        upgma_build_tree(matrix_file.c_str(), (folder_tree_files + "upgma").c_str(), phylo_threads_count);
-        ftime(&endTime);
-        std::cout << "UPGMA analysis completed in: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+        // Timing moved to worker completion reporting
+        queue_task("upgma", "upgma");
+        // Completion time is reported per worker when it finishes
     }
+
+    // Nothing to do?
+    if (tasks.empty()) return;
+
+    // Cap concurrency to number of tasks
+    if (concurrent > (int)tasks.size()) concurrent = (int)tasks.size();
+
+    std::cout << "Executing " << tasks.size() << " phylogenetic analyses with up to " << concurrent << " concurrent worker(s)..." << std::endl;
+
+    // Run tasks using a simple worker-pool with system() calls (process isolation)
+    size_t next = 0; size_t done = 0; int active = 0;
+    std::vector<pid_t> pids(tasks.size(), -1);
+    std::vector<timeb> start_times(tasks.size());
+    std::vector<int> results(tasks.size(), -1);
+
+    auto pretty_name = [&](const std::string& algo) -> std::string {
+        if (algo == "nj") return "Neighbor-joining";
+        if (algo == "upgma") return "UPGMA";
+        if (algo == "fitch_fm") return "Fitch-Margoliash (f-m)";
+        if (algo == "fitch_min") return "Fitch-Margoliash (min)";
+        if (algo == "kitsch_fm") return "Kitsch (f-m)";
+        if (algo == "kitsch_min") return "Kitsch (min)";
+        return algo;
+    };
+
+    auto spawn = [&](size_t idx){
+        const auto& t = tasks[idx];
+        pid_t pid = fork();
+        if (pid == 0) {
+            // Child: exec self with -phylo_worker
+            std::string threads_str = std::to_string(std::max(1, t.threads));
+            execlp("./phmm-tree", "phmm-tree", "-phylo_worker", t.algo.c_str(), t.matrix.c_str(), t.output.c_str(), threads_str.c_str(), (char*)NULL);
+            // If exec fails
+            _exit(127);
+        } else if (pid > 0) {
+            pids[idx] = pid;
+            ftime(&start_times[idx]);
+            active++;
+        } else {
+            std::cerr << "Failed to fork for task " << idx << std::endl;
+            results[idx] = 127;
+        }
+    };
+
+    // Start initial batch
+    while (active < concurrent && next < tasks.size()) spawn(next++);
+
+    // Reap and keep spawning
+    while (done < tasks.size()) {
+        int status = 0; pid_t pid = wait(&status);
+        if (pid > 0) {
+            // Find which task
+            for (size_t i = 0; i < pids.size(); ++i) if (pids[i] == pid) {
+                results[i] = WIFEXITED(status) ? WEXITSTATUS(status) : 128;
+                active--; done++;
+                // Report accurate per-task runtime upon completion
+                struct timeb endt; ftime(&endt);
+                long diff_ms = (endt.time - start_times[i].time) * 1000 + (endt.millitm - start_times[i].millitm);
+                std::cout << '\r' << pretty_name(tasks[i].algo) << " completed in: " << format_time_duration(diff_ms) << std::endl;
+                break;
+            }
+        }
+        while (active < concurrent && next < tasks.size()) spawn(next++);
+    }
+
+    // Summary
+    int ok = 0; for (int r : results) if (r == 0) ok++;
+    std::cout << "Parallel execution completed: " << ok << "/" << tasks.size() << " analyses successful." << std::endl;
+}
+
+// Backward-compatible entry point; currently uses the same scheduling
+void HMMTree::draw_tree_selective_concurrent(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only) {
+    draw_tree_selective(run_fitch, run_kitsch, run_upgma, run_nj, fm_only, min_only);
 }
 
 //function to replace the shortednames to the before-replaced names

@@ -94,6 +94,8 @@ const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
 "THREAD CONTROL (optional; 0 = auto-detect)\n"
 "  -prc_threads <num>     Number of threads for PRC distance calculations (default: auto-detect).\n"
 "  -phylo_threads <num>   Number of threads for phylogenetic algorithms (default: 1).\n"
+"  -phylo_concurrent_threads <num>  Number of phylogenetic analyses to run concurrently (default: auto-detect).\n"
+
 "\n"
 "EXAMPLES\n"
 "  PRC + unaligned FASTA:\n"
@@ -333,6 +335,7 @@ typedef struct cmd_params {
     // Thread control parameters
     int prc_threads;        // number of threads for PRC distance calculations
 	int phylo_threads;      // number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
+	int phylo_concurrent_threads; // number of concurrent phylogenetic analyses
 
 	cmd_params(){
 		prc_mode = false;
@@ -366,6 +369,7 @@ typedef struct cmd_params {
 	    // Default threads: PRC auto-detect (0); phylo default 1 (0 still means auto-detect)
         prc_threads = 0;
 	    phylo_threads = 1;
+		phylo_concurrent_threads = 0; // auto-detect concurrent processes
 	}
 }CMD_PARAMS;
 
@@ -401,6 +405,7 @@ public:
 	    // Initialize thread control - PRC auto-detect (0), phylo default to 1
         prc_threads_count = 0;
 	    phylo_threads_count = 1;
+        phylo_concurrent_threads_count = 0; // auto-detect concurrent processes
         
         files_folder="";
         folder_hmms ="";
@@ -438,6 +443,7 @@ public:
     // Thread control parameters
     int prc_threads_count;    // number of threads for PRC analysis
     int phylo_threads_count;  // number of threads for phylogenetic analysis
+	int phylo_concurrent_threads_count; // number of concurrent phylogenetic analyses (0 = auto)
     
     std::string files_folder;               // base output folder derived from the input path or filename
     std::string folder_hmms;
@@ -527,6 +533,8 @@ public:
 
 	// Run selected phylogenetic analyses
 	void draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only);
+	// Backward-compatible entry point used elsewhere; delegates to draw_tree_selective
+	void draw_tree_selective_concurrent(bool run_fitch, bool run_kitsch, bool run_upgma, bool run_nj, bool fm_only, bool min_only);
     // Replace shortened names in tree files with original names
 	void trees_replace_shorted_names(std::string str_treefiles_path);
 

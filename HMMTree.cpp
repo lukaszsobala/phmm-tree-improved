@@ -16,6 +16,37 @@
 bool HMMTree::als_phmms_phhms = false;
 int main(int argc, char * argv[]){
 
+    // Hidden worker mode: run a single phylogenetic algorithm in isolation
+    if (argc > 1 && strcmp(argv[1], "-phylo_worker") == 0) {
+        if (argc != 6) {
+            std::cerr << "Usage: phmm-tree -phylo_worker <algo> <matrix_file> <output_file> <threads>" << std::endl;
+            return 1;
+        }
+        const char* algo = argv[2];
+        const char* matrix = argv[3];
+        const char* output = argv[4];
+        int threads = atoi(argv[5]);
+
+        int rc = 1;
+        if (strcmp(algo, "kitsch_fm") == 0) {
+            rc = kitsch_build_tree(matrix, output, 0, threads);
+        } else if (strcmp(algo, "kitsch_min") == 0) {
+            rc = kitsch_build_tree(matrix, output, 1, threads);
+        } else if (strcmp(algo, "fitch_fm") == 0) {
+            rc = fitch_build_tree(matrix, output, 0, threads);
+        } else if (strcmp(algo, "fitch_min") == 0) {
+            rc = fitch_build_tree(matrix, output, 1, threads);
+        } else if (strcmp(algo, "nj") == 0) {
+            rc = neighbor_build_tree(matrix, output, threads);
+        } else if (strcmp(algo, "upgma") == 0) {
+            rc = upgma_build_tree(matrix, output, threads);
+        } else {
+            std::cerr << "Unknown phylogenetic algorithm: " << algo << std::endl;
+            return 2;
+        }
+        return rc;
+    }
+
     if(argc == 2){
         const char* str_argv = argv[1];
         if(strcmp(str_argv, "-h") == 0){
@@ -52,7 +83,8 @@ int main(int argc, char * argv[]){
         "-fm",        // 16
         "-min",       // 17
         "-prc_threads",   // 18
-        "-phylo_threads"  // 19
+    "-phylo_threads",  // 19
+    "-phylo_concurrent_threads" // 20
     };
     const size_t kArgsCount = sizeof(kArgs) / sizeof(kArgs[0]);
 	//string to save the compute model from the user input
@@ -240,6 +272,18 @@ int main(int argc, char * argv[]){
                         }
                         find_argu = true;
                         break;
+                    case 20:
+                        // -phylo_concurrent_threads
+                        arg_num++;
+                        if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                            output_error_("'-phylo_concurrent_threads' argument must be followed by a positive integer");
+                        }
+                        strc_cmd.phylo_concurrent_threads = atoi(argv[arg_num]);
+                        if(strc_cmd.phylo_concurrent_threads < 0){
+                            output_error_("'-phylo_concurrent_threads' must be a positive integer (0 for auto-detect)");
+                        }
+                        find_argu = true;
+                        break;
                     default:
                         output_error_("Arguments");
                         break;
@@ -362,11 +406,15 @@ int main(int argc, char * argv[]){
     // Transfer thread control parameters to HMMTree instance
     test.prc_threads_count = strc_cmd.prc_threads;
     test.phylo_threads_count = strc_cmd.phylo_threads;
+    test.phylo_concurrent_threads_count = strc_cmd.phylo_concurrent_threads;
     
     std::cout << "Thread configuration - PRC analysis: " << 
         (test.prc_threads_count == 0 ? "auto-detect" : std::to_string(test.prc_threads_count)) << 
         ", Phylogenetic analysis: " << 
-        (test.phylo_threads_count == 0 ? "auto-detect" : std::to_string(test.phylo_threads_count)) << std::endl;
+        (test.phylo_threads_count == 0 ? "auto-detect" : std::to_string(test.phylo_threads_count)) << 
+        ", Concurrent phylogenetic executions: " <<
+        (test.phylo_concurrent_threads_count == 0 ? "auto-detect" : std::to_string(test.phylo_concurrent_threads_count))
+        << std::endl;
 
     std::string str_file_path_2="";
     if(strc_cmd.als_phmms || strc_cmd.als_phhms){

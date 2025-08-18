@@ -1,4 +1,5 @@
 #include "HMMTree.h"
+#include <cstdio>
 
 // Create folder named after the input file or path
 void HMMTree::create_files_folder(std::string input_file_or_folder_path, int prc_hhsuite, int int_run_mode){
@@ -386,12 +387,13 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
     {
         int fmt = prc_check_profile_HMM_format();
         bool has_hmmer3 = (fmt == 2);
+        std::cout << "HMM profile format detected: " << (has_hmmer3 ? "HMMER3" : "HMMER2") << std::endl;
         // Choose effective backend
         if (prc_backend == PRC_BACKEND_LEGACY) {
             effective_prc_backend = PRC_BACKEND_LEGACY;
         } else if (prc_backend == PRC_BACKEND_PRCX) {
-            // prcX only used if HMMER3 is present, else fallback to legacy
-            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
+            // Forced prcX: use prcX if available regardless of input format; else fallback to legacy
+            if (bool_PRCX_in_folder || PRCX_exist() != 0) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         } else {
             // auto
             if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
@@ -401,6 +403,31 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
             if(!hmm_hmmconvert()){
                 std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
                 return;
+            }
+        }
+        // If prcX is used, rename the output base folder prefix from prc_ to prcx_
+        if (effective_prc_backend == PRC_BACKEND_PRCX) {
+            if (files_folder.rfind("./prc_", 0) == 0) {
+                std::string old_dir = files_folder;
+                if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
+                std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+                if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
+                    files_folder = new_dir + "/";
+                    // Recompute subfolder paths
+                    folder_hmms =files_folder + "hmms"+"/";
+                    folder_hmms_from_als =files_folder + "hmms_from_als"+"/";
+                    folder_prcfiles = files_folder + "prcfiles"+"/";
+                    folder_tree_files =files_folder + "tree_files"+"/";
+                    folder_matrices =files_folder + "matrices"+"/";
+                    folder_clusters =files_folder + "clusters"+"/";
+                    folder_unalign_seqs =files_folder + "unalign_seqs"+"/";
+                    folder_invalid_clusters =files_folder + "invalid_clusters"+"/";
+                    folder_aligned =files_folder + "aligned"+"/";
+                    folder_hmmer2 =files_folder + "hmmer2"+"/";
+                    folder_hmmer3 =files_folder + "hmmer3"+"/";
+                    folder_hhms = files_folder + "hhms"+"/";
+                    folder_hhms_from_als = files_folder + "hhms_from_als"+"/";
+                }
             }
         }
     }
@@ -540,10 +567,11 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
     {
         int fmt = prc_check_profile_HMM_format();
         bool has_hmmer3 = (fmt == 2);
+        std::cout << "HMM profile format detected: " << (has_hmmer3 ? "HMMER3" : "HMMER2") << std::endl;
         if (prc_backend == PRC_BACKEND_LEGACY) {
             effective_prc_backend = PRC_BACKEND_LEGACY;
         } else if (prc_backend == PRC_BACKEND_PRCX) {
-            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
+            if (bool_PRCX_in_folder || PRCX_exist() != 0) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         } else {
             if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         }
@@ -552,6 +580,29 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
             if(!hmm_hmmconvert()){
                 std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
                 return;
+            }
+        }
+        if (effective_prc_backend == PRC_BACKEND_PRCX) {
+            if (files_folder.rfind("./prc_", 0) == 0) {
+                std::string old_dir = files_folder;
+                if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
+                std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+                if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
+                    files_folder = new_dir + "/";
+                    folder_hmms =files_folder + "hmms"+"/";
+                    folder_hmms_from_als =files_folder + "hmms_from_als"+"/";
+                    folder_prcfiles = files_folder + "prcfiles"+"/";
+                    folder_tree_files =files_folder + "tree_files"+"/";
+                    folder_matrices =files_folder + "matrices"+"/";
+                    folder_clusters =files_folder + "clusters"+"/";
+                    folder_unalign_seqs =files_folder + "unalign_seqs"+"/";
+                    folder_invalid_clusters =files_folder + "invalid_clusters"+"/";
+                    folder_aligned =files_folder + "aligned"+"/";
+                    folder_hmmer2 =files_folder + "hmmer2"+"/";
+                    folder_hmmer3 =files_folder + "hmmer3"+"/";
+                    folder_hhms = files_folder + "hhms"+"/";
+                    folder_hhms_from_als = files_folder + "hhms_from_als"+"/";
+                }
             }
         }
     }
@@ -677,11 +728,12 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
     // 0: HMMER2 ok; 2: HMMER3 detected
     int fmt = prc_check_profile_HMM_format();
     bool has_hmmer3 = (fmt == 2);
+    std::cout << "HMM profile format detected: " << (has_hmmer3 ? "HMMER3" : "HMMER2") << std::endl;
         if (prc_backend == PRC_BACKEND_LEGACY && has_hmmer3) {
             effective_prc_backend = PRC_BACKEND_LEGACY;
         } else if (prc_backend == PRC_BACKEND_PRCX) {
-            // Suppress the HMMER version error if prcX is chosen as the backend
-            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; 
+            // Forced prcX regardless of input format; fallback to legacy if prcX unavailable
+            if (bool_PRCX_in_folder || PRCX_exist() != 0) effective_prc_backend = PRC_BACKEND_PRCX; 
             else effective_prc_backend = PRC_BACKEND_LEGACY;
         } else {
             // auto: prefer prcX if hmmer3 and prcX available; else legacy
@@ -694,6 +746,29 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
         if(!hmm_hmmconvert()){
             std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
             return;
+        }
+    }
+    if (effective_prc_backend == PRC_BACKEND_PRCX) {
+        if (files_folder.rfind("./prc_", 0) == 0) {
+            std::string old_dir = files_folder;
+            if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
+            std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+            if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
+                files_folder = new_dir + "/";
+                folder_hmms =files_folder + "hmms"+"/";
+                folder_hmms_from_als =files_folder + "hmms_from_als"+"/";
+                folder_prcfiles = files_folder + "prcfiles"+"/";
+                folder_tree_files =files_folder + "tree_files"+"/";
+                folder_matrices =files_folder + "matrices"+"/";
+                folder_clusters =files_folder + "clusters"+"/";
+                folder_unalign_seqs =files_folder + "unalign_seqs"+"/";
+                folder_invalid_clusters =files_folder + "invalid_clusters"+"/";
+                folder_aligned =files_folder + "aligned"+"/";
+                folder_hmmer2 =files_folder + "hmmer2"+"/";
+                folder_hmmer3 =files_folder + "hmmer3"+"/";
+                folder_hhms = files_folder + "hhms"+"/";
+                folder_hhms_from_als = files_folder + "hhms_from_als"+"/";
+            }
         }
     }
 
@@ -831,10 +906,11 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
     {
         int fmt = prc_check_profile_HMM_format();
         bool has_hmmer3 = (fmt == 2);
+        std::cout << "HMM profile format detected: " << (has_hmmer3 ? "HMMER3" : "HMMER2") << std::endl;
         if (prc_backend == PRC_BACKEND_LEGACY) {
             effective_prc_backend = PRC_BACKEND_LEGACY;
         } else if (prc_backend == PRC_BACKEND_PRCX) {
-            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
+            if (bool_PRCX_in_folder || PRCX_exist() != 0) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         } else {
             if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         }
@@ -843,6 +919,29 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
             if(!hmm_hmmconvert()){
                 std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
                 return;
+            }
+        }
+        if (effective_prc_backend == PRC_BACKEND_PRCX) {
+            if (files_folder.rfind("./prc_", 0) == 0) {
+                std::string old_dir = files_folder;
+                if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
+                std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+                if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
+                    files_folder = new_dir + "/";
+                    folder_hmms =files_folder + "hmms"+"/";
+                    folder_hmms_from_als =files_folder + "hmms_from_als"+"/";
+                    folder_prcfiles = files_folder + "prcfiles"+"/";
+                    folder_tree_files =files_folder + "tree_files"+"/";
+                    folder_matrices =files_folder + "matrices"+"/";
+                    folder_clusters =files_folder + "clusters"+"/";
+                    folder_unalign_seqs =files_folder + "unalign_seqs"+"/";
+                    folder_invalid_clusters =files_folder + "invalid_clusters"+"/";
+                    folder_aligned =files_folder + "aligned"+"/";
+                    folder_hmmer2 =files_folder + "hmmer2"+"/";
+                    folder_hmmer3 =files_folder + "hmmer3"+"/";
+                    folder_hhms = files_folder + "hhms"+"/";
+                    folder_hhms_from_als = files_folder + "hhms_from_als"+"/";
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ hmms*/
 phmm-tree*
 prc
 prc_hmms_*/
+prcx_hmms_*/
 quick_*
 test_
 test_*.sh

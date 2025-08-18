@@ -481,12 +481,14 @@ int HMMTree::prc_check_profile_HMM_format(){
             return 0;
         }
         std::getline(file_test_hmm_version, str_oneline_file);
-        if(str_oneline_file.find("HMMER2") == -1)
-        {
-            std::cout<<"HMMER version error, PRC can only process hmm files of HMMER2 verson!"<<std::endl;
-            file_test_hmm_version.close();
-            return 2;
-        }
+		if(str_oneline_file.find("HMMER2") == -1)
+		{
+			// HMMER3 detected in this file
+			file_test_hmm_version.close();
+			// If prcX is selected or available and will be used, don't print the legacy-only warning here.
+			// Return 2 to indicate HMMER3 so the caller can choose backend appropriately.
+			return 2;
+		}
         file_test_hmm_version.close();
 
 	}

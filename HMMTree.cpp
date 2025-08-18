@@ -16,6 +16,12 @@
 bool HMMTree::als_phmms_phhms = false;
 int main(int argc, char * argv[]){
 
+    // If no arguments are provided, print help/usage and exit successfully
+    if (argc == 1) {
+        std::cout << STR_ARGUMENTS_ERROR_MSG << std::endl;
+        return 0;
+    }
+
     // Hidden worker mode: run a single phylogenetic algorithm in isolation
     if (argc > 1 && strcmp(argv[1], "-phylo_worker") == 0) {
         if (argc != 6) {
@@ -117,7 +123,7 @@ int main(int argc, char * argv[]){
                             strc_cmd.uals = true;
                             find_argu = true;
                         }else{
-                            output_error_("Run style '-uals' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
+                            output_error_("Run mode '-uals' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
 
                         break;
@@ -126,7 +132,7 @@ int main(int argc, char * argv[]){
                             strc_cmd.als = true;
                             find_argu = true;
                         }else{
-                            output_error_("Run style '-als' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
+                            output_error_("Run mode '-als' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
 
                         break;
@@ -135,7 +141,7 @@ int main(int argc, char * argv[]){
                             strc_cmd.prc_hmms = true;
                             find_argu = true;
                         }else{
-                            output_error_("Run style '-hmms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
+                            output_error_("Run mode '-hmms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
 
                         break;
@@ -197,7 +203,7 @@ int main(int argc, char * argv[]){
                             strc_cmd.hhsuite_hhms = true;
                             find_argu = true;
                         }else{
-                            output_error_("Run style '-hhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
+                            output_error_("Run mode '-hhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
                         break;
                     case 10:
@@ -205,7 +211,7 @@ int main(int argc, char * argv[]){
                             strc_cmd.als_phmms = true;
                             find_argu = true;
                         }else{
-                            output_error_("Run style '-als_phmms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
+                            output_error_("Run mode '-als_phmms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
                         break;
 
@@ -214,7 +220,7 @@ int main(int argc, char * argv[]){
                             strc_cmd.als_phhms = true;
                             find_argu = true;
                         }else{
-                            output_error_("Run style '-als_phhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
+                            output_error_("Run mode '-als_phhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
                         }
                         break;
                     case 12:
@@ -321,10 +327,10 @@ int main(int argc, char * argv[]){
 	HMMTree  test;
     if(strc_cmd.prc_mode){
         if(strc_cmd.hhsuite_hhms || strc_cmd.als_phhms){
-            output_error_("'-prc' mode cannot run in '-hhms' or '-als_phhms' style, arguments");
+            output_error_("'-prc' mode cannot run in '-hhms' or '-als_phhms' mode, arguments");
         }
         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.prc_hmms && !strc_cmd.als_phmms){
-            output_error_("Please at least one run style('-uals', '-als', '-als_phmms' or '-hmms' ) to run in '-prc' mode ,arguments");
+            output_error_("Please at least one run mode('-uals', '-als', '-als_phmms' or '-hmms' ) to run in '-prc' mode ,arguments");
         }
 
         if(strc_cmd.uals){
@@ -366,11 +372,11 @@ int main(int argc, char * argv[]){
     if(strc_cmd.hhsuite_mode){
 
         if(strc_cmd.prc_acc || strc_cmd.prc_hmms || strc_cmd.prc_pair || strc_cmd.prc_prc_hit || strc_cmd.als_phmms){
-            output_error_("'-hhsuite' mode cannot run in '-acc', '-hmms', '-pair' or '-prc_hit' style, arguments");
+            output_error_("'-hhsuite' mode cannot run in '-acc', '-hmms', '-pair' or '-prc_hit' mode, arguments");
         }
 
         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.hhsuite_hhms && !strc_cmd.als_phhms){
-            output_error_("Please at least one run style('-uals', '-als', '-als_phhms' or '-hhms' ) to run in '-hhsuite' mode, arguments");
+            output_error_("Please at least one run mode('-uals', '-als', '-als_phhms' or '-hhms' ) to run in '-hhsuite' mode, arguments");
         }
 
         if(strc_cmd.uals){
@@ -445,81 +451,81 @@ int main(int argc, char * argv[]){
     if(test.prc_hhsuite == 0){
         if(strc_cmd.uals){
             ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-uals' style !"<< std::endl;
-            std::cout << "usearch->mafft->hmmbuild->prc->distance matrix" << std::endl;
+            std::cout << " '-prc' mode, run in '-uals' mode !"<< std::endl;
+            // Banner suppressed per request
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.process_fasta_sequences(str_file_path, test.double_user_id);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-uals' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-uals' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
         }
 
         if(strc_cmd.als){
             ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-als' style !" << std::endl;
-            std::cout << "hhmbuild->prc->distance matrix" << std::endl;
+            std::cout << " '-prc' mode, run in '-als' mode !" << std::endl;
+            // Banner suppressed per request
             test.process_prc_alignments(str_file_path);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-als' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-als' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 		if(strc_cmd.als_phmms){
             HMMTree::als_phmms_phhms = true;
             ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-als_phmms' style !" << std::endl;
-            std::cout << "als->hmmbuild->hmm1s, (hmm1s+hmm2s)->prc->distance matrix " << std::endl;
+            std::cout << " '-prc' mode, run in '-als_phmms' mode !" << std::endl;
+            // Banner suppressed per request
             test.process_prc_alignments_phmms(str_file_path, str_file_path_2);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-als_phmms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-als_phmms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 
 		if(strc_cmd.prc_hmms){
            ftime(&startTime);
-            std::cout << " '-prc' mode, run in '-hmms' style !"<< std::endl;
-            std::cout << "prc->distance matrix" << std::endl;
+            std::cout << " '-prc' mode, run in '-hmms' mode !"<< std::endl;
+            // Banner suppressed per request
             test.process_prc_HMMs(str_file_path);
             ftime(&endTime);
-            std::cout << "'-prc' mode in '-hmms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-prc' mode in '-hmms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 
 		}
     }else{
         if(strc_cmd.uals){
             ftime(&startTime);
-            std::cout << " '-hhsuite' mode, run in '-uals' style !"<< std::endl;
+            std::cout << " '-hhsuite' mode, run in '-uals' mode !"<< std::endl;
             std::cout << "usearch->mafft->hmmbuild->hhsuite->distance matrix" << std::endl;
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.process_hhsuite_fasta_sequences(str_file_path, test.double_user_id);
             ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-uals' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-uals' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
         }
 
         if(strc_cmd.als){
             ftime(&startTime);
-            std::cout <<" '-hhsuite' mode, run in '-als' style !" << std::endl;
+            std::cout <<" '-hhsuite' mode, run in '-als' mode !" << std::endl;
             std::cout << "hhmbuild->hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_alignments(str_file_path);
             ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-als' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-als' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 
 		if(strc_cmd.als_phhms){
 		    HMMTree::als_phmms_phhms= true;
             ftime(&startTime);
-            std::cout <<" '-hhsuite' mode, run in '-als_phhms' style !" << std::endl;
+            std::cout <<" '-hhsuite' mode, run in '-als_phhms' mode !" << std::endl;
             std::cout << "als->hhmbuild->hhm1s, (hhm1s + hhm2s)->hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_alignments_phhms(str_file_path, str_file_path_2);
             ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-als_phhms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-als_phhms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 		}
 
 		if(strc_cmd.hhsuite_hhms){
            ftime(&startTime);
-            std::cout << " '-hhsuite' mode, run in '-hhms' style !"<< std::endl;
+            std::cout << " '-hhsuite' mode, run in '-hhms' mode !"<< std::endl;
             std::cout << "hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_HHMs(str_file_path);
             ftime(&endTime);
-            std::cout << "'-hhsuite' mode in '-hhms' style run time: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
+            std::cout << "'-hhsuite' mode in '-hhms' mode runtime: " << format_time_duration((endTime.time-startTime.time)*1000 + (endTime.millitm - startTime.millitm)) << std::endl;
 
 		}
     }

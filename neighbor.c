@@ -536,12 +536,12 @@ int neighbor_build_tree(const char *path_name_infile, const char *path_name_outf
   neighbor_requested_threads = num_threads;
   
   init();
-  char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_neighbor_outfile")+1);
-  char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_neighbor_outtree")+1);
+  char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_report")+1);
+  char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_tree.nwk")+1);
   strcpy(outfile_path_name,path_name_outfile);
-  strcat(outfile_path_name,"_neighbor_outfile");
+  strcat(outfile_path_name,"_report");
   strcpy(outtree_path_name,path_name_outfile);
-  strcat(outtree_path_name,"_neighbor_outtree");
+  strcat(outtree_path_name,"_tree.nwk");
   openfile(&infile,path_name_infile,"input file", "r",neighbor_infilename);
   openfile(&outfile,outfile_path_name,"output file", "w",neighbor_outfilename);
   ibmpc = IBMCRT;

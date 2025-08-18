@@ -533,12 +533,12 @@ int upgma_build_tree(const char *path_name_infile, const char *path_name_outfile
   upgma_requested_threads = num_threads;
   
   init();
-  char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_upgma_outfile")+1);
-  char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_upgma_outtree")+1);
+  char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_report")+1);
+  char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_tree.nwk")+1);
   strcpy(outfile_path_name,path_name_outfile);
-  strcat(outfile_path_name,"_upgma_outfile");
+  strcat(outfile_path_name,"_report");
   strcpy(outtree_path_name,path_name_outfile);
-  strcat(outtree_path_name,"_upgma_outtree");
+  strcat(outtree_path_name,"_tree.nwk");
   openfile(&infile,path_name_infile,"input file", "r",infilename);
   openfile(&outfile,outfile_path_name,"output file", "w",outfilename);
   ibmpc = IBMCRT;

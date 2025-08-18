@@ -384,8 +384,9 @@ int copy_one_file(std::string pathname1, std::string pathname2){
 }
 
 void output_error_(std::string error_msg){
-    std::cout<<error_msg<<" error !"<<std::endl;
-    std::cout<<"Please use './HMMTree -h' to see the usage !"<<std::endl;
+    std::cout << error_msg << " error!" << std::endl;
+    // Also print the full usage to help the user immediately
+    std::cout << STR_ARGUMENTS_ERROR_MSG << std::endl;
     exit(1);
 }
 

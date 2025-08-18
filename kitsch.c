@@ -1043,12 +1043,14 @@ int kitsch_build_tree(const char *path_name_infile, const  char *path_name_outfi
   /* Store requested thread count in static variable for use by init_parallel_kitsch */
   kitsch_requested_threads = num_threads;
   
-  char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_kitsch_outfile")+1);
-  char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_kitsch_outtree")+1);
+  // path_name_outfile is already the algorithm+variant base (e.g., kitsch_f-m or kitsch_min).
+  // Append only the common suffixes to avoid duplicated tokens in filenames.
+  char *outfile_path_name=malloc(strlen(path_name_outfile)+strlen("_report")+1);
+  char *outtree_path_name=malloc(strlen(path_name_outfile)+strlen("_tree.nwk")+1);
   strcpy(outfile_path_name,path_name_outfile);
-  strcat(outfile_path_name,"_kitsch_outfile");
+  strcat(outfile_path_name,"_report");
   strcpy(outtree_path_name,path_name_outfile);
-  strcat(outtree_path_name,"_kitsch_outtree");
+  strcat(outtree_path_name,"_tree.nwk");
   if(!(tree_type ==0 || tree_type == 1)){
         printf("\nTree type error !\n");
         return 0;

@@ -192,7 +192,7 @@ int HMMTree::prc_library()
 		return 0;
 	}
 	std::getline(file_test_hmm_version, str_oneline_file);
-	if(str_oneline_file.find("HMMER2") == -1)
+	if(str_oneline_file.find("HMMER2") == std::string::npos)
 	{
 		std::cout<<"HMMER version error, PRC can only process hmm files of HMMER2 version!"<<std::endl;
 		file_test_hmm_version.close();
@@ -272,13 +272,13 @@ void HMMTree::prc_read_lib_result_from_file(std::string str_prc_lib_result_filen
 	while (std::getline(i_result_file, str_msg_temp))
 	{
 		line_num_temp++;
-        if(str_msg_temp.find("# hmm1") != -1){
+	if(str_msg_temp.find("# hmm1") != std::string::npos){
             bool_flag = true;
             continue;
         }
 		if (bool_flag)
 		{
-			if (str_msg_temp.find("# END") != -1)
+			if (str_msg_temp.find("# END") != std::string::npos)
 			{
 				break;
 			}
@@ -343,13 +343,13 @@ void HMMTree::prc_read_result_from_file(FILE * file_stream)
         std::string str_msg_temp = buf;
         line_num_temp++;
 
-        if(str_msg_temp.find("# hmm1") != -1){
+	if(str_msg_temp.find("# hmm1") != std::string::npos){
             bool_flag = true;
             continue;
         }
 		if (bool_flag)
 		{
-			if (str_msg_temp.find("# END") != -1)
+			if (str_msg_temp.find("# END") != std::string::npos)
 			{
 				break;
 			}
@@ -481,7 +481,7 @@ int HMMTree::prc_check_profile_HMM_format(){
             return 0;
         }
         std::getline(file_test_hmm_version, str_oneline_file);
-		if(str_oneline_file.find("HMMER2") == -1)
+		if(str_oneline_file.find("HMMER2") == std::string::npos)
 		{
 			// HMMER3 detected in this file
 			file_test_hmm_version.close();
@@ -506,13 +506,13 @@ void HMMTree::prc_read_result_from_file_threadsafe(FILE * file_stream, std::vect
         std::string str_msg_temp = buf;
         line_num_temp++;
 
-        if(str_msg_temp.find("# hmm1") != -1){
+	if(str_msg_temp.find("# hmm1") != std::string::npos){
             bool_flag = true;
             continue;
         }
 		if (bool_flag)
 		{
-			if (str_msg_temp.find("# END") != -1)
+			if (str_msg_temp.find("# END") != std::string::npos)
 			{
 				break;
 			}

@@ -110,7 +110,7 @@ int HMMTree::hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std
 		if (bool_flag_hmm_begin)
 		{
 
-			if(str_temp_one_line_file.find("HMMER") == -1)
+						if(str_temp_one_line_file.find("HMMER") == std::string::npos)
 			{
 				ifstream_file_hmms.close();
 				std::cout<<"There is an format error in input file of hmm models!"<<std::endl;
@@ -130,7 +130,7 @@ int HMMTree::hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std
 			//std::cout << str_temp_hmm_outfiles_path_and_nmae << std::endl;
 
 
-			if (boll_flag_all_divide_true_or_only_one_false || (str_hmm_name.find(str_key) != -1))
+			if (boll_flag_all_divide_true_or_only_one_false || (str_hmm_name.find(str_key) != std::string::npos))
 			{
 				ofstream_file_hmm.open(str_temp_hmm_outfiles_path_and_nmae.c_str(),std::ios_base::out|std::ios_base::trunc);
                 ofstream_file_hmm.close();
@@ -155,7 +155,7 @@ int HMMTree::hmm_divide_hmms_to_single_hmm(std::string infile_path_and_name, std
 			ofstream_file_hmm << str_temp_one_line_file << std::endl;
 		}
 
-		if (str_temp_one_line_file.find("//") != -1)
+				if (str_temp_one_line_file.find("//") != std::string::npos)
 		{
 			ofstream_file_hmm.close();
 			bool_flag_hmm_begin = true;
@@ -317,17 +317,17 @@ int HMMTree::hmm_set_pfamclan_vector_hmmdat_vector_map() {
 
 	std::string str_oneline_stream="";
 	while (std::getline(ifstream_hmmdat, str_oneline_stream)) {
-		if (str_oneline_stream.find("STOCKHOLM") != -1) {
+		if (str_oneline_stream.find("STOCKHOLM") != std::string::npos) {
 			HMM_DAT hmm_dat_temp;
 			vector_hmm_dat.push_back(hmm_dat_temp);
 
 		}
 
-		if (str_oneline_stream.find("#=GF ID") != -1) {
+		if (str_oneline_stream.find("#=GF ID") != std::string::npos) {
 			vector_hmm_dat.back().ID= str_oneline_stream.substr(10, str_oneline_stream.length()-10);
 		}
 
-		if (str_oneline_stream.find("#=GF AC") != -1) {
+		if (str_oneline_stream.find("#=GF AC") != std::string::npos) {
 			vector_hmm_dat.back().AC = str_oneline_stream.substr(10);
 			vector_hmm_dat.back().nopoint_AC = str_oneline_stream.substr(10, (str_oneline_stream.find_last_of('.') - 10));
 		}
@@ -348,21 +348,21 @@ int HMMTree::hmm_set_pfamclan_vector_hmmdat_vector_map() {
 
 	str_oneline_stream = "";
 	while (std::getline(ifstream_hmmclan, str_oneline_stream)) {
-		if (str_oneline_stream.find("STOCKHOLM") != -1) {
+		if (str_oneline_stream.find("STOCKHOLM") != std::string::npos) {
 			PFAM_C pfam_clan_temp;
 			vector_pfam_clans.push_back(pfam_clan_temp);
 		}
 
-		if (str_oneline_stream.find("#=GF ID") != -1) {
+		if (str_oneline_stream.find("#=GF ID") != std::string::npos) {
 			vector_pfam_clans.back().ID = str_oneline_stream.substr(10, str_oneline_stream.length() - 10);
 		}
 
-		if (str_oneline_stream.find("#=GF AC") != -1) {
+		if (str_oneline_stream.find("#=GF AC") != std::string::npos) {
 			vector_pfam_clans.back().AC = str_oneline_stream.substr(10);
 			vector_pfam_clans.back().nopoint_AC = str_oneline_stream.substr(10, str_oneline_stream.find_last_of('.') - 10);
 		}
 
-		if (str_oneline_stream.find("#=GF MB") != -1) {
+		if (str_oneline_stream.find("#=GF MB") != std::string::npos) {
 			std::string str_pfam_family_name=str_oneline_stream.substr(10, str_oneline_stream.length() - 11);
 			if(hmm_dat_nopointAC_datVectorIndex_list_unordered_map.find(str_pfam_family_name) != hmm_dat_nopointAC_datVectorIndex_list_unordered_map.end()){
                 vector_pfam_clans.back().families.push_back(str_pfam_family_name);
@@ -417,15 +417,13 @@ int HMMTree::hmm_als_phmms_copy_hmmfiles(std::string path){
 
     //test if the dir exists, or create them
     //dir_exist_or_create(prc_hhsuite, 2);
-/*
-    if(dir_noempty_opendir_readir(folder_hmms))
-	{
-		//system_return(system("rm ./hmms/*.hmm"));
-		if(!delete_files(folder_hmms)){
-            return 0;
-		}
-	}
-*/
+// if(dir_noempty_opendir_readir(folder_hmms))
+// {
+//     // system_return(system("rm ./hmms/*.hmm"));
+//     // if(!delete_files(folder_hmms)){
+//     //     return 0;
+//     // }
+// }
     //test the hmms folder
     if(!dir_exist_opendir(folder_hmms_from_als))
     {

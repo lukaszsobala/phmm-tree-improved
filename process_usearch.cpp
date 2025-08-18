@@ -38,7 +38,7 @@ int HMMTree::usearch_rename_result()
         size_t uint_seqnum = 0;
         std::string str_one_line="";
         while(std::getline(if_seqnum,str_one_line)){
-            if(str_one_line.find(">") != -1){
+            if(str_one_line.find(">") != std::string::npos){
                 uint_seqnum++;
             }
         }

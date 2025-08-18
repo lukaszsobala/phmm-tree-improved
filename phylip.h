@@ -235,7 +235,7 @@ void phyFillScreenColor(void);
 #endif
 
 
-#define FClose(file) if (file) fclose(file) ; file=NULL
+#define FClose(file) do { if ((file)) fclose((file)); (file) = NULL; } while (0)
 #define Malloc(x) mymalloc((long)x)
 
 typedef void *Anyptr;

@@ -80,7 +80,7 @@ bool HMMTree::align_fasta_file_exist_format_check(std::string infile_path_and_na
 	std::getline(ifstream_test_fasta_format, str_temp_one_line);
 	ifstream_test_fasta_format.close();
 	//check the '>' word to test the file is fasta format or not
-	if (str_temp_one_line.find('>') == -1)
+	if (str_temp_one_line.find('>') == std::string::npos)
 	{
 		std::cout << "The content in file '" << infile_path_and_name << "' is not in fasta format !" << std::endl;
 		return false;
@@ -123,14 +123,13 @@ int HMMTree::align_move_aligned(std::string file_path_name){
         path_temp = path_temp+"/";
     }
 
-/*
-	std::string str_move_alignments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
-    int return_flag = 0;
-	return_flag = system(str_move_alignments_cmd.c_str());
-    if(system_return(return_flag)){
-        return 0;
-    }
-*/
+// Legacy shell copy path retained for reference:
+// std::string str_move_alignments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
+// int return_flag = 0;
+// return_flag = system(str_move_alignments_cmd.c_str());
+// if(system_return(return_flag)){
+//     return 0;
+// }
     copy_files(path_temp,folder_aligned,".fasta");
 
 
@@ -163,14 +162,13 @@ int HMMTree::als_phmms_phhms_move_aligned(std::string file_path_name){
         path_temp = path_temp+"/";
     }
 
-/*
-    std::string str_move_alignments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
-    int return_flag = 0;
-    return_flag = system(str_move_alignments_cmd.c_str());
-    if(system_return(return_flag)){
-        return 0;
-    }
-*/
+// Legacy shell copy path retained for reference:
+// std::string str_move_alignments_cmd= "cp "+file_path_name+"/*.fasta ./aligned/";
+// int return_flag = 0;
+// return_flag = system(str_move_alignments_cmd.c_str());
+// if(system_return(return_flag)){
+//     return 0;
+// }
     copy_files(path_temp,folder_aligned,".fasta");
 
 

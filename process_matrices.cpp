@@ -31,7 +31,7 @@ int HMMTree::matrix_init_matrix_vector_map()
 		size_t unint_temp = 0;
 		while(unint_temp < 5 && std::getline(if_name_acc_temp,str_online_temp) ){
 
-            if(str_online_temp.find("NAME") != -1){
+            if(str_online_temp.find("NAME") != std::string::npos){
                 std::string str_temp_0 = str_online_temp;
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_not_of(' '));
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_of(' '));
@@ -51,7 +51,7 @@ int HMMTree::matrix_init_matrix_vector_map()
                 unint_name_num++;
             }
 
-            if(str_online_temp.find("ACC") != -1){
+            if(str_online_temp.find("ACC") != std::string::npos){
                 std::string str_temp_0 = str_online_temp;
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_not_of(' '));
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_of(' '));
@@ -148,7 +148,7 @@ int HMMTree::matrix_init_matrix_vector_map_hhsuite()
 		size_t unint_temp = 0;
 		while(unint_temp < 5 && std::getline(if_name_acc_temp,str_online_temp) ){
 
-            if(str_online_temp.find("NAME") != -1){
+            if(str_online_temp.find("NAME") != std::string::npos){
                 std::string str_temp_0 = str_online_temp;
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_not_of(' '));
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_of(' '));
@@ -170,7 +170,7 @@ int HMMTree::matrix_init_matrix_vector_map_hhsuite()
                 unint_name_num++;
             }
 
-            if(str_online_temp.find("ACC") != -1){
+            if(str_online_temp.find("ACC") != std::string::npos){
                 std::string str_temp_0 = str_online_temp;
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_not_of(' '));
                 str_temp_0 = str_temp_0.substr(str_temp_0.find_first_of(' '));

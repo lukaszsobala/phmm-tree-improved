@@ -250,12 +250,18 @@ void input_data()
       if (!skipit) {
         if (eoln(infile))
           scan_eoln(infile);
-        fscanf(infile, "%lf", &x);
+        if (fscanf(infile, "%lf", &x) != 1) {
+          printf("ERROR: failed to read distance value for row %ld col %ld.\n", i+1, j);
+          exxit(-1);
+        }
         curtree.nodep[i]->d[j - 1] = x;
         if (replicates) {
           if (eoln(infile))
             scan_eoln(infile);
-          fscanf(infile, "%ld", &n);
+          if (fscanf(infile, "%ld", &n) != 1) {
+            printf("ERROR: failed to read replicate count for row %ld col %ld.\n", i+1, j);
+            exxit(-1);
+          }
         } else
           n = 1;
         if (n > 0 && x < 0) {
@@ -354,12 +360,18 @@ void input_data_parallel()
       if (!skipit) {
         if (eoln(infile))
           scan_eoln(infile);
-        fscanf(infile, "%lf", &x);
+        if (fscanf(infile, "%lf", &x) != 1) {
+          printf("ERROR: failed to read distance value for row %ld col %ld.\n", i+1, j);
+          exxit(-1);
+        }
         curtree.nodep[i]->d[j - 1] = x;
         if (replicates) {
           if (eoln(infile))
             scan_eoln(infile);
-          fscanf(infile, "%ld", &n);
+          if (fscanf(infile, "%ld", &n) != 1) {
+            printf("ERROR: failed to read replicate count for row %ld col %ld.\n", i+1, j);
+            exxit(-1);
+          }
         } else
           n = 1;
         if (n > 0 && x < 0) {

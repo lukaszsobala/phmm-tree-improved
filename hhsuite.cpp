@@ -148,7 +148,7 @@ void HMMTree::hhsuite_read_result_from_file_hhalign(FILE * file_stream1, FILE * 
 
         std::string str_msg_temp = buf;
 
-        if(str_msg_temp.find("Score = ") != -1){
+	if(str_msg_temp.find("Score = ") != std::string::npos){
             //temp variable to save the line messages of the result file
 			STUC_RHHEL_NOTE struct_line_temp;
 
@@ -187,7 +187,7 @@ void HMMTree::hhsuite_read_result_from_file_hhalign(FILE * file_stream1, FILE * 
 
         std::string str_msg_temp = buf;
 
-        if(str_msg_temp.find("Score = ") != -1){
+	if(str_msg_temp.find("Score = ") != std::string::npos){
 
 
 			//split the string to get messages
@@ -259,16 +259,14 @@ int HMMTree::hhsuite_als_phhms_copy_hhmfiles(std::string path){
 
     //test if the dir exists, or create them
     //dir_exist_or_create(prc_hhsuite, 2);
-/*
-    if(dir_noempty_opendir_readir(folder_hhms))
-	{
-		//system_return(system("rm ./hmms/*.hmm"));
-		if(!delete_files(folder_hhms)){
-            return 0;
-		}
-	}
-
-*/
+// Note: previously had a nested block comment that triggered a warning.
+// if(dir_noempty_opendir_readir(folder_hhms))
+// {
+//     // system_return(system("rm ./hmms/*.hmm"));
+//     // if(!delete_files(folder_hhms)){
+//     //     return 0;
+//     // }
+// }
 
         //test the hmms folder
     if(!dir_exist_opendir(folder_hhms_from_als))

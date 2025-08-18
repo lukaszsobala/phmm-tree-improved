@@ -82,6 +82,10 @@ const std::string STR_ARGUMENTS_ERROR_MSG = "pHMM-Tree\n"
 "  -prc_hit <value>       PRC parameter (default: 10; 0 uses PRC default 100).\n"
 "  -acc                   Use ACC in matrix/tree if available (default: NAME).\n"
 "  -lib                   PRC library mode (for -prc; default is pairwise).\n"
+"  -prc_backend <auto|legacy|prcx>  Backend for PRC when HMMER3 HMMs are detected: \n"
+"                               auto (default) uses prcX if available, else legacy convert+prc;\n"
+"                               legacy forces convert-to-HMMER2 then prc;\n"
+"                               prcx forces direct prcX without conversion.\n"
 "\n"
 "ANALYSIS METHODS (optional; if none specified, all run)\n"
 "  -fitch    Run Fitch-Margoliash (both f-m and minimum evolution).\n"
@@ -182,6 +186,8 @@ int HMMER_hmmbuild_exist();
 int HMMER_hmmconvert_exist();
 // Check if PRC exists (PATH or current directory)
 int PRC_exist();
+// Check if PRC-X (HMMER3 backend) exists (PATH or current directory)
+int PRCX_exist();
 
 // Check if HH-suite hhmake exists (PATH or current directory)
 int hhsuite_hhmake_exist();
@@ -309,6 +315,8 @@ typedef struct cmd_params {
 	bool prc_prc_hit;
 	bool prc_acc;
 	bool prc_pair;
+	// PRC backend selection: 0=auto, 1=legacy (convert+prc), 2=prcX direct
+	int prc_backend;
 
 	bool hhsuite_mode;
 	bool hhsuite_hhms;
@@ -343,6 +351,7 @@ typedef struct cmd_params {
         prc_prc_hit = false;
         prc_acc = false;
         prc_pair = false;
+		prc_backend = 0; // auto by default
 
         hhsuite_mode = false;
         hhsuite_hhms = false;
@@ -376,6 +385,8 @@ typedef struct cmd_params {
 // Main class
 class HMMTree{
 public:
+	// Backend options for PRC processing
+	enum PRCBackend { PRC_BACKEND_AUTO = 0, PRC_BACKEND_LEGACY = 1, PRC_BACKEND_PRCX = 2 };
 	HMMTree() {
         hmm_a_mem_num=0;
         hmm_b_mem_num=0;
@@ -383,6 +394,7 @@ public:
         bool_MAFFT_in_folder = false;
         bool_HMMER_hmmbuild_in_folder = false;
         bool_PRC_in_folder = false;
+		bool_PRCX_in_folder = false;
         bool_HMMER_hmmconvert_in_folder = false;
         NAME_OR_ACC = false;
         use_ACC = false;
@@ -422,6 +434,8 @@ public:
         folder_hmms_from_als="";
         folder_hhms_from_als="";
         prc_hhsuite = 0;
+	prc_backend = PRC_BACKEND_AUTO;
+	effective_prc_backend = PRC_BACKEND_LEGACY; // will be set during processing
 	};
 	~HMMTree() {};
     double CLUSTER_OK_THRESHOLD;                // threshold to evaluate clustering quality
@@ -444,6 +458,9 @@ public:
     int prc_threads_count;    // number of threads for PRC analysis
     int phylo_threads_count;  // number of threads for phylogenetic analysis
 	int phylo_concurrent_threads_count; // number of concurrent phylogenetic analyses (0 = auto)
+	// PRC backend setting and effective backend selected for this run
+	int prc_backend;                // user selection: auto/legacy/prcx
+	int effective_prc_backend;      // resolved backend based on inputs and availability
     
     std::string files_folder;               // base output folder derived from the input path or filename
     std::string folder_hmms;
@@ -557,6 +574,8 @@ private:
     bool bool_hhsuite_hhalign_in_folder;
     // PRC present in working directory?
     bool bool_PRC_in_folder;
+	// PRC-X present in working directory?
+	bool bool_PRCX_in_folder;
 
 
 

@@ -1,6 +1,7 @@
 #include "HMMTree.h"
 #include <omp.h>
 #include <sstream>
+#include <unistd.h>
 
 // Compute pairwise distances between HMMs using PRC
 int HMMTree::prc_each2(){
@@ -72,20 +73,29 @@ int HMMTree::prc_each2(){
         std::string local_hmm1 = str_name_hmm1.substr(str_name_hmm1.find_last_of('/') + 1);
         std::string local_hmm2 = str_name_hmm2.substr(str_name_hmm2.find_last_of('/') + 1);
         
-        std::string str_cmd = "";
+		std::string str_cmd = "";
+		// Choose backend executable based on effective_prc_backend
+		const bool use_prcx = (effective_prc_backend == PRC_BACKEND_PRCX);
+		const char* exe_name = use_prcx ? "prcX" : "prc";
+		bool exe_in_folder = use_prcx ? false : (!bool_PRC_in_folder ? false : true);
+		// Detect prcX explicitly if selected and not previously detected in folder
+		if (use_prcx) {
+			// prcX detection: if in current folder?
+			exe_in_folder = (access("prcX", F_OK) == 0) && (access("prcX", X_OK) == 0);
+		}
         if(prc_hit_no != 0){
             std::string str_prc_hit_num = int_2_string(prc_hit_no);
-            if(!bool_PRC_in_folder){
-                str_cmd = "OMP_NUM_THREADS=1 prc -hits " + str_prc_hit_num + " " + str_name_hmm1 + " " + str_name_hmm2;
-            }else{
-                str_cmd = "OMP_NUM_THREADS=1 ./prc -hits " + str_prc_hit_num + " " + str_name_hmm1 + " " + str_name_hmm2;
-            }
+			if(!exe_in_folder){
+				str_cmd = std::string("OMP_NUM_THREADS=1 ") + exe_name + " -hits " + str_prc_hit_num + " " + str_name_hmm1 + " " + str_name_hmm2;
+			}else{
+				str_cmd = std::string("OMP_NUM_THREADS=1 ./") + exe_name + " -hits " + str_prc_hit_num + " " + str_name_hmm1 + " " + str_name_hmm2;
+			}
         }else{
-            if(!bool_PRC_in_folder){
-                str_cmd = "OMP_NUM_THREADS=1 prc " + str_name_hmm1 + " " + str_name_hmm2;
-            }else{
-                str_cmd = "OMP_NUM_THREADS=1 ./prc " + str_name_hmm1 + " " + str_name_hmm2;
-            }
+			if(!exe_in_folder){
+				str_cmd = std::string("OMP_NUM_THREADS=1 ") + exe_name + std::string(" ") + str_name_hmm1 + std::string(" ") + str_name_hmm2;
+			}else{
+				str_cmd = std::string("OMP_NUM_THREADS=1 ./") + exe_name + std::string(" ") + str_name_hmm1 + std::string(" ") + str_name_hmm2;
+			}
         }
 
         FILE *stream = popen(str_cmd.c_str(), "r");
@@ -118,19 +128,25 @@ int HMMTree::prc_each2(){
 int HMMTree::prc_hmm1_library(std::string str_name_hmm1, std::string str_library,std::string prc_out_path_filename)
 {
 	std::string str_cmd = "";
+	const bool use_prcx = (effective_prc_backend == PRC_BACKEND_PRCX);
+	const char* exe_name = use_prcx ? "prcX" : "prc";
+	bool exe_in_folder = use_prcx ? false : (!bool_PRC_in_folder ? false : true);
+	if (use_prcx) {
+		exe_in_folder = (access("prcX", F_OK) == 0) && (access("prcX", X_OK) == 0);
+	}
     if(prc_hit_no != 0){
         std::string str_prc_hit_num =int_2_string(prc_hit_no);
-        if(!bool_PRC_in_folder){
-            str_cmd = "OMP_NUM_THREADS=1 prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  " + prc_out_path_filename;
-        }else{
-            str_cmd = "OMP_NUM_THREADS=1 ./prc -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
-        }
+		if(!exe_in_folder){
+			str_cmd = std::string("OMP_NUM_THREADS=1 ") + exe_name + " -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  " + prc_out_path_filename;
+		}else{
+			str_cmd = std::string("OMP_NUM_THREADS=1 ./") + exe_name + " -hits "+str_prc_hit_num+" " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
+		}
     }else{
-        if(!bool_PRC_in_folder){
-            str_cmd = "OMP_NUM_THREADS=1 prc " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
-        }else{
-            str_cmd = "OMP_NUM_THREADS=1 ./prc " + str_name_hmm1 + " " + str_library + "  "+ prc_out_path_filename;
-        }
+		if(!exe_in_folder){
+			str_cmd = std::string("OMP_NUM_THREADS=1 ") + exe_name + std::string(" ") + str_name_hmm1 + std::string(" ") + str_library + std::string("  ") + prc_out_path_filename;
+		}else{
+			str_cmd = std::string("OMP_NUM_THREADS=1 ./") + exe_name + std::string(" ") + str_name_hmm1 + std::string(" ") + str_library + std::string("  ") + prc_out_path_filename;
+		}
     }
 
 	return system(str_cmd.c_str());

@@ -112,6 +112,13 @@ void HMMTree::test_depend_programs(int mode_num){
         std::cout<<"Can not find 'prc' program in the PATH variable or folder !"<<std::endl;
         all_find = false;
     }
+    // prcX is optional; detect availability
+    int prcx_ = PRCX_exist();
+    if( prcx_ != 0){
+        if(prcx_ > 0){
+            bool_PRCX_in_folder = true;
+        }
+    }
     int usearch_ = 0;
     int mafft_ = 0;
     int hmmbuild_ = 0;
@@ -186,6 +193,13 @@ void HMMTree::test_depend_programs_2(int prc_hhsuite, int mode_num){
         }else{
             std::cout<<"Can not find 'PRC' program in the PATH variable or folder !"<<std::endl;
             all_find = false;
+        }
+        // Detect optional prcX
+        int PRCX_ = PRCX_exist();
+        if( PRCX_ != 0){
+            if(PRCX_ > 0){
+                bool_PRCX_in_folder = true;
+            }
         }
     }else{
         int hhsuite_hhalign_ = hhsuite_hhalign_exist();
@@ -368,13 +382,28 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
         return;
     }
 
-    // Check profile HMM format and convert if necessary
-   if(2 == prc_check_profile_HMM_format()){
-        if(!hmm_hmmconvert()){
-            std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
-            return;
+    // Resolve backend and convert only if needed
+    {
+        int fmt = prc_check_profile_HMM_format();
+        bool has_hmmer3 = (fmt == 2);
+        // Choose effective backend
+        if (prc_backend == PRC_BACKEND_LEGACY) {
+            effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else if (prc_backend == PRC_BACKEND_PRCX) {
+            // prcX only used if HMMER3 is present, else fallback to legacy
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else {
+            // auto
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         }
-     }
+        std::cout << "PRC backend selected: " << (effective_prc_backend == PRC_BACKEND_PRCX ? "prcX" : "legacy (convert+prc)") << std::endl;
+        if (effective_prc_backend == PRC_BACKEND_LEGACY && has_hmmer3){
+            if(!hmm_hmmconvert()){
+                std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
+                return;
+            }
+        }
+    }
 
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
@@ -508,12 +537,24 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
         return;
     }
 
-    if(2 == prc_check_profile_HMM_format()){
-        if(!hmm_hmmconvert()){
-            std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
-            return;
+    {
+        int fmt = prc_check_profile_HMM_format();
+        bool has_hmmer3 = (fmt == 2);
+        if (prc_backend == PRC_BACKEND_LEGACY) {
+            effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else if (prc_backend == PRC_BACKEND_PRCX) {
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else {
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         }
-     }
+        std::cout << "PRC backend selected: " << (effective_prc_backend == PRC_BACKEND_PRCX ? "prcX" : "legacy (convert+prc)") << std::endl;
+        if (effective_prc_backend == PRC_BACKEND_LEGACY && has_hmmer3){
+            if(!hmm_hmmconvert()){
+                std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
+                return;
+            }
+        }
+    }
 
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
@@ -632,12 +673,29 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
         return ;
     }
 
-    if(2 == prc_check_profile_HMM_format()){
+    // Decide effective PRC backend based on user preference, availability, and input format
+    // 0: HMMER2 ok; 2: HMMER3 detected
+    int fmt = prc_check_profile_HMM_format();
+    bool has_hmmer3 = (fmt == 2);
+        if (prc_backend == PRC_BACKEND_LEGACY && has_hmmer3) {
+            effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else if (prc_backend == PRC_BACKEND_PRCX) {
+            // Suppress the HMMER version error if prcX is chosen as the backend
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; 
+            else effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else {
+            // auto: prefer prcX if hmmer3 and prcX available; else legacy
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; 
+            else effective_prc_backend = PRC_BACKEND_LEGACY;
+    }
+    std::cout << "PRC backend selected: " << (effective_prc_backend == PRC_BACKEND_PRCX ? "prcX" : "legacy (convert+prc)") << std::endl;
+
+    if (effective_prc_backend == PRC_BACKEND_LEGACY && has_hmmer3){
         if(!hmm_hmmconvert()){
             std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
             return;
         }
-     }
+    }
 
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;
@@ -769,13 +827,25 @@ void HMMTree::process_prc_alignments_phmms(std::string file_path_name, std::stri
         return;
     }
 
-    // Check profile HMM format and convert if necessary
-    if(2 == prc_check_profile_HMM_format()){
-        if(!hmm_hmmconvert()){
-            std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
-            return;
+    // Resolve backend and convert only if needed
+    {
+        int fmt = prc_check_profile_HMM_format();
+        bool has_hmmer3 = (fmt == 2);
+        if (prc_backend == PRC_BACKEND_LEGACY) {
+            effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else if (prc_backend == PRC_BACKEND_PRCX) {
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
+        } else {
+            if (has_hmmer3 && (bool_PRCX_in_folder || PRCX_exist() != 0)) effective_prc_backend = PRC_BACKEND_PRCX; else effective_prc_backend = PRC_BACKEND_LEGACY;
         }
-     }
+        std::cout << "PRC backend selected: " << (effective_prc_backend == PRC_BACKEND_PRCX ? "prcX" : "legacy (convert+prc)") << std::endl;
+        if (effective_prc_backend == PRC_BACKEND_LEGACY && has_hmmer3){
+            if(!hmm_hmmconvert()){
+                std::cout<<"Failed to convert the profile HMM files to HMMER2.0 format !"<<std::endl;
+                return;
+            }
+        }
+    }
 
     // Time the PRC analysis phase
     struct timeb prcStartTime, prcEndTime;

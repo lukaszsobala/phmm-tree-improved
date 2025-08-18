@@ -439,6 +439,31 @@ int PRC_exist(){
     return 0;
 }
 
+// Check if PRC-X exists.
+int PRCX_exist(){
+    bool usr_bin_path = true;
+    char *buf = NULL;
+    buf = (char*)malloc(sizeof(char) * MAX_BUF_LEN);
+    FILE *file = popen("which prcX", "r");
+    memset(buf, 0, sizeof(buf));
+    if(fgets(buf, MAX_BUF_LEN, file) == NULL){
+        usr_bin_path = false;
+    }
+    pclose(file);
+    free(buf);
+    if(!usr_bin_path){
+        if(access("prcX",F_OK) == 0){
+            if(access("prcX",X_OK) == 0){
+                return 1;
+            }
+        }
+    }else{
+        return -1;
+    }
+
+    return 0;
+}
+
 // Check if MAFFT exists.
 int MAFFT_exist(){
     bool usr_bin_path = true;

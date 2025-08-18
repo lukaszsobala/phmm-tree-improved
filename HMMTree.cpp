@@ -84,7 +84,8 @@ int main(int argc, char * argv[]){
         "-min",       // 17
         "-prc_threads",   // 18
     "-phylo_threads",  // 19
-    "-phylo_concurrent_threads" // 20
+    "-phylo_concurrent_threads", // 20
+    "-prc_backend" // 21
     };
     const size_t kArgsCount = sizeof(kArgs) / sizeof(kArgs[0]);
 	//string to save the compute model from the user input
@@ -284,6 +285,21 @@ int main(int argc, char * argv[]){
                         }
                         find_argu = true;
                         break;
+                    case 21:
+                        // -prc_backend <auto|legacy|prcx>
+                        arg_num++;
+                        if(arg_num >= argc - 1){
+                            output_error_("'-prc_backend' requires a value: auto|legacy|prcx");
+                        }
+                        {
+                            std::string v = argv[arg_num];
+                            if (v == "auto") strc_cmd.prc_backend = 0;
+                            else if (v == "legacy") strc_cmd.prc_backend = 1;
+                            else if (v == "prcx") strc_cmd.prc_backend = 2;
+                            else output_error_("'-prc_backend' value must be one of: auto|legacy|prcx");
+                        }
+                        find_argu = true;
+                        break;
                     default:
                         output_error_("Arguments");
                         break;
@@ -407,6 +423,8 @@ int main(int argc, char * argv[]){
     test.prc_threads_count = strc_cmd.prc_threads;
     test.phylo_threads_count = strc_cmd.phylo_threads;
     test.phylo_concurrent_threads_count = strc_cmd.phylo_concurrent_threads;
+    test.prc_backend = strc_cmd.prc_backend;
+    std::cout << "PRC backend preference: " << (test.prc_backend == HMMTree::PRC_BACKEND_AUTO ? "auto" : (test.prc_backend == HMMTree::PRC_BACKEND_LEGACY ? "legacy" : "prcx")) << std::endl;
     
     std::cout << "Thread configuration - PRC analysis: " << 
         (test.prc_threads_count == 0 ? "auto-detect" : std::to_string(test.prc_threads_count)) << 

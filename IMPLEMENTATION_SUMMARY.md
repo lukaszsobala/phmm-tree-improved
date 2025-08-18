@@ -32,7 +32,7 @@ Complete parallelization of all major phylogenetic algorithms using OpenMP with 
 - ✅ **Distance Accumulation**: Reduction clauses for thread-safe sums
 - ✅ **Load Balancing**: Dynamic and static scheduling optimization
 
-##### **PRC Algorithm (prc_deal.cpp)**
+##### **PRC Algorithm (process_prc.cpp)**
 - ✅ **All-vs-All Comparisons**: Parallelized HMM pairwise distance computations
 - ✅ **Concurrent PRC Execution**: Multiple single-threaded PRC instances run simultaneously
 - ✅ **Thread-Safe Output**: Synchronized progress reporting prevents jumbled terminal output
@@ -53,7 +53,7 @@ Complete parallelization of all major phylogenetic algorithms using OpenMP with 
 #### **Filename Collision Resolution**
 **Problem**: Temporary filename collisions causing data overwrites and program failures.
 
-**Root Cause**: Flawed name shortening algorithm in `matrix_deal.cpp` created duplicate shortened names.
+**Root Cause**: Flawed name shortening algorithm in `process_matrices.cpp` created duplicate shortened names.
 
 **Solution**: 
 ```cpp
@@ -300,8 +300,8 @@ libgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1
 - `kitsch.c` - Kitsch algorithm parallelization  
 - `neighbor.c` - Neighbor-Joining parallelization
 - `upgma.c` - UPGMA algorithm parallelization
-- `prc_deal.cpp` - PRC algorithm parallelization
-- `matrix_deal.cpp` - Filename collision fix and I/O optimization
+- `process_prc.cpp` - PRC algorithm parallelization
+- `process_matrices.cpp` - Filename collision fix and I/O optimization
 
 **User Interface & Utilities:**
 - `HMMTree.cpp` - Runtime reporting with human-readable time formatting
@@ -315,7 +315,6 @@ libgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1
 - `Makefile` - OpenMP auto-detection and parallel compilation
 
 **Documentation:**
-- `PARALLELIZATION.md` - User guide for parallel execution
 - `IMPLEMENTATION_SUMMARY.md` - This comprehensive changelog
 
 ---

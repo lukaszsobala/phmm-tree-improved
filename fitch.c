@@ -1,4 +1,3 @@
-
 #include "phylip.h"
 #include "dist.h"
 #include "float.h"
@@ -335,11 +334,16 @@ void nudists(node *x, node *y)
   wjl = rprime->w[ny - 1];
   vi = qprime->v;
   vj = rprime->v;
-  x->w[ny - 1] = wil + wjl;
-  if (wil + wjl <= 0.0)
+
+  const double sum1 = wil + wjl;
+  x->w[ny - 1] = sum1;
+  if (sum1 <= 0.0) {
     x->d[ny - 1] = 0.0;
-  else
-    x->d[ny - 1] = ((dil - vi) * wil + (djl - vj) * wjl) / (wil + wjl);
+  } else {
+    const double inv1 = 1.0 / sum1;
+    x->d[ny - 1] = (((dil - vi) * wil) + ((djl - vj) * wjl)) * inv1;
+  }
+
   nx = x->index;
   nq = qprime->index;
   nr = rprime->index;
@@ -347,11 +351,15 @@ void nudists(node *x, node *y)
   djl = y->d[nr - 1];
   wil = y->w[nq - 1];
   wjl = y->w[nr - 1];
-  y->w[nx - 1] = wil + wjl;
-  if (wil + wjl <= 0.0)
+
+  const double sum2 = wil + wjl;
+  y->w[nx - 1] = sum2;
+  if (sum2 <= 0.0) {
     y->d[nx - 1] = 0.0;
-  else
-    y->d[nx - 1] = ((dil - vi) * wil + (djl - vj) * wjl) / (wil + wjl);
+  } else {
+    const double inv2 = 1.0 / sum2;
+    y->d[nx - 1] = (((dil - vi) * wil) + ((djl - vj) * wjl)) * inv2;
+  }
 }  /* nudists */
 
 
@@ -382,11 +390,13 @@ void makedists(node *p)
     q = p->next;
     s = q->back;
     ns = s->index;
-    if (s->w[nr - 1] + r->w[ns - 1] <= 0.0)
+    const double w1 = s->w[nr - 1];
+    const double w2 = r->w[ns - 1];
+    const double sum = w1 + w2;
+    if (sum <= 0.0)
       p->dist = 0.0;
     else
-      p->dist = (s->w[nr - 1] * s->d[nr - 1] + r->w[ns - 1] * r->d[ns - 1]) /
-                (s->w[nr - 1] + r->w[ns - 1]);
+      p->dist = (w1 * s->d[nr - 1] + w2 * r->d[ns - 1]) / sum;
     p = q;
     r = s;
     nr = ns;
@@ -432,12 +442,14 @@ void correctv(node *p)
       if (p->iter) {
         wr = r->back->w[n - 1] + p->back->w[nr - 1];
         wq = q->back->w[n - 1] + p->back->w[nq - 1];
-        if (wr + wq <= 0.0 && !negallowed)
+        const double denom = wr + wq;
+        if (denom <= 0.0 && !negallowed) {
           p->v = 0.0;
-        else
-          p->v = ((p->dist - q->v) * wq + (r->dist - r->v) * wr) / (wr + wq);
-        if (p->v < 0 && !negallowed)
-          p->v = 0.0;
+        } else {
+          p->v = ((p->dist - q->v) * wq + (r->dist - r->v) * wr) / denom;
+          if (p->v < 0 && !negallowed)
+            p->v = 0.0;
+        }
         p->back->v = p->v;
       }
       temp = p;
@@ -624,17 +636,25 @@ void setuptipf(long m, tree *t)
 {
   /* initialize branch lengths and views in a tip */
   long i=0;
-  intvector n=(long *)Malloc(spp * sizeof(long));
+  const long *n = reps[m - 1]; /* use existing counts; no temp alloc */
   node *WITH;
 
   WITH = t->nodep[m - 1];
   memcpy(WITH->d, x[m - 1], (nonodes2 * sizeof(double)));
-  memcpy(n, reps[m - 1], (spp * sizeof(long)));
+
   for (i = 0; i < spp; i++) {
     if (i + 1 != m && n[i] > 0) {
       if (WITH->d[i] < epsilonf)
         WITH->d[i] = epsilonf;
-      WITH->w[i] = n[i] / exp(power * log(WITH->d[i]));
+      /* default power is often 2.0; handle that fast path exactly */
+      double denom;
+      if (power == 2.0) {
+        const double di = WITH->d[i];
+        denom = di * di;
+      } else {
+        denom = exp(power * log(WITH->d[i]));
+      }
+      WITH->w[i] = n[i] / denom;
     } else {
       WITH->w[i] = 0.0;
       WITH->d[i] = 0.0;
@@ -646,7 +666,6 @@ void setuptipf(long m, tree *t)
   }
   WITH->index = m;
   if (WITH->iter) WITH->v = 0.0;
-  free(n);
 }  /* setuptipf */
 
 

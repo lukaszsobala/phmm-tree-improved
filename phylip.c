@@ -637,45 +637,10 @@ void lgr(long m, double b, raterootarray lgroot)
 
 
 double logfac (long n)
-{ /* log(n!) values were calculated with Mathematica
-     with a precision of 30 digits */
-  long i;
-  double x;
-
-  switch (n)
-    {
-    case 0:
-      return 0.;
-    case 1:
-      return 0.;
-    case 2:
-      return 0.693147180559945309417232121458;
-    case 3:
-      return 1.791759469228055000812477358381;
-    case 4:
-      return 3.1780538303479456196469416013;
-    case 5:
-      return 4.78749174278204599424770093452;
-    case 6:
-      return 6.5792512120101009950601782929;
-    case 7:
-      return 8.52516136106541430016553103635;
-    case 8:
-      return 10.60460290274525022841722740072;
-    case 9:
-      return 12.80182748008146961120771787457;
-    case 10:
-      return 15.10441257307551529522570932925;
-    case 11:
-      return 17.50230784587388583928765290722;
-    case 12:
-      return 19.98721449566188614951736238706;
-    default:
-      x = 19.98721449566188614951736238706;
-      for (i = 13; i <= n; i++)
-        x += log(i);
-      return x;
-    }
+{ /* compute log(n!) using lgamma for robustness and simplicity */
+  if (n < 0)
+    return NAN;
+  return lgamma((double)n + 1.0);
 } /* logfac */
 
 
@@ -842,7 +807,7 @@ void hermite_weight(long n, double * hroot, double * weights)
   double hr2;
   double numerator;
 
-  numerator = exp(0.6931471805599 * ( n-1.) + logfac(n)) / (n*n);
+  numerator = exp(log(2.0) * (n - 1.0) + logfac(n)) / ((double)n * (double)n);
   for (i = 0; i < n; i++) {
     hr2 = hermite(n-1, hroot[i]);
     weights[i] = numerator / (hr2*hr2);

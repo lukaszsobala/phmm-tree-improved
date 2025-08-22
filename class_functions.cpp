@@ -72,11 +72,27 @@ void HMMTree::create_files_folder(std::string input_file_or_folder_path, int prc
     }
 
 
+    // Reserve a unique folder name; consider both prc_ and prcx_ prefixes
     unsigned int folder_num = 0;
-    std::string str_folder_temp =str_new_folder;
-    while(dir_exist_opendir(str_new_folder)){
+    std::string str_folder_temp = str_new_folder;     // e.g., prc_hmms_mode_foo
+    // Compute the alternate name with prcx_ prefix to avoid future rename collisions
+    std::string alt_folder_temp = str_folder_temp;
+    if (prc_hhsuite == 0 && str_folder_temp.rfind("prc_", 0) == 0) {
+        alt_folder_temp = std::string("prcx_") + str_folder_temp.substr(4);
+    } else {
+        // No alternate to check (HHsuite paths or unexpected prefix)
+        alt_folder_temp.clear();
+    }
+
+    std::string probe = str_folder_temp;
+    std::string alt_probe = alt_folder_temp;
+    while (dir_exist_opendir(probe) || (!alt_probe.empty() && dir_exist_opendir(alt_probe))) {
         std::string str_num_temp = uint2str(folder_num);
-        str_new_folder=str_folder_temp+"_"+str_num_temp;
+        probe = str_folder_temp + "_" + str_num_temp;
+        if (!alt_folder_temp.empty()) {
+            alt_probe = alt_folder_temp + "_" + str_num_temp;
+        }
+        str_new_folder = probe;
         folder_num++;
     }
 
@@ -410,7 +426,13 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
             if (files_folder.rfind("./prc_", 0) == 0) {
                 std::string old_dir = files_folder;
                 if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
-                std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+                std::string base_new_dir = std::string("./prcx_") + old_dir.substr(6);
+                std::string new_dir = base_new_dir;
+                // If target exists, add numeric suffix to avoid collision
+                unsigned int suffix = 0;
+                while (dir_exist_opendir(new_dir)) {
+                    new_dir = base_new_dir + "_" + uint2str(suffix++);
+                }
                 if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
                     files_folder = new_dir + "/";
                     // Recompute subfolder paths
@@ -482,6 +504,7 @@ void HMMTree::process_fasta_sequences(std::string file_path_name, double identit
     trees_replace_shorted_names(folder_tree_files);
     system_return(system(("rm -rf "+ folder_clusters).c_str()));
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
+    std::cout << "Results folder: " << files_folder << std::endl;
     return ;
 }
 
@@ -540,6 +563,7 @@ void HMMTree::process_hhsuite_fasta_sequences(std::string file_path_name, double
 
     system_return(system(("rm -rf "+ folder_clusters).c_str()));
     trees_replace_shorted_names(folder_tree_files);
+    std::cout << "Results folder: " << files_folder << std::endl;
     return ;
 }
 
@@ -582,7 +606,12 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
             if (files_folder.rfind("./prc_", 0) == 0) {
                 std::string old_dir = files_folder;
                 if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
-                std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+                std::string base_new_dir = std::string("./prcx_") + old_dir.substr(6);
+                std::string new_dir = base_new_dir;
+                unsigned int suffix = 0;
+                while (dir_exist_opendir(new_dir)) {
+                    new_dir = base_new_dir + "_" + uint2str(suffix++);
+                }
                 if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
                     files_folder = new_dir + "/";
                     folder_hmms =files_folder + "hmms"+"/";
@@ -653,6 +682,7 @@ void HMMTree::process_prc_alignments(std::string file_path_name){
     
     system_return(system(("rm -rf "+ folder_prcfiles).c_str()));
     trees_replace_shorted_names(folder_tree_files);
+    std::cout << "Results folder: " << files_folder << std::endl;
     return ;
 }
 
@@ -702,6 +732,7 @@ void HMMTree::process_hhsuite_alignments(std::string file_path_name)
 
     draw_tree_test();
     trees_replace_shorted_names(folder_tree_files);
+    std::cout << "Results folder: " << files_folder << std::endl;
     return ;
 }
 
@@ -744,7 +775,12 @@ void HMMTree::process_prc_HMMs(std::string infile_path_and_name){
         if (files_folder.rfind("./prc_", 0) == 0) {
             std::string old_dir = files_folder;
             if (!old_dir.empty() && old_dir.back() == '/') old_dir.pop_back();
-            std::string new_dir = std::string("./prcx_") + old_dir.substr(6);
+            std::string base_new_dir = std::string("./prcx_") + old_dir.substr(6);
+            std::string new_dir = base_new_dir;
+            unsigned int suffix = 0;
+            while (dir_exist_opendir(new_dir)) {
+                new_dir = base_new_dir + "_" + uint2str(suffix++);
+            }
             if (rename(old_dir.c_str(), new_dir.c_str()) == 0) {
                 files_folder = new_dir + "/";
                 folder_hmms =files_folder + "hmms"+"/";

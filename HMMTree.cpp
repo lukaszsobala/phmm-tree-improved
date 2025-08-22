@@ -456,6 +456,7 @@ int main(int argc, char * argv[]){
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.process_fasta_sequences(str_file_path, test.double_user_id);
             std::cout << "'-prc' mode in '-uals' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
         }
 
         if(strc_cmd.als){
@@ -464,6 +465,7 @@ int main(int argc, char * argv[]){
             // Banner suppressed per request
             test.process_prc_alignments(str_file_path);
             std::cout << "'-prc' mode in '-als' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
 		}
 
 		if(strc_cmd.als_phmms){
@@ -473,6 +475,7 @@ int main(int argc, char * argv[]){
             // Banner suppressed per request
             test.process_prc_alignments_phmms(str_file_path, str_file_path_2);
             std::cout << "'-prc' mode in '-als_phmms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
 		}
 
 
@@ -482,6 +485,7 @@ int main(int argc, char * argv[]){
             // Banner suppressed per request
             test.process_prc_HMMs(str_file_path);
             std::cout << "'-prc' mode in '-hmms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
 
 		}
     }else{
@@ -492,6 +496,7 @@ int main(int argc, char * argv[]){
             //test.CLUSTER_OK_THRESHOLD = double_user_id;
             test.process_hhsuite_fasta_sequences(str_file_path, test.double_user_id);
             std::cout << "'-hhsuite' mode in '-uals' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
         }
 
         if(strc_cmd.als){
@@ -500,6 +505,7 @@ int main(int argc, char * argv[]){
             std::cout << "hhmbuild->hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_alignments(str_file_path);
             std::cout << "'-hhsuite' mode in '-als' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
 		}
 
 
@@ -510,6 +516,7 @@ int main(int argc, char * argv[]){
             std::cout << "als->hhmbuild->hhm1s, (hhm1s + hhm2s)->hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_alignments_phhms(str_file_path, str_file_path_2);
             std::cout << "'-hhsuite' mode in '-als_phhms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
 		}
 
 		if(strc_cmd.hhsuite_hhms){
@@ -518,6 +525,7 @@ int main(int argc, char * argv[]){
             std::cout << "hhsuite->distance matrix" << std::endl;
             test.process_hhsuite_HHMs(str_file_path);
             std::cout << "'-hhsuite' mode in '-hhms' mode runtime: " << format_time_duration(now_millis() - start_ms) << std::endl;
+            std::cout << "Results folder: " << test.files_folder << std::endl;
 
 		}
     }

@@ -449,10 +449,23 @@ void upgma_jointree()
     }
   }
   if (!njoin) {
-    curtree.start = cluster[el[0] - 1];
-    curtree.start->back = NULL;
+    /* Select the remaining non-NULL cluster as the tree start directly,
+       avoiding use of possibly-uninitialized el[]. */
+    node *start_node = NULL;
+    for (i = 1; i <= spp; i++) {
+      if (cluster[i - 1] != NULL) {
+        start_node = cluster[i - 1];
+        break;
+      }
+    }
+    if (start_node != NULL) {
+      curtree.start = start_node;
+      curtree.start->back = NULL;
+    }
+    /* Defensive: free and return even if start_node is NULL (should not happen). */
     free(av);
     free(oc);
+    free(R);
     return;
   }
   bi = (x[el[0] - 1][el[1] - 1] + x[el[0] - 1][el[2] - 1] - x[el[1] - 1]

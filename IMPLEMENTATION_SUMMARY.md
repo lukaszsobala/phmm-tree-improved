@@ -240,10 +240,10 @@ This release represents a major advancement in PHMM-Tree capabilities:
 To avoid race conditions and false errors stemming from static/global state in legacy PHYLIP code (phylip.c, neighbor.c, upgma.c, kitsch.c, fitch.c), phylogenetic analyses are now dispatched as separate OS processes rather than OpenMP threads. This isolates each run’s memory and FILE handles, eliminating cross-algorithm interference.
 
 ### New CLI
-- `-prc_threads`: the number of prc threads to be used
+- `-prc_threads`: Number of prc threads to be used. Auto-detects all available threads.
 - `-phylo_concurrent_threads <N>`: Maximum number of phylogenetic analyses to run concurrently.
     - `0` or omitted: Auto-detect (uses available CPU threads, capped by number of tasks).
-- `-phylo_threads <M>`: Threads used within each individual algorithm run (defaults to 1). This remains independent from PRC threads. Does not provide any meaningful speedup.
+- `-phylo_threads <M>`: Threads used within each individual algorithm run (defaults to 1). This remains independent from PRC threads. **Does not provide any meaningful speedup, but is kept in the codebase for possible future use.**
 
 ### Behavior
 - Selected analyses (Kitsch f-m/min, Fitch f-m/min, NJ, UPGMA) are queued as tasks.

@@ -381,15 +381,17 @@ void nudists_parallel(node **nodes, node *y, int count)
 void makedists(node *p)
 {
   /* compute distances among three neighbors of a node */
-  long i=0, nr=0, ns=0;
+  long nr=0, ns=0;
   node *q, *r, *s;
 
   r = p->back;
   nr = r->index;
-  for (i = 1; i <= 3; i++) {
-    q = p->next;
-    s = q->back;
-    ns = s->index;
+
+  /* step 1 */
+  q = p->next;
+  s = q->back;
+  ns = s->index;
+  {
     const double w1 = s->w[nr - 1];
     const double w2 = r->w[ns - 1];
     const double sum = w1 + w2;
@@ -397,9 +399,40 @@ void makedists(node *p)
       p->dist = 0.0;
     else
       p->dist = (w1 * s->d[nr - 1] + w2 * r->d[ns - 1]) / sum;
-    p = q;
-    r = s;
-    nr = ns;
+  }
+  p = q;
+  r = s;
+  nr = ns;
+
+  /* step 2 */
+  q = p->next;
+  s = q->back;
+  ns = s->index;
+  {
+    const double w1 = s->w[nr - 1];
+    const double w2 = r->w[ns - 1];
+    const double sum = w1 + w2;
+    if (sum <= 0.0)
+      p->dist = 0.0;
+    else
+      p->dist = (w1 * s->d[nr - 1] + w2 * r->d[ns - 1]) / sum;
+  }
+  p = q;
+  r = s;
+  nr = ns;
+
+  /* step 3 */
+  q = p->next;
+  s = q->back;
+  ns = s->index;
+  {
+    const double w1 = s->w[nr - 1];
+    const double w2 = r->w[ns - 1];
+    const double sum = w1 + w2;
+    if (sum <= 0.0)
+      p->dist = 0.0;
+    else
+      p->dist = (w1 * s->d[nr - 1] + w2 * r->d[ns - 1]) / sum;
   }
 }  /* makedists */
 
@@ -429,7 +462,7 @@ void correctv(node *p)
 {
   /* iterate branch lengths if some are to be zero */
   node *q, *r, *temp;
-  long i=0, j=0, n=0, nq=0, nr=0, ntemp=0;
+  long i=0, n=0, nq=0, nr=0, ntemp=0;
   double wq=0.0, wr=0.0;
 
   q = p->next;
@@ -438,29 +471,56 @@ void correctv(node *p)
   nq = q->back->index;
   nr = r->back->index;
   for (i = 1; i <= zsmoothings; i++) {
-    for (j = 1; j <= 3; j++) {
-      if (p->iter) {
-        wr = r->back->w[n - 1] + p->back->w[nr - 1];
-        wq = q->back->w[n - 1] + p->back->w[nq - 1];
-        const double denom = wr + wq;
-        if (denom <= 0.0 && !negallowed) {
+    /* step 1 */
+    if (p->iter) {
+      wr = r->back->w[n - 1] + p->back->w[nr - 1];
+      wq = q->back->w[n - 1] + p->back->w[nq - 1];
+      const double denom1 = wr + wq;
+      if (denom1 <= 0.0 && !negallowed) {
+        p->v = 0.0;
+      } else {
+        p->v = ((p->dist - q->v) * wq + (r->dist - r->v) * wr) / denom1;
+        if (p->v < 0 && !negallowed)
           p->v = 0.0;
-        } else {
-          p->v = ((p->dist - q->v) * wq + (r->dist - r->v) * wr) / denom;
-          if (p->v < 0 && !negallowed)
-            p->v = 0.0;
-        }
-        p->back->v = p->v;
       }
-      temp = p;
-      p = q;
-      q = r;
-      r = temp;
-      ntemp = n;
-      n = nq;
-      nq = nr;
-      nr = ntemp;
+      p->back->v = p->v;
     }
+    temp = p; p = q; q = r; r = temp;
+    ntemp = n; n = nq; nq = nr; nr = ntemp;
+
+    /* step 2 */
+    if (p->iter) {
+      wr = r->back->w[n - 1] + p->back->w[nr - 1];
+      wq = q->back->w[n - 1] + p->back->w[nq - 1];
+      const double denom2 = wr + wq;
+      if (denom2 <= 0.0 && !negallowed) {
+        p->v = 0.0;
+      } else {
+        p->v = ((p->dist - q->v) * wq + (r->dist - r->v) * wr) / denom2;
+        if (p->v < 0 && !negallowed)
+          p->v = 0.0;
+      }
+      p->back->v = p->v;
+    }
+    temp = p; p = q; q = r; r = temp;
+    ntemp = n; n = nq; nq = nr; nr = ntemp;
+
+    /* step 3 */
+    if (p->iter) {
+      wr = r->back->w[n - 1] + p->back->w[nr - 1];
+      wq = q->back->w[n - 1] + p->back->w[nq - 1];
+      const double denom3 = wr + wq;
+      if (denom3 <= 0.0 && !negallowed) {
+        p->v = 0.0;
+      } else {
+        p->v = ((p->dist - q->v) * wq + (r->dist - r->v) * wr) / denom3;
+        if (p->v < 0 && !negallowed)
+          p->v = 0.0;
+      }
+      p->back->v = p->v;
+    }
+    temp = p; p = q; q = r; r = temp;
+    ntemp = n; n = nq; nq = nr; nr = ntemp;
   }
 }  /* correctv */
 
@@ -554,7 +614,7 @@ void insert_(node *p, node *q, boolean contin_)
   double x=0.0, oldlike;
   hookup(p->next->next, q->back);
   hookup(p->next, q);
-  x = q->v / 2.0;
+  x = q->v * 0.5;
   p->v = 0.0;
   p->back->v = 0.0;
   p->next->v = x;
@@ -646,11 +706,15 @@ void setuptipf(long m, tree *t)
     if (i + 1 != m && n[i] > 0) {
       if (WITH->d[i] < epsilonf)
         WITH->d[i] = epsilonf;
-      /* default power is often 2.0; handle that fast path exactly */
+      /* default power is often 2.0; handle fast paths exactly for 0,1,2 */
       double denom;
       if (power == 2.0) {
         const double di = WITH->d[i];
         denom = di * di;
+      } else if (power == 1.0) {
+        denom = WITH->d[i];
+      } else if (power == 0.0) {
+        denom = 1.0;
       } else {
         denom = exp(power * log(WITH->d[i]));
       }

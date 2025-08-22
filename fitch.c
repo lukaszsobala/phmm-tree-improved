@@ -440,20 +440,29 @@ void makedists(node *p)
 void makebigv(node *p)
 {
   /* make new branch length */
-  long i=0;
   node *temp, *q, *r;
 
   q = p->next;
   r = q->next;
-  for (i = 1; i <= 3; i++) {
-    if (p->iter) {
-      p->v = (p->dist + r->dist - q->dist) / 2.0;
-      p->back->v = p->v;
-    }
-    temp = p;
-    p = q;
-    q = r;
-    r = temp;
+
+  /* step 1 */
+  if (p->iter) {
+    p->v = (p->dist + r->dist - q->dist) * 0.5;
+    p->back->v = p->v;
+  }
+  temp = p; p = q; q = r; r = temp;
+
+  /* step 2 */
+  if (p->iter) {
+    p->v = (p->dist + r->dist - q->dist) * 0.5;
+    p->back->v = p->v;
+  }
+  temp = p; p = q; q = r; r = temp;
+
+  /* step 3 */
+  if (p->iter) {
+    p->v = (p->dist + r->dist - q->dist) * 0.5;
+    p->back->v = p->v;
   }
 }  /* makebigv */
 
@@ -539,19 +548,27 @@ void alter(node *x, node *y)
 void nuview(node *p)
 {
   /* renew information about subtrees */
-  long i=0;
   node *q, *r, *pprime, *temp;
 
   q = p->next;
   r = q->next;
-  for (i = 1; i <= 3; i++) {
-    temp = p;
-    pprime = p->back;
-    alter(p, pprime);
-    p = q;
-    q = r;
-    r = temp;
-  }
+
+  /* step 1 */
+  temp = p;
+  pprime = p->back;
+  alter(p, pprime);
+  p = q; q = r; r = temp;
+
+  /* step 2 */
+  temp = p;
+  pprime = p->back;
+  alter(p, pprime);
+  p = q; q = r; r = temp;
+
+  /* step 3 */
+  temp = p;
+  pprime = p->back;
+  alter(p, pprime);
 }  /* nuview */
 
 
@@ -623,12 +640,14 @@ void insert_(node *p, node *q, boolean contin_)
   p->next->next->v = x;
   fillin(p->back, p, contin_);
   fitch_evaluate(&curtree);
+  double diff;
   do {
     oldlike = curtree.likelihood;
     smooth(p);
     smooth(p->back);
     fitch_evaluate(&curtree);
-  } while (fabs(curtree.likelihood - oldlike) > delta);
+    diff = curtree.likelihood - oldlike;
+  } while (diff > delta || diff < -delta);
 }  /* insert_ */
 
 
@@ -983,11 +1002,13 @@ void treevaluate()
   if (curtree.start->back != NULL) {
     initrav(curtree.start->back);
     fitch_evaluate(&curtree);
+    double diff;
     do {
       oldlike = curtree.likelihood;
       smooth(curtree.start);
       fitch_evaluate(&curtree);
-    } while (fabs(curtree.likelihood - oldlike) > delta);
+      diff = curtree.likelihood - oldlike;
+    } while (diff > delta || diff < -delta);
   }
   fitch_evaluate(&curtree);
 }  /* treevaluate */

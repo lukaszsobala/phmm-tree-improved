@@ -67,11 +67,11 @@ void   fitch_getinput(void);
 void   fitch_secondtraverse(node *, double , long *, double *);
 void   firsttraverse(node *, long *, double *);
 double fitch_evaluate(tree *);
-void   nudists(node *, node *);
-void   makedists(node *);
+static inline void   nudists(node *, node *);
+static inline void   makedists(node *);
 
-void   makebigv(node *);
-void   correctv(node *);
+static inline void   makebigv(node *);
+static inline void   correctv(node *);
 void   alter(node *, node *);
 void   nuview(node *);
 void   update(node *);
@@ -317,7 +317,7 @@ double fitch_evaluate(tree *t)
 }  /* fitch_evaluate */
 
 
-void nudists(node *x, node *y)
+static inline void nudists(node *x, node *y)
 {
   /* compute distance between an interior node and tips */
   long nq=0, nr=0, nx=0, ny=0;
@@ -378,7 +378,7 @@ void nudists_parallel(node **nodes, node *y, int count)
 }  /* nudists_parallel */
 
 
-void makedists(node *p)
+static inline void makedists(node *p)
 {
   /* compute distances among three neighbors of a node */
   long nr=0, ns=0;
@@ -437,7 +437,7 @@ void makedists(node *p)
 }  /* makedists */
 
 
-void makebigv(node *p)
+static inline void makebigv(node *p)
 {
   /* make new branch length */
   node *temp, *q, *r;
@@ -467,7 +467,7 @@ void makebigv(node *p)
 }  /* makebigv */
 
 
-void correctv(node *p)
+static inline void correctv(node *p)
 {
   /* iterate branch lengths if some are to be zero */
   node *q, *r, *temp;

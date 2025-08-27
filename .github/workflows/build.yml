@@ -1,0 +1,123 @@
+name: Build phmm-tree
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-makefile:
+    name: Build with Makefile
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libomp-dev
+        
+    - name: Show compiler info
+      run: |
+        gcc --version
+        g++ --version
+        
+    - name: Build with Makefile
+      run: |
+        make info
+        make clean
+        make -j$(nproc)
+        
+    - name: Verify binary
+      run: |
+        ls -la phmm-tree
+        file phmm-tree
+        ./phmm-tree --help || echo "Binary created successfully (exit code: $?)"
+        
+    - name: Upload Makefile binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: phmm-tree-makefile
+        path: phmm-tree
+
+  build-cmake:
+    name: Build with CMake
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libomp-dev
+        
+    - name: Show tools info
+      run: |
+        gcc --version
+        g++ --version
+        cmake --version
+        
+    - name: Build with CMake
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j$(nproc)
+        
+    - name: Verify binary
+      run: |
+        ls -la build/phmm-tree
+        file build/phmm-tree
+        cd build && ./phmm-tree --help || echo "Binary created successfully (exit code: $?)"
+        
+    - name: Upload CMake binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: phmm-tree-cmake
+        path: build/phmm-tree
+
+  build-multi-platform:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-20.04]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies (Ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libomp-dev
+        
+    - name: Show system info
+      run: |
+        uname -a
+        gcc --version || echo "GCC not available"
+        g++ --version || echo "G++ not available"
+        
+    - name: Build with Makefile
+      run: |
+        make info || echo "Make info failed"
+        make clean || echo "Make clean failed"
+        make -j$(nproc)
+        
+    - name: Verify binary
+      run: |
+        ls -la phmm-tree
+        file phmm-tree
+        
+    - name: Upload platform binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: phmm-tree-${{ matrix.os }}
+        path: phmm-tree

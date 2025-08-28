@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <limits.h>
 #include <algorithm>
 
 int HMMTree::Phylip_draw_tree2(){
@@ -110,8 +111,27 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
         if (pid == 0) {
             // Child: exec self with -phylo_worker
             std::string threads_str = std::to_string(std::max(1, t.threads));
-            execlp("./phmm-tree", "phmm-tree", "-phylo_worker", t.algo.c_str(), t.matrix.c_str(), t.output.c_str(), threads_str.c_str(), (char*)NULL);
+            // Build argv array
+            std::vector<char*> args;
+            args.push_back(const_cast<char*>("phmm-tree"));
+            args.push_back(const_cast<char*>("-phylo_worker"));
+            args.push_back(const_cast<char*>(t.algo.c_str()));
+            args.push_back(const_cast<char*>(t.matrix.c_str()));
+            args.push_back(const_cast<char*>(t.output.c_str()));
+            args.push_back(const_cast<char*>(threads_str.c_str()));
+            args.push_back(nullptr);
+
+            // Try executing the current binary via /proc/self/exe (Linux)
+            char self_path[PATH_MAX];
+            ssize_t n = readlink("/proc/self/exe", self_path, sizeof(self_path) - 1);
+            if (n > 0) {
+                self_path[n] = '\0';
+                execv(self_path, args.data());
+            }
+            // Fallback to searching PATH
+            execvp("phmm-tree", args.data());
             // If exec fails
+            perror("exec phmm-tree");
             _exit(127);
         } else if (pid > 0) {
             pids[idx] = pid;

@@ -1,4 +1,68 @@
 #include "HMMTree.h"
+#include <fstream>
+#include <vector>
+#include <string>
+
+// Ensure ACC header exists in an HMM file; if missing, insert ACC using the file's basename
+static bool ensure_acc_in_hmm_file(const std::string &filepath) {
+	std::ifstream in(filepath.c_str());
+	if (!in.is_open()) return false;
+	std::vector<std::string> lines;
+	lines.reserve(256);
+	std::string line;
+	bool hasACC = false;
+	int nameLineIdx = -1;
+	int lineIdx = 0;
+	while (std::getline(in, line)) {
+		// Detect ACC line (leading spaces allowed)
+		std::string trimmed = line;
+		// ltrim
+		size_t p = trimmed.find_first_not_of(' ');
+		if (p != std::string::npos) trimmed = trimmed.substr(p);
+		if (trimmed.rfind("ACC", 0) == 0) {
+			hasACC = true;
+		}
+		if (trimmed.rfind("NAME", 0) == 0) {
+			nameLineIdx = lineIdx;
+		}
+		lines.push_back(line);
+		lineIdx++;
+	}
+	in.close();
+
+	if (hasACC) return true; // nothing to do
+
+	// Determine ACC value = basename (keep extension)
+	std::string acc;
+	size_t slash = filepath.find_last_of('/');
+	acc = (slash == std::string::npos) ? filepath : filepath.substr(slash + 1);
+
+	// Build ACC line
+	std::string accLine = std::string("ACC   ") + acc;
+
+	// Choose insertion point: after NAME if available, else after first line
+	int insertAt = (nameLineIdx >= 0) ? (nameLineIdx + 1) : 1;
+	if (insertAt < 0) insertAt = 0;
+	if (insertAt > (int)lines.size()) insertAt = (int)lines.size();
+	lines.insert(lines.begin() + insertAt, accLine);
+
+	// Write back atomically via temporary file
+	std::string tmpPath = filepath + ".tmp";
+	std::ofstream out(tmpPath.c_str(), std::ios::out | std::ios::trunc);
+	if (!out.is_open()) return false;
+	for (const auto &l : lines) {
+		out << l << '\n';
+	}
+	out.close();
+	// Replace original
+	::remove(filepath.c_str());
+	if (rename(tmpPath.c_str(), filepath.c_str()) != 0) {
+		// Best-effort cleanup
+		::remove(tmpPath.c_str());
+		return false;
+	}
+	return true;
+}
 //hmmbuild a hmm model
 int HMMTree::hmm_hmmbuild_one(std::string family_name)
 {
@@ -400,7 +464,17 @@ int HMMTree::hmm_copy_hmmfiles(std::string path){
     if(path_temp[path_temp.length()-1] != '/'){
         path_temp = path_temp+"/";
     }
-    copy_files(path_temp,folder_hmms,".hmm");
+	copy_files(path_temp,folder_hmms,".hmm");
+
+	// After copying, ensure each HMM has an ACC header (use filename if missing)
+	{
+		std::vector<std::string> hmm_files;
+		if (get_file_names(folder_hmms, hmm_files, ".hmm")) {
+			for (const auto &fn : hmm_files) {
+				ensure_acc_in_hmm_file(folder_hmms + fn);
+			}
+		}
+	}
 
     return 1;
 }
@@ -436,7 +510,17 @@ int HMMTree::hmm_als_phmms_copy_hmmfiles(std::string path){
     if(path_temp[path_temp.length()-1] != '/'){
         path_temp = path_temp+"/";
     }
-    copy_files(path_temp,folder_hmms,".hmm");
+	copy_files(path_temp,folder_hmms,".hmm");
+
+	// After copying, ensure each HMM has an ACC header (use filename if missing)
+	{
+		std::vector<std::string> hmm_files;
+		if (get_file_names(folder_hmms, hmm_files, ".hmm")) {
+			for (const auto &fn : hmm_files) {
+				ensure_acc_in_hmm_file(folder_hmms + fn);
+			}
+		}
+	}
 
     return 1;
 }

@@ -501,7 +501,7 @@ int HMMTree::hmm_als_phmms_copy_hmmfiles(std::string path){
     //test the hmms folder
     if(!dir_exist_opendir(folder_hmms_from_als))
     {
-        system_return(system(("mkdir  -m 777 "+folder_hmms_from_als).c_str()));
+        system_return(system(("mkdir "+folder_hmms_from_als).c_str()));
     }
 
     copy_files(folder_hmms,folder_hmms_from_als,".hmm");
@@ -535,19 +535,19 @@ int HMMTree::hmm_hmmconvert(){
             bool_HMMER_hmmconvert_in_folder = true;
         }
     }else{
-        std::cout<<"Can not find 'hmmconvert' program in the PATH variable or folder!"<<std::endl;
+        std::cout<<"Cannot find 'hmmconvert' program in the PATH variable or folder!"<<std::endl;
         exit(1);
     }
-    std::cout<<"Convert HMM file version to hmmer2 by hmmconvert command!"<<std::endl;
+    std::cout<<"Convert HMM file version to hmmer2 using hmmconvert!"<<std::endl;
     //test the hmmer2 folder
     if(!dir_exist_opendir(folder_hmmer2))
     {
-        system_return(system(("mkdir  -m 777 "+folder_hmmer2).c_str()));
+        system_return(system(("mkdir "+folder_hmmer2).c_str()));
     }
     //test the hmmer3 folder
     if(!dir_exist_opendir(folder_hmmer3))
     {
-        system_return(system(("mkdir  -m 777 "+folder_hmmer3).c_str()));
+        system_return(system(("mkdir "+folder_hmmer3).c_str()));
     }
 
     if(dir_noempty_opendir_readir(folder_hmmer3))
@@ -565,7 +565,7 @@ int HMMTree::hmm_hmmconvert(){
     }
 
     if(!hmm_hmmconvert_3_to_2()){
-        std::cout<<"HMMER hmmconvert ERROR!"<<std::endl<<"Please be sure your hmm file version be right!"<<std::endl;
+        std::cout<<"HMMER hmmconvert ERROR!"<<std::endl<<"Please be sure your hmm file version is correct!"<<std::endl;
         return 0;
     }
 

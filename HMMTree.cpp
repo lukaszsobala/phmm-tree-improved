@@ -98,10 +98,11 @@ int main(int argc, char * argv[]){
 
     CMD_PARAMS strc_cmd;
 
-    std::string str_file_path =argv[argc - 1];
+    std::string str_file_path = "";   // primary input path (file or directory)
+    std::string str_file_path_2 = ""; // secondary input path (for -als_phmms/-als_phhms)
 
     int arg_num = 1;
-    while(arg_num < argc - 1 && (!strc_cmd.als_phmms || arg_num < argc - 2) && (!strc_cmd.als_phhms || arg_num < argc - 2)){
+    while(arg_num < argc){
         const char* str_argu_temp = argv[arg_num];
         bool find_argu = false;
         size_t arg_vec_num = 0;
@@ -121,6 +122,14 @@ int main(int argc, char * argv[]){
                     case 1:
                         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phmms && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
                             strc_cmd.uals = true;
+                            // Expect a file path immediately following
+                            if (++arg_num >= argc) {
+                                output_error_("'-uals' requires a file path argument");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-uals' requires a file path argument (got another flag)");
+                            }
+                            str_file_path = argv[arg_num];
                             find_argu = true;
                         }else{
                             output_error_("Run mode '-uals' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
@@ -130,6 +139,14 @@ int main(int argc, char * argv[]){
                     case 2:
                         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phmms && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
                             strc_cmd.als = true;
+                            // Expect a directory path immediately following
+                            if (++arg_num >= argc) {
+                                output_error_("'-als' requires a directory path argument");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-als' requires a directory path argument (got another flag)");
+                            }
+                            str_file_path = argv[arg_num];
                             find_argu = true;
                         }else{
                             output_error_("Run mode '-als' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
@@ -139,6 +156,14 @@ int main(int argc, char * argv[]){
                     case 3:
                         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phmms && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
                             strc_cmd.prc_hmms = true;
+                            // Expect a directory path immediately following
+                            if (++arg_num >= argc) {
+                                output_error_("'-hmms' requires a directory path argument");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-hmms' requires a directory path argument (got another flag)");
+                            }
+                            str_file_path = argv[arg_num];
                             find_argu = true;
                         }else{
                             output_error_("Run mode '-hmms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
@@ -148,7 +173,7 @@ int main(int argc, char * argv[]){
                     case 4:
                         arg_num++;
                         if(!strc_cmd.uals_id){
-                            if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                            if(arg_num >= argc || !is_num_str(argv[arg_num])){
                                 output_error_("'-id' value arguments");
                             }
                             strc_cmd.uals_id_value = atof(argv[arg_num]);
@@ -162,7 +187,7 @@ int main(int argc, char * argv[]){
                     case 5:
                         arg_num++;
                         if(!strc_cmd.prc_prc_hit){
-                            if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                            if(arg_num >= argc || !is_num_str(argv[arg_num])){
                                 output_error_("'-prc_hit' value arguments");
                             }
                             strc_cmd.prc_prc_hit_value = atoi(argv[arg_num]);
@@ -201,6 +226,14 @@ int main(int argc, char * argv[]){
                     case 9:
                         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phmms && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
                             strc_cmd.hhsuite_hhms = true;
+                            // Expect a directory path immediately following
+                            if (++arg_num >= argc) {
+                                output_error_("'-hhms' requires a directory path argument");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-hhms' requires a directory path argument (got another flag)");
+                            }
+                            str_file_path = argv[arg_num];
                             find_argu = true;
                         }else{
                             output_error_("Run mode '-hhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
@@ -209,6 +242,21 @@ int main(int argc, char * argv[]){
                     case 10:
                         if(!strc_cmd.als_phmms && !strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
                             strc_cmd.als_phmms = true;
+                            // Expect two directory paths: <hmms_path> <als_path>
+                            if (++arg_num >= argc) {
+                                output_error_("'-als_phmms' requires two directory paths: <hmms_path> <als_path>");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-als_phmms' requires two directory paths: <hmms_path> <als_path> (got another flag)");
+                            }
+                            str_file_path = argv[arg_num];
+                            if (++arg_num >= argc) {
+                                output_error_("'-als_phmms' requires two directory paths: <hmms_path> <als_path>");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-als_phmms' requires two directory paths: <hmms_path> <als_path> (got another flag)");
+                            }
+                            str_file_path_2 = argv[arg_num];
                             find_argu = true;
                         }else{
                             output_error_("Run mode '-als_phmms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
@@ -218,6 +266,21 @@ int main(int argc, char * argv[]){
                     case 11:
                         if(!strc_cmd.als_phhms && !strc_cmd.als_phmms && !strc_cmd.uals && !strc_cmd.als && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
                             strc_cmd.als_phhms = true;
+                            // Expect two directory paths: <hhms_path> <als_path>
+                            if (++arg_num >= argc) {
+                                output_error_("'-als_phhms' requires two directory paths: <hhms_path> <als_path>");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-als_phhms' requires two directory paths: <hhms_path> <als_path> (got another flag)");
+                            }
+                            str_file_path = argv[arg_num];
+                            if (++arg_num >= argc) {
+                                output_error_("'-als_phhms' requires two directory paths: <hhms_path> <als_path>");
+                            }
+                            if (argv[arg_num][0] == '-') {
+                                output_error_("'-als_phhms' requires two directory paths: <hhms_path> <als_path> (got another flag)");
+                            }
+                            str_file_path_2 = argv[arg_num];
                             find_argu = true;
                         }else{
                             output_error_("Run mode '-als_phhms' arguments( [-uals, -als, -als_phmms(prc), -als_phhms(hhsuite), -hmms(prc), -hhms(hhsuite)] )");
@@ -258,7 +321,7 @@ int main(int argc, char * argv[]){
                     case 18:
                         // -prc_threads
                         arg_num++;
-                        if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                        if(arg_num >= argc || !is_num_str(argv[arg_num])){
                             output_error_("'-prc_threads' argument must be followed by a positive integer");
                         }
                         strc_cmd.prc_threads = atoi(argv[arg_num]);
@@ -270,7 +333,7 @@ int main(int argc, char * argv[]){
                     case 19:
                         // -phylo_threads
                         arg_num++;
-                        if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                        if(arg_num >= argc || !is_num_str(argv[arg_num])){
                             output_error_("'-phylo_threads' argument must be followed by a positive integer");
                         }
                         strc_cmd.phylo_threads = atoi(argv[arg_num]);
@@ -282,7 +345,7 @@ int main(int argc, char * argv[]){
                     case 20:
                         // -phylo_concurrent_threads
                         arg_num++;
-                        if(arg_num >= argc - 1 || !is_num_str(argv[arg_num])){
+                        if(arg_num >= argc || !is_num_str(argv[arg_num])){
                             output_error_("'-phylo_concurrent_threads' argument must be followed by a positive integer");
                         }
                         strc_cmd.phylo_concurrent_threads = atoi(argv[arg_num]);
@@ -294,7 +357,7 @@ int main(int argc, char * argv[]){
                     case 21:
                         // -prc_backend <auto|legacy|prcx>
                         arg_num++;
-                        if(arg_num >= argc - 1){
+                        if(arg_num >= argc){
                             output_error_("'-prc_backend' requires a value: auto|legacy|prcx");
                         }
                         {
@@ -440,9 +503,16 @@ int main(int argc, char * argv[]){
         (test.phylo_concurrent_threads_count == 0 ? "auto-detect" : std::to_string(test.phylo_concurrent_threads_count))
         << std::endl;
 
-    std::string str_file_path_2="";
-    if(strc_cmd.als_phmms || strc_cmd.als_phhms){
-        str_file_path_2=argv[argc - 2];
+    // Validate that required input paths were provided for the selected mode
+    if (strc_cmd.uals || strc_cmd.als || strc_cmd.prc_hmms || strc_cmd.hhsuite_hhms) {
+        if (str_file_path.empty()) {
+            output_error_("Missing input path for selected mode (expected a path argument after the input option)");
+        }
+    }
+    if (strc_cmd.als_phmms || strc_cmd.als_phhms) {
+        if (str_file_path.empty() || str_file_path_2.empty()) {
+            output_error_("Missing input paths for selected mode (expected two paths after the input option)");
+        }
     }
 
     // timing helpers

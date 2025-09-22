@@ -18,3 +18,4 @@ test_*/
 thread_test_*
 build/
 build-*
+.vscode/tasks.json

@@ -155,7 +155,12 @@ int main(int argc, char * argv[]){
                         break;
                     case 3:
                         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phmms && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
+                            if (strc_cmd.hhsuite_mode) {
+                                output_error_("'-hmms' cannot be used with '-hhsuite' mode");
+                            }
                             strc_cmd.prc_hmms = true;
+                            // Imply -prc mode when -hmms is provided
+                            strc_cmd.prc_mode = true;
                             // Expect a directory path immediately following
                             if (++arg_num >= argc) {
                                 output_error_("'-hmms' requires a directory path argument");
@@ -225,7 +230,12 @@ int main(int argc, char * argv[]){
                         break;
                     case 9:
                         if(!strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phmms && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
+                            if (strc_cmd.prc_mode) {
+                                output_error_("'-hhms' cannot be used with '-prc' mode");
+                            }
                             strc_cmd.hhsuite_hhms = true;
+                            // Imply -hhsuite mode when -hhms is provided
+                            strc_cmd.hhsuite_mode = true;
                             // Expect a directory path immediately following
                             if (++arg_num >= argc) {
                                 output_error_("'-hhms' requires a directory path argument");
@@ -241,7 +251,12 @@ int main(int argc, char * argv[]){
                         break;
                     case 10:
                         if(!strc_cmd.als_phmms && !strc_cmd.uals && !strc_cmd.als && !strc_cmd.als_phhms && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
+                            if (strc_cmd.hhsuite_mode) {
+                                output_error_("'-als_phmms' cannot be used with '-hhsuite' mode");
+                            }
                             strc_cmd.als_phmms = true;
+                            // Imply -prc mode when -als_phmms is provided
+                            strc_cmd.prc_mode = true;
                             // Expect two directory paths: <hmms_path> <als_path>
                             if (++arg_num >= argc) {
                                 output_error_("'-als_phmms' requires two directory paths: <hmms_path> <als_path>");
@@ -265,7 +280,12 @@ int main(int argc, char * argv[]){
 
                     case 11:
                         if(!strc_cmd.als_phhms && !strc_cmd.als_phmms && !strc_cmd.uals && !strc_cmd.als && !strc_cmd.hhsuite_hhms  && !strc_cmd.prc_hmms){
+                            if (strc_cmd.prc_mode) {
+                                output_error_("'-als_phhms' cannot be used with '-prc' mode");
+                            }
                             strc_cmd.als_phhms = true;
+                            // Imply -hhsuite mode when -als_phhms is provided
+                            strc_cmd.hhsuite_mode = true;
                             // Expect two directory paths: <hhms_path> <als_path>
                             if (++arg_num >= argc) {
                                 output_error_("'-als_phhms' requires two directory paths: <hhms_path> <als_path>");

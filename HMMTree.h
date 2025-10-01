@@ -352,6 +352,9 @@ typedef struct cmd_params {
 	int phylo_threads;      // number of threads for phylogenetic algorithms (Fitch/Kitsch/NJ/UPGMA)
 	int phylo_concurrent_threads; // number of concurrent phylogenetic analyses
 
+	// Fitch progress verbosity: 0=quiet,1=normal,2=verbose
+	int fitch_progress_level;
+
 	cmd_params(){
 		prc_mode = false;
         prc_hmms = false;
@@ -386,6 +389,7 @@ typedef struct cmd_params {
         prc_threads = 0;
 	    phylo_threads = 1;
 		phylo_concurrent_threads = 0; // auto-detect concurrent processes
+		fitch_progress_level = 1; // default normal
 	}
 }CMD_PARAMS;
 
@@ -417,9 +421,11 @@ public:
         run_upgma_analysis = true;
         run_nj_analysis = true;
         
-        // Initialize variant selection flags - default to both variants
-        run_fm_only = false;
-        run_min_only = false;
+	// Initialize variant selection flags - default to both variants
+	run_fm_only = false;
+	run_min_only = false;
+	// Default Fitch progress verbosity (normal)
+	fitch_progress_level = 1;
         
 	    // Initialize thread control - PRC auto-detect (0), phylo default to 1
         prc_threads_count = 0;
@@ -457,9 +463,11 @@ public:
     bool run_upgma_analysis;
     bool run_nj_analysis;
     
-    // Variant selection flags for Fitch/Kitsch
-    bool run_fm_only;        // run only f-m variants
-    bool run_min_only;       // run only minimum evolution variants
+	// Variant selection flags for Fitch/Kitsch
+	bool run_fm_only;        // run only f-m variants
+	bool run_min_only;       // run only minimum evolution variants
+	// Fitch progress verbosity control: 0=quiet, 1=normal (default), 2=verbose
+	int fitch_progress_level;
     
     // Thread control parameters
     int prc_threads_count;    // number of threads for PRC analysis

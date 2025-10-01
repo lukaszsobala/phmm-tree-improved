@@ -1,5 +1,7 @@
 #include "HMMTree.h"
+#ifdef OPENMP_ENABLED
 #include <omp.h>
+#endif
 #include <sstream>
 #include <unistd.h>
 
@@ -43,20 +45,31 @@ int HMMTree::prc_each2(){
     std::cout << "Profile Comparer (PRC): Processing " << pairs_to_process.size() << " pairwise comparisons..." << std::endl;
     
     // Set thread count for PRC analysis based on user configuration
-    int prc_num_threads = (prc_threads_count > 0) ? prc_threads_count : omp_get_max_threads();
+	int prc_num_threads = 1;
+#ifdef OPENMP_ENABLED
+	prc_num_threads = (prc_threads_count > 0) ? prc_threads_count : omp_get_max_threads();
+#else
+	if (prc_threads_count > 1) {
+		std::cout << "[PRC] Warning: OpenMP not enabled at build time; running single-thread despite -prc_threads=" << prc_threads_count << std::endl;
+	}
+#endif
     std::cout << "PRC analysis using " << prc_num_threads << " threads";
     if (prc_threads_count > 0) std::cout << " (user-specified)";
     else std::cout << " (auto-detected)";
     std::cout << std::endl;
     
-    omp_set_num_threads(prc_num_threads);
+	#ifdef OPENMP_ENABLED
+	omp_set_num_threads(prc_num_threads);
+	#endif
     
     // Track progress with a thread-safe counter
     int completed_count = 0;
     int total_pairs = pairs_to_process.size();
 
     // Parallelize the pairwise comparisons
-    #pragma omp parallel for schedule(dynamic, 1)
+	#ifdef OPENMP_ENABLED
+	#pragma omp parallel for schedule(dynamic, 1)
+	#endif
     for (size_t pair_idx = 0; pair_idx < pairs_to_process.size(); pair_idx++) {
         unsigned int i_hmm_names1 = pairs_to_process[pair_idx].first;
         unsigned int i_hmm_names2 = pairs_to_process[pair_idx].second;
@@ -65,7 +78,10 @@ int HMMTree::prc_each2(){
         std::string str_name_hmm2 = hmm_names[i_hmm_names2];
 
         // Get thread ID for progress reporting/debugging
-        int thread_id = omp_get_thread_num();
+	int thread_id = 0;
+#ifdef OPENMP_ENABLED
+	thread_id = omp_get_thread_num();
+#endif
         
         // Thread-local variables to avoid race conditions
         std::vector<STUC_RHHEL_NOTE> local_res_msg;
@@ -104,7 +120,9 @@ int HMMTree::prc_each2(){
             pclose(stream);
             
             // Thread-safe matrix update
-            #pragma omp critical
+			#ifdef OPENMP_ENABLED
+			#pragma omp critical
+			#endif
             {
                 matrix_get_each2_hmms_result_2_threadsafe(local_res_msg, local_hmm1, local_hmm2);
                 completed_count++;

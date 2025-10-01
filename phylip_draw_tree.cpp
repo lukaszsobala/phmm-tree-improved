@@ -111,6 +111,13 @@ void HMMTree::draw_tree_selective(bool run_fitch, bool run_kitsch, bool run_upgm
         if (pid == 0) {
             // Child: exec self with -phylo_worker
             std::string threads_str = std::to_string(std::max(1, t.threads));
+            // If this is a Fitch task, propagate progress level via environment
+            if (t.algo.rfind("fitch_",0)==0) {
+                char buf[8];
+                snprintf(buf,sizeof(buf),"%d", fitch_progress_level);
+                setenv("FITCH_PROGRESS","",1); // clear first
+                setenv("FITCH_PROGRESS", buf, 1);
+            }
             // Build argv array
             std::vector<char*> args;
             args.push_back(const_cast<char*>("phmm-tree"));

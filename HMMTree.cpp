@@ -1,4 +1,5 @@
 #include "HMMTree.h"
+#include "fitch.h"
 
 /*
 *-prc:
@@ -91,7 +92,8 @@ int main(int argc, char * argv[]){
         "-prc_threads",   // 18
     "-phylo_threads",  // 19
     "-phylo_concurrent_threads", // 20
-    "-prc_backend" // 21
+    "-prc_backend", // 21
+    "-fitch_progress" // 22 (quiet|normal|verbose)
     };
     const size_t kArgsCount = sizeof(kArgs) / sizeof(kArgs[0]);
 	//string to save the compute model from the user input
@@ -389,6 +391,21 @@ int main(int argc, char * argv[]){
                         }
                         find_argu = true;
                         break;
+                    case 22:
+                        // -fitch_progress <quiet|normal|verbose>
+                        arg_num++;
+                        if (arg_num >= argc){
+                            output_error_("'-fitch_progress' requires a value: quiet|normal|verbose");
+                        }
+                        {
+                            std::string v = argv[arg_num];
+                            if (v == "quiet") strc_cmd.fitch_progress_level = 0;
+                            else if (v == "normal") strc_cmd.fitch_progress_level = 1;
+                            else if (v == "verbose") strc_cmd.fitch_progress_level = 2;
+                            else output_error_("'-fitch_progress' value must be one of: quiet|normal|verbose");
+                        }
+                        find_argu = true;
+                        break;
                     default:
                         output_error_("Arguments");
                         break;
@@ -514,6 +531,12 @@ int main(int argc, char * argv[]){
     test.phylo_concurrent_threads_count = strc_cmd.phylo_concurrent_threads;
     test.prc_backend = strc_cmd.prc_backend;
     std::cout << "PRC backend preference: " << (test.prc_backend == HMMTree::PRC_BACKEND_AUTO ? "auto" : (test.prc_backend == HMMTree::PRC_BACKEND_LEGACY ? "legacy" : "prcx")) << std::endl;
+    // Fitch progress verbosity
+    test.fitch_progress_level = strc_cmd.fitch_progress_level;
+    if (strc_cmd.run_fitch) {
+        const char* lvl = (test.fitch_progress_level==0?"quiet":(test.fitch_progress_level==2?"verbose":"normal"));
+        std::cout << "Fitch progress verbosity: " << lvl << std::endl;
+    }
     
     std::cout << "Thread configuration - PRC analysis: " << 
         (test.prc_threads_count == 0 ? "auto-detect" : std::to_string(test.prc_threads_count)) << 

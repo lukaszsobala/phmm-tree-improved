@@ -46,6 +46,9 @@
   Made with permission from the original phmm-tree creator: Yanbin Yin <yanbin.yin@gmail.com>
 */
 
+/* Global Fitch progress verbosity (0=quiet,1=normal,2=verbose). Set by caller (HMMTree) before build. */
+int g_fitch_progress_level = 1;
+
 /* Static variable for thread count control */
 static int fitch_requested_threads = 0;
 
@@ -232,6 +235,11 @@ void fitch_doinit(int tree_type)
     }
   }
   fitch_allocrest();
+  if (progress) {
+    if (g_fitch_progress_level >= 0)
+      printf("[FITCH] Phase 1/6: Initialization complete (spp=%ld, nonodes2=%ld)\n", (long)spp, (long)nonodes2);
+    fflush(stdout);
+  }
 }  /* fitch_doinit */
 
 
@@ -772,6 +780,11 @@ void buildsimpletree(tree *t, long nextsp)
   buildnewtip(enterorder[2], t, nextsp);
   insert_(t->nodep[enterorder[2] - 1]->back, t->nodep[enterorder[0] - 1],
           false);
+  if (progress) {
+    if (g_fitch_progress_level >= 0)
+      printf("[FITCH] Phase 2/6: Built initial 3-taxon tree\n");
+    fflush(stdout);
+  }
 }  /* buildsimpletree */
 
 
@@ -827,6 +840,7 @@ void globrearrange(long* numtrees,boolean* succeeded)
   allocw(nonodes2, oldtree.nodep);
   fitch_copy_(&curtree,&globtree);
   fitch_copy_(&curtree,&oldtree);
+  long loop_counter = 0;
   for ( i = spp ; i < nonodes2 ; i++ ) {
     num_sibs = count_sibs(curtree.nodep[i]);
     sib_ptr  = curtree.nodep[i];
@@ -859,6 +873,12 @@ void globrearrange(long* numtrees,boolean* succeeded)
       fitch_copy_(&oldtree,&bestree);
       sib_ptr = sib_ptr->next;
     }
+    loop_counter++;
+    if (progress && (loop_counter % 10 == 0)) {
+      if (g_fitch_progress_level == 2)
+        printf("[FITCH]   Global rearrangement inner loop progress: %ld nodes processed\n", loop_counter);
+      fflush(stdout);
+    }
   }
   fitch_copy_(&globtree,&curtree);
   fitch_copy_(&globtree,&bestree);
@@ -880,6 +900,7 @@ void globrearrange(long* numtrees,boolean* succeeded)
 void fitch_rearrange(node *p, long *numtrees, long *nextsp, boolean *succeeded)
 {
   node *q, *r;
+  static long fr_calls = 0;
   if (!p->tip && !p->back->tip) {
     r = p->next->next;
     re_move(&r, &q);
@@ -895,6 +916,14 @@ void fitch_rearrange(node *p, long *numtrees, long *nextsp, boolean *succeeded)
   if (!p->tip) {
     fitch_rearrange(p->next->back, numtrees,nextsp,succeeded);
     fitch_rearrange(p->next->next->back, numtrees,nextsp,succeeded);
+  }
+  if (progress) {
+    fr_calls++;
+    if ((fr_calls & 0x3FF) == 0) { /* every 1024 recursive calls */
+      if (g_fitch_progress_level == 2)
+        printf("[FITCH]   Local rearrangements recursion calls: %ld\n", fr_calls);
+      fflush(stdout);
+    }
   }
 }  /* fitch_rearrange */
 
@@ -1069,7 +1098,7 @@ void fitch_maketree()
     if (jumble)
       randumize(seed, enterorder);
     nextsp = 3;
-    buildsimpletree(&curtree, nextsp);
+  buildsimpletree(&curtree, nextsp);
     curtree.start = curtree.nodep[enterorder[0] - 1]->back;
     if (jumb == 1) numtrees = 1;
     nextsp = 4;
@@ -1079,6 +1108,11 @@ void fitch_maketree()
 #ifdef WIN32
       phyFillScreenColor();
 #endif
+    }
+    if (progress) {
+      if (g_fitch_progress_level >= 0)
+        printf("[FITCH] Phase 3/6: Incrementally adding remaining %ld taxa\n", (long)(spp - 3));
+      fflush(stdout);
     }
     while (nextsp <= spp) {
       nums = nextsp;
@@ -1107,6 +1141,7 @@ void fitch_maketree()
         }*/
       }
       succeeded = true;
+      long improve_iters = 0;
       while (succeeded) {
         succeeded = false;
         curtree.start = curtree.nodep[enterorder[0] - 1]->back;
@@ -1114,6 +1149,12 @@ void fitch_maketree()
           globrearrange (&numtrees,&succeeded);
         else{
           fitch_rearrange(curtree.start,&numtrees,&nextsp,&succeeded);
+        }
+        improve_iters++;
+        if (progress && (improve_iters % 5 == 0)) {
+          if (g_fitch_progress_level == 2)
+            printf("[FITCH]     Taxon %ld: improvement pass %ld (succeeded=%s)\n", (long)nextsp, improve_iters, succeeded?"yes":"no");
+          fflush(stdout);
         }
        /* if (global && ((nextsp) == spp) && progress)
           printf("\n   ");*/
@@ -1137,7 +1178,18 @@ void fitch_maketree()
         printree(curtree.start, treeprint, true, false);
         fitch_summarize(numtrees);
       }
+      if (progress) {
+        double pct = (double)nextsp / (double)spp * 100.0;
+        if (g_fitch_progress_level >= 1)
+          printf("[FITCH]   Added taxon %ld/%ld (%.1f%%)\n", (long)nextsp, (long)spp, pct);
+        fflush(stdout);
+      }
       nextsp++;
+    }
+    if (progress) {
+      if (g_fitch_progress_level >= 0)
+        printf("[FITCH] Phase 4/6: All taxa added. Beginning final evaluation/reports.\n");
+      fflush(stdout);
     }
   }
 
@@ -1158,6 +1210,12 @@ int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile
 {
   /* Store requested thread count in static variable for use by init_parallel */
   fitch_requested_threads = num_threads;
+  /* Pull progress verbosity from environment (if set by parent) */
+  const char* envp = getenv("FITCH_PROGRESS");
+  if (envp && *envp) {
+    int lvl = atoi(envp);
+    if (lvl >= 0 && lvl <= 2) g_fitch_progress_level = lvl;  /* clamp */
+  }
   
   int i;
   // path_name_outfile is already the algorithm+variant base (e.g., fitch_f-m or fitch_min).
@@ -1196,6 +1254,11 @@ int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile
     fitch_getinput();
     for (jumb = 1; jumb <= njumble; jumb++)
         fitch_maketree();
+    if (progress) {
+      if (g_fitch_progress_level >= 0)
+        printf("[FITCH] Phase 5/6: Dataset %ld complete.\n", (long)ith);
+      fflush(stdout);
+    }
     firstset = false;
     if (eoln(infile) && (ith < datasets))
       scan_eoln(infile);
@@ -1214,5 +1277,10 @@ int fitch_build_tree(const char *path_name_infile, const char *path_name_outfile
 #ifdef WIN32
   phyRestoreConsoleAttributes();
 #endif
+  if (progress) {
+    if (g_fitch_progress_level >= 0)
+      printf("[FITCH] Phase 6/6: Finished. Output written.\n");
+    fflush(stdout);
+  }
   return 0;
 }
